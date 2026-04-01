@@ -33,6 +33,14 @@ export default function Navbar() {
             <Link
               key={link}
               href={`#${link.toLowerCase()}`}
+              onClick={(e) => {
+                e.preventDefault();
+                const id = link.toLowerCase();
+                document.getElementById(id)?.scrollIntoView({
+                  behavior: "smooth",
+                });
+                window.history.replaceState(null, "", `#${id}`);
+              }}
               className="group relative text-[11px] tracking-[0.22em] uppercase text-white/60 hover:text-white transition"
             >
               <span className="relative">
@@ -61,7 +69,15 @@ export default function Navbar() {
             <Link
               key={link}
               href={`#${link.toLowerCase()}`}
-              onClick={() => setMenuOpen(false)}
+              onClick={(e) => {
+  e.preventDefault();
+  const id = link.toLowerCase();
+  document.getElementById(id)?.scrollIntoView({
+    behavior: "smooth",
+  });
+  window.history.replaceState(null, "", `#${id}`);
+  setMenuOpen(false);
+}}
               className="text-sm uppercase tracking-widest text-white/80 hover:text-[#DDB96A] transition"
             >
               {link}

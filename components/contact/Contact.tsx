@@ -137,7 +137,7 @@ export default function Contact() {
 
               {/* WhatsApp */}
               <a
-                href="https://wa.me/919822990577?text=Hi%20Ashwin%20Interiors,%20I%20am%20interested%20in%20your%20services.%20Can%20we%20discuss%20further?"
+                href="https://wa.me/919822990577?text=Hi%20Ashwin,%20I%20am%20interested%20in%20your%20services.%20Can%20we%20discuss%20further?"
                 className="relative overflow-hidden text-xs sm:text-sm px-5 sm:px-6 py-2.5 sm:py-3 bg-[#111111] text-white group text-center w-full sm:w-auto"
               >
                 <span className="absolute inset-0 w-0 bg-[var(--accent-gold)] transition-all duration-600 group-hover:w-full"></span>
@@ -161,7 +161,7 @@ export default function Contact() {
               </p>
 
               {/* Main Address */}
-              <p className="text-base sm:text-lg md:text-xl font-serif text-[#111111] leading-relaxed">
+              <p className="font-sans text-base sm:text-lg md:text-xl text-[#111111] tracking-wide hover:text-[var(--accent-gold)] transition">
                 10, Ghole Complex <br />
                 Near Mhaske Petrol Pump <br />
                 Beed Bypass Road

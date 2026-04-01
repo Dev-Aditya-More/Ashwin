@@ -79,7 +79,7 @@ export default function About() {
             viewport={{ once: true }}
             className="text-xs sm:text-sm text-[#555555] leading-relaxed mb-3 sm:mb-4 max-w-md"
           >
-            We specialize in architecture and interior design, creating spaces that combine functionality, comfort, and refined aesthetics.
+            Established in 2016, we bring years of experience in civil, architectural, landscape, and interior design, delivering thoughtful solutions for residential and commercial spaces.
           </motion.p>
 
           <motion.p

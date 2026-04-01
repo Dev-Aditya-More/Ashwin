@@ -4,26 +4,38 @@ import { motion } from "framer-motion";
 
 const services = [
   {
-    number: "01",
-    title: "Civil Design",
+    title: "Landscape Design",
+    short: "Outdoor planning with aesthetics and functionality.",
+    description:
+      "Creating harmonious outdoor spaces that blend nature, functionality, and aesthetics for a serene living experience.",
+  },
+  {
+    title: "Civil Planning",
+    short: "Structural planning for efficient construction.",
     description:
       "Thoughtful planning and design that balances structure, aesthetics, and functionality for modern living spaces.",
   },
   {
-    number: "02",
+    title: "Architectural Design",
+    short: "Designing modern and functional structures.",
+    description:
+      "Creative architectural solutions that blend form and function, creating visually striking and livable spaces.",
+  },
+  {
     title: "Interior Design",
+    short: "Complete interior styling and execution.",
     description:
       "End-to-end interior solutions focused on comfort, material harmony, and refined visual appeal.",
   },
   {
-    number: "03",
     title: "Space Planning",
+    short: "Optimizing layouts for better usability.",
     description:
       "Efficient layouts that maximize usability while maintaining openness, flow, and elegance.",
   },
   {
-    number: "06",
     title: "Site Execution & Supervision",
+    short: "On-site management and quality control.",
     description:
       "Careful on-site coordination to ensure quality, timelines, and design accuracy are maintained.",
   },
@@ -49,30 +61,29 @@ export default function Services() {
   return (
     <section
       id="services"
-      className="w-full py-16 sm:py-20 md:py-24 px-4 sm:px-6 md:px-10 bg-[var(--bg-2)] border-t border-[var(--border)]"
+      className="w-full pt-10 sm:pt-12 md:pt-14 pb-16 sm:pb-20 md:pb-24 px-4 sm:px-6 md:px-10 bg-[var(--bg-2)] border-t border-[var(--border)]"
     >
       <div className="max-w-7xl mx-auto">
+
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
-          className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 mb-12 md:mb-20 pb-6 md:pb-10 border-b border-[var(--border)]"
+          className="mb-8 md:mb-10 pb-4 md:pb-6 border-b border-[var(--border)]"
         >
           <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl leading-tight text-[var(--text-primary)]">
             What We <br />
             <span className="italic text-[var(--gold-light)]">Offer</span>
           </h2>
 
-          <p className="text-sm text-[var(--text-secondary)] leading-relaxed max-w-md">
-            Complete architecture and interior design solutions for residential
-            and commercial spaces combining creativity, precision, and
-            execution.
+          <p className="mt-4 max-w-lg text-sm text-[var(--text-secondary)] leading-relaxed">
+            Comprehensive civil, architectural, landscape, and interior design solutions tailored for residential and commercial spaces.
           </p>
         </motion.div>
 
-        {/* Services list */}
+        {/* Services */}
         <motion.div
           variants={container}
           initial="hidden"
@@ -80,7 +91,7 @@ export default function Services() {
           viewport={{ once: true }}
         >
           {services.map((s, i) => {
-            const isActive = hovered === i || hovered === i;
+            const isActive = hovered === i;
 
             return (
               <motion.div
@@ -90,21 +101,24 @@ export default function Services() {
                 onMouseEnter={() => setHovered(i)}
                 onMouseLeave={() => setHovered(null)}
                 onClick={() => setHovered(isActive ? null : i)}
-                className={`grid grid-cols-[60px_1fr] md:grid-cols-[80px_1fr] gap-4 md:gap-6 py-5 md:py-7 border-b border-[var(--border)] cursor-pointer transition ${
+                className={`grid grid-cols-[20px_1fr] gap-4 md:gap-6 py-5 md:py-7 border-b border-[var(--border)] cursor-pointer transition ${
                   isActive ? "bg-[rgba(193,155,81,0.05)]" : ""
                 }`}
               >
-                {/* Number */}
-                <span
-                  className={`font-serif text-xs md:text-sm italic transition ${
-                    isActive ? "text-[var(--gold)]" : "text-[var(--text-muted)]"
-                  }`}
-                >
-                  {s.number}
-                </span>
+                {/* Bullet */}
+                <div className="flex items-start justify-center mt-2">
+                  <span
+                    className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                      isActive
+                        ? "bg-[var(--gold)] scale-125"
+                        : "bg-[var(--text-muted)]"
+                    }`}
+                  />
+                </div>
 
                 {/* Content */}
                 <div>
+                  {/* Title */}
                   <h3
                     className={`font-serif text-lg sm:text-xl md:text-2xl transition ${
                       isActive
@@ -115,6 +129,12 @@ export default function Services() {
                     {s.title}
                   </h3>
 
+                  {/* Short (always visible) */}
+                  <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-1">
+                    {s.short}
+                  </p>
+
+                  {/* Expanded */}
                   <p
                     className={`text-xs sm:text-sm text-[var(--text-muted)] mt-2 transition-all duration-300 ${
                       isActive ? "max-h-40 opacity-100" : "max-h-0 opacity-0"

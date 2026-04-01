@@ -2,10 +2,10 @@
 
 import { motion } from "framer-motion";
 
-export default function Hero() {
+export default function Home() {
   return (
     <section
-      id="hero"
+      id="home"
       className="relative w-full min-h-[85vh] md:h-[90vh] flex items-center justify-center"
     >
       {/* Background */}
@@ -52,22 +52,24 @@ export default function Hero() {
           >
             <a
               href="tel:+919822990577"
-              className="relative overflow-hidden text-xs sm:text-sm px-5 sm:px-6 py-2.5 sm:py-3 border bg-[var(--accent-blue)] group text-center w-full sm:w-auto"
+              className="relative overflow-hidden text-xs sm:text-sm px-5 sm:px-6 py-2.5 sm:py-3 text-white border bg-[var(--accent-blue)] group text-center w-full sm:w-auto"
             >
               <span className="absolute inset-0 w-0 bg-[var(--accent-blue)] transition-all duration-300 group-hover:w-full"></span>
-              <span className="relative z-10 group-hover:text-white transition">
+              <span className="relative z-10 group-hover:text-black transition">
                 Call Now
               </span>
             </a>
 
             {/* WhatsApp */}
             <a
-              href="https://wa.me/919822990577?text=Hi%20Ashwin%20Interiors,%20I%20am%20interested%20in%20your%20services.%20Can%20we%20discuss%20further?"
+              href="https://wa.me/919822990577?text=Hi%20Ashwin,%20I%20am%20interested%20in%20your%20services.%20Can%20we%20discuss%20further?"
               className="relative overflow-hidden text-xs sm:text-sm px-5 sm:px-6 py-2.5 sm:py-3 bg-[#111111] text-white group text-center w-full sm:w-auto"
             >
               <span className="absolute inset-0 w-0 bg-[var(--accent-gold)] transition-all duration-500 group-hover:w-full"></span>
 
-              <span className="relative z-10">Chat on WhatsApp</span>
+              <span className="relative z-10 group-hover:text-black transition">
+                Chat on WhatsApp
+              </span>
             </a>
           </motion.div>
         </div>
