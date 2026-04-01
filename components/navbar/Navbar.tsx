@@ -23,8 +23,11 @@ export default function Navbar() {
           : "bg-gradient-to-b from-black/80 via-black/40 to-transparent"
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-10 flex items-center justify-center h-[70px] md:h-[84px] transition-all">
-        {/* Desktop Nav */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-10 flex items-center h-[70px] md:h-[84px] transition-all">
+        {/* Empty left spacer (only for desktop centering) */}
+        <div className="hidden md:block flex-1" />
+
+        {/* Desktop Nav (centered) */}
         <nav className="hidden md:flex items-center gap-8 lg:gap-10 px-6 py-2">
           {links.map((link) => (
             <Link
@@ -40,13 +43,15 @@ export default function Navbar() {
           ))}
         </nav>
 
-        {/* Mobile Button */}
-        <button
-          className="md:hidden text-white"
-          onClick={() => setMenuOpen(!menuOpen)}
-        >
-          {menuOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
+        {/* Right side */}
+        <div className="flex-1 flex justify-end">
+          <button
+            className="md:hidden text-white"
+            onClick={() => setMenuOpen(!menuOpen)}
+          >
+            {menuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile Menu */}
