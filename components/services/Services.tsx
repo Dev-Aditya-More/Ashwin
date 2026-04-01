@@ -5,37 +5,31 @@ import { motion } from "framer-motion";
 const services = [
   {
     title: "Landscape Design",
-    short: "Outdoor planning with aesthetics and functionality.",
     description:
       "Creating harmonious outdoor spaces that blend nature, functionality, and aesthetics for a serene living experience.",
   },
   {
     title: "Civil Planning",
-    short: "Structural planning for efficient construction.",
     description:
       "Thoughtful planning and design that balances structure, aesthetics, and functionality for modern living spaces.",
   },
   {
     title: "Architectural Design",
-    short: "Designing modern and functional structures.",
     description:
       "Creative architectural solutions that blend form and function, creating visually striking and livable spaces.",
   },
   {
     title: "Interior Design",
-    short: "Complete interior styling and execution.",
     description:
       "End-to-end interior solutions focused on comfort, material harmony, and refined visual appeal.",
   },
   {
     title: "Space Planning",
-    short: "Optimizing layouts for better usability.",
     description:
       "Efficient layouts that maximize usability while maintaining openness, flow, and elegance.",
   },
   {
     title: "Site Execution & Supervision",
-    short: "On-site management and quality control.",
     description:
       "Careful on-site coordination to ensure quality, timelines, and design accuracy are maintained.",
   },
@@ -64,8 +58,8 @@ export default function Services() {
       className="w-full pt-10 sm:pt-12 md:pt-14 pb-16 sm:pb-20 md:pb-24 px-4 sm:px-6 md:px-10 bg-[var(--bg-2)] border-t border-[var(--border)]"
     >
       <div className="max-w-7xl mx-auto">
-
-        {/* Header */}
+        
+        {/* ✅ FIXED HEADER */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -83,7 +77,7 @@ export default function Services() {
           </p>
         </motion.div>
 
-        {/* Services */}
+        {/* Services list */}
         <motion.div
           variants={container}
           initial="hidden"
@@ -118,7 +112,6 @@ export default function Services() {
 
                 {/* Content */}
                 <div>
-                  {/* Title */}
                   <h3
                     className={`font-serif text-lg sm:text-xl md:text-2xl transition ${
                       isActive
@@ -129,12 +122,6 @@ export default function Services() {
                     {s.title}
                   </h3>
 
-                  {/* Short (always visible) */}
-                  <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-1">
-                    {s.short}
-                  </p>
-
-                  {/* Expanded */}
                   <p
                     className={`text-xs sm:text-sm text-[var(--text-muted)] mt-2 transition-all duration-300 ${
                       isActive ? "max-h-40 opacity-100" : "max-h-0 opacity-0"
