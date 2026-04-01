@@ -7,7 +7,7 @@ import Footer from "@/components/footer/Footer";
 
 export default function Home() {
   return (
-    <main className="bg-white text-[#111111]">
+    <main className="bg-white text-[#111111] isolate">
       <Hero />
       <Projects />
       <Services />

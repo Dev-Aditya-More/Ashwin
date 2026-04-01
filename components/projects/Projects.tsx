@@ -1,69 +1,101 @@
-export default function Projects() {
+"use client";
+import { useState } from "react";
+import { motion } from "framer-motion";
+
+export default function Portfolio() {
+  const [active, setActive] = useState<number | null>(null);
+
   const projects = [
-    {
-      title: "2BHK Glass Installation",
-      image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c",
-    },
-    {
-      title: "Office Partition Work",
-      image: "https://images.unsplash.com/photo-1497366216548-37526070297c",
-    },
-    {
-      title: "Sliding Door Setup",
-      image: "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85",
-    },
-    {
-      title: "Modern Facade Design",
-      image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab",
-    },
-    {
-      title: "Balcony Glass Work",
-      image: "https://images.unsplash.com/photo-1507089947368-19c1da9775ae",
-    },
-    {
-      title: "Office Cabin Build",
-      image: "https://images.unsplash.com/photo-1492724441997-5dc865305da7",
-    },
+    { title: "Living Room Interior", image: "/project/1.jpeg" },
+    { title: "Bedroom Design", image: "/project/3.jpeg" },
+    { title: "Modern Kitchen", image: "/project/4.jpeg" },
+    { title: "TV Unit Design", image: "/project/5.jpeg" },
+    { title: "Wardrobe & Storage", image: "/project/6.jpeg" },
+    { title: "Lighting & Ceiling", image: "/project/7.jpeg" },
   ];
 
+  const container = {
+    hidden: {},
+    show: {
+      transition: {
+        staggerChildren: 0.15,
+      },
+    },
+  };
+
+  const item = {
+    hidden: { opacity: 0, y: 40 },
+    show: { opacity: 1, y: 0 },
+  };
+
   return (
-    <section id="projects" className="w-full py-20 px-6">
+    <section id="projects" className="w-full py-16 sm:py-20 md:py-24 px-4 sm:px-6 md:px-10 border-t border-[#E5E5E5]">
       <div className="max-w-7xl mx-auto">
-        
+
         {/* Heading */}
-        <div className="mb-12">
-          <h2 className="font-serif text-3xl md:text-4xl text-[#111111]">
-            Projects
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: true }}
+          className="mb-10 sm:mb-12 md:mb-16"
+        >
+          <h2 className="font-serif text-2xl sm:text-3xl md:text-5xl text-[#111111]">
+            Portfolio
           </h2>
-          <p className="text-[#555555] text-sm mt-2">
-            Selected recent work
+
+          <span className="block w-10 h-[2px] bg-[var(--accent-gold)] mt-3"></span>
+
+          <p className="text-[#555555] text-xs sm:text-sm mt-3">
+            Interior and architectural work
           </p>
-        </div>
+        </motion.div>
 
         {/* Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-          {projects.map((project, index) => (
-            <div
-              key={index}
-              className="group cursor-pointer transition-all duration-300"
-            >
-              {/* Image */}
-              <div className="overflow-hidden border border-[#E5E5E5]">
-                <img
+        <motion.div
+          variants={container}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true }}
+          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 md:gap-8"
+        >
+          {projects.map((project, index) => {
+            const isActive = active === index;
+
+            return (
+              <motion.div
+                key={index}
+                variants={item}
+                transition={{ duration: 0.5 }}
+                onClick={() => setActive(isActive ? null : index)}
+                className="group relative overflow-hidden cursor-pointer"
+              >
+
+                {/* Image with subtle zoom animation */}
+                <motion.img
                   src={project.image}
                   alt={project.title}
-                  className="w-full h-[200px] md:h-[260px] object-cover transition duration-300 group-hover:scale-105"
+                  initial={{ scale: 1.1 }}
+                  whileInView={{ scale: 1 }}
+                  transition={{ duration: 0.8 }}
+                  className="w-full h-[200px] sm:h-[240px] md:h-[300px] object-cover group-hover:scale-105 transition"
                 />
-              </div>
 
-              {/* Title */}
-              <h3 className="mt-3 text-sm text-[#111111]">
-                {project.title}
-              </h3>
-            </div>
-          ))}
-        </div>
+                {/* Overlay */}
+                <div
+                  className={`absolute inset-0 bg-black/40 flex items-center justify-center transition duration-300 ${
+                    isActive ? "opacity-100" : "opacity-0 md:group-hover:opacity-100"
+                  }`}
+                >
+                  <p className="text-white text-xs sm:text-sm text-center px-2">
+                    {project.title}
+                  </p>
+                </div>
 
+              </motion.div>
+            );
+          })}
+        </motion.div>
       </div>
     </section>
   );

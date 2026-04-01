@@ -4,11 +4,11 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between gap-4 text-sm">
         
         <p className="text-[#111111]">
-          ASHWIN ENTERPRISES
+          &copy; {new Date().getFullYear()} Ashwin Interiors. All rights reserved.
         </p>
 
         <p className="text-[#555555]">
-          Pune, Maharashtra • +91 99999 99999
+          Chhatrapati Sambhajinagar, Maharashtra
         </p>
 
       </div>

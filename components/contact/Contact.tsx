@@ -1,67 +1,186 @@
+"use client";
+
+import { motion } from "framer-motion";
+
 export default function Contact() {
   return (
-    <section id="contact" className="w-full py-24 px-6 border-t border-[#E5E5E5]">
-      <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-12">
-        {/* Left */}
-        <div>
-          <h2 className="font-serif text-3xl md:text-4xl text-[#111111]">
-            Contact
-          </h2>
+    <section
+      id="contact"
+      className="w-full py-16 sm:py-20 md:py-24 px-4 sm:px-6 md:px-10 border-t border-[#E5E5E5] bg-[#fafafa]"
+    >
+      <div className="max-w-7xl mx-auto">
+        {/* Heading */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          viewport={{ once: true }}
+          className="mb-10 sm:mb-12 md:mb-16 text-center"
+        >
+          <motion.p
+            initial={{ opacity: 0, y: 15 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            viewport={{ once: true }}
+            className="text-[9px] sm:text-[10px] tracking-[0.25em] sm:tracking-[0.3em] uppercase text-[var(--accent-gold)] mb-3 sm:mb-4"
+          >
+            Get in Touch
+          </motion.p>
 
-          <p className="text-[#555555] text-sm mt-3 max-w-sm">
-            Get in touch for enquiries, quotations, or project discussions.
-          </p>
+          <motion.h2
+            initial={{ opacity: 0, y: 25 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            viewport={{ once: true }}
+            className="font-serif text-2xl sm:text-4xl md:text-6xl lg:text-7xl text-[#111111] leading-tight"
+          >
+            Let’s hear
+            <br />
+            <span className="italic text-[var(--accent-gold)]">From You</span>
+          </motion.h2>
+        </motion.div>
 
-          {/* Contact Info */}
-          <div className="mt-6 space-y-3 text-sm">
-            <a
-              href="tel:+919822990577"
-              className="block text-[#111111] hover:text-[#333333]"
+        {/* Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_1.5fr] gap-8 sm:gap-10 md:gap-12 items-start">
+          {/* Left */}
+          <motion.div
+            initial={{ opacity: 0, x: -40 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
+            viewport={{ once: true }}
+          >
+            {/* Phone */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              viewport={{ once: true }}
+              className="mb-6 sm:mb-8 md:mb-10"
             >
-              +91 9822990577
-            </a>
+              <p className="text-[9px] sm:text-[10px] tracking-[0.25em] uppercase text-[#888888] mb-2">
+                Phone
+              </p>
 
-            <p className="text-[#555555]">Pune, Maharashtra, India</p>
-          </div>
+              <a
+                href="tel:+919822990577"
+                className="font-serif text-lg sm:text-xl md:text-2xl text-[#111111] hover:text-[var(--accent-gold)] transition"
+              >
+                +91 9822 990 577
+              </a>
+            </motion.div>
 
-          {/* Buttons */}
-          <div className="mt-6 flex flex-col sm:flex-row gap-4">
-            <a
-              href="tel:+919822990577"
-              className="relative overflow-hidden border border-[#111111] text-[#111111] text-sm px-6 py-3 group"
+            {/* Email */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25 }}
+              viewport={{ once: true }}
+              className="mb-6 sm:mb-8 md:mb-10"
             >
-              {/* Fill layer */}
-              <span className="absolute inset-0 w-0 bg-[var(--accent)] transition-all duration-300 ease-out group-hover:w-full"></span>
+              <p className="text-[9px] sm:text-[10px] tracking-[0.25em] uppercase text-[#888888] mb-2">
+                Email
+              </p>
 
-              {/* Text */}
-              <span className="relative z-10 transition-colors duration-200 group-hover:text-white">
-                Call Now
-              </span>
-            </a>
+              <a
+                href="mailto:vikas@ashwin.world"
+                className="font-serif text-lg sm:text-xl md:text-2xl text-[#111111] hover:text-[var(--accent-gold)] transition"
+              >
+                vikas@ashwin.world
+              </a>
+            </motion.div>
 
-            <a
-              href="https://wa.me/919999999999"
-              className="relative overflow-hidden bg-[#C0C0C0] text-[#111111] text-sm px-6 py-3 group"
+            {/* Location */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              viewport={{ once: true }}
+              className="mb-6 sm:mb-8 md:mb-10"
             >
-              {/* Fill layer */}
-              <span className="absolute inset-0 w-0 bg-[#111111] transition-all duration-300 ease-out group-hover:w-full"></span>
+              <p className="text-[9px] sm:text-[10px] tracking-[0.25em] uppercase text-[#888888] mb-2">
+                Location
+              </p>
 
-              {/* Text */}
-              <span className="relative z-10 transition-colors duration-300 group-hover:text-white">
-                Chat on WhatsApp
-              </span>
+              <p className="text-xs sm:text-sm text-[#555555] leading-relaxed">
+                Chhatrapati Sambhajinagar <br />
+                Maharashtra, India
+              </p>
+            </motion.div>
+
+            {/* Divider */}
+            <motion.div
+              initial={{ width: 0 }}
+              whileInView={{ width: "100%" }}
+              transition={{ delay: 0.4, duration: 0.5 }}
+              viewport={{ once: true }}
+              className="h-[1px] bg-[#E5E5E5] mb-6 sm:mb-8"
+            />
+
+            {/* Buttons (UNCHANGED, just wrapped) */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              viewport={{ once: true }}
+              className="flex flex-col sm:flex-row gap-3 sm:gap-4"
+            >
+              {/* Call */}
+              <a
+                href="tel:+919822990577"
+                className="relative overflow-hidden text-xs sm:text-sm px-5 sm:px-6 py-2.5 sm:py-3 border border-[#111111] group text-center w-full sm:w-auto"
+              >
+                <span className="absolute inset-0 w-0 bg-[var(--accent-blue)] transition-all duration-300 group-hover:w-full"></span>
+                <span className="relative z-10 group-hover:text-white transition">
+                  Call Now
+                </span>
+              </a>
+
+              {/* WhatsApp */}
+              <a
+                href="https://wa.me/919822990577?text=Hi%20Ashwin%20Interiors,%20I%20am%20interested%20in%20your%20services.%20Can%20we%20discuss%20further?"
+                className="relative overflow-hidden text-xs sm:text-sm px-5 sm:px-6 py-2.5 sm:py-3 bg-[#111111] text-white group text-center w-full sm:w-auto"
+              >
+                <span className="absolute inset-0 w-0 bg-[var(--accent-gold)] transition-all duration-300 group-hover:w-full"></span>
+                <span className="relative z-10">Chat on WhatsApp</span>
+              </a>
+            </motion.div>
+          </motion.div>
+
+          {/* Map */}
+          <motion.div
+            initial={{ opacity: 0, x: 40 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.7, ease: "easeOut", delay: 0.2 }}
+            viewport={{ once: true }}
+            className="w-full border border-[var(--accent-gold)] bg-white p-6 sm:p-8 md:p-10 flex flex-col justify-between"
+          >
+            {/* Title */}
+            <div>
+              <p className="text-[10px] tracking-[0.25em] uppercase text-[#888888] mb-4">
+                Address
+              </p>
+
+              {/* Main Address */}
+              <p className="text-base sm:text-lg md:text-xl font-serif text-[#111111] leading-relaxed">
+                10, Ghole Complex <br />
+                Near Mhaske Petrol Pump <br />
+                Beed Bypass Road
+              </p>
+
+              <p className="text-sm text-[#666666] mt-3">
+                Chhatrapati Sambhajinagar - 431010
+              </p>
+            </div>
+
+            {/* CTA */}
+            <a
+              href="https://www.google.com/maps/search/?api=1&query=Ghole+Complex+Beed+Bypass+Road+Sambhajinagar"
+              target="_blank"
+              className="mt-6 inline-block text-sm text-[var(--accent-gold)] underline"
+            >
+              Open in Google Maps →
             </a>
-          </div>
-        </div>
-
-        {/* Right (Map Placeholder) */}
-        <div className="w-full h-[300px] md:h-[400px] border border-[#E5E5E5]">
-          <iframe
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3752.7616003424923!2d75.34364867512063!3d19.85003768152042!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bdba2f489c3c585%3A0x952c2315ad19deb9!2sAshwin%20Enterprises!5e0!3m2!1sen!2sin!4v1774634403816!5m2!1sen!2sin"
-            className="w-full h-full"
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-          />
+          </motion.div>
         </div>
       </div>
     </section>
