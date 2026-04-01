@@ -22,12 +22,6 @@ const services = [
       "Efficient layouts that maximize usability while maintaining openness, flow, and elegance.",
   },
   {
-    number: "04",
-    title: "Custom Furniture & Detailing",
-    description:
-      "Tailor-made furniture, wardrobes, and finishes designed to match the overall interior concept.",
-  },
-  {
     number: "06",
     title: "Site Execution & Supervision",
     description:
@@ -53,9 +47,11 @@ export default function Services() {
   };
 
   return (
-    <section id="services" className="w-full py-16 sm:py-20 md:py-24 px-4 sm:px-6 md:px-10 bg-[var(--bg-2)] border-t border-[var(--border)]">
+    <section
+      id="services"
+      className="w-full py-16 sm:py-20 md:py-24 px-4 sm:px-6 md:px-10 bg-[var(--bg-2)] border-t border-[var(--border)]"
+    >
       <div className="max-w-7xl mx-auto">
-
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -70,7 +66,9 @@ export default function Services() {
           </h2>
 
           <p className="text-sm text-[var(--text-secondary)] leading-relaxed max-w-md">
-            Complete architecture and interior design solutions for residential and commercial spaces combining creativity, precision, and execution.
+            Complete architecture and interior design solutions for residential
+            and commercial spaces combining creativity, precision, and
+            execution.
           </p>
         </motion.div>
 
@@ -86,16 +84,16 @@ export default function Services() {
 
             return (
               <motion.div
-  key={i}
-  variants={item}
-  transition={{ duration: 0.5 }}
-  onMouseEnter={() => setHovered(i)}
-  onMouseLeave={() => setHovered(null)}
-  onClick={() => setHovered(isActive ? null : i)}
-  className={`grid grid-cols-[60px_1fr] md:grid-cols-[80px_1fr] gap-4 md:gap-6 py-5 md:py-7 border-b border-[var(--border)] cursor-pointer transition ${
-    isActive ? "bg-[rgba(193,155,81,0.05)]" : ""
-  }`}
->
+                key={i}
+                variants={item}
+                transition={{ duration: 0.5 }}
+                onMouseEnter={() => setHovered(i)}
+                onMouseLeave={() => setHovered(null)}
+                onClick={() => setHovered(isActive ? null : i)}
+                className={`grid grid-cols-[60px_1fr] md:grid-cols-[80px_1fr] gap-4 md:gap-6 py-5 md:py-7 border-b border-[var(--border)] cursor-pointer transition ${
+                  isActive ? "bg-[rgba(193,155,81,0.05)]" : ""
+                }`}
+              >
                 {/* Number */}
                 <span
                   className={`font-serif text-xs md:text-sm italic transition ${

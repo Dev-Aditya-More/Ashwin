@@ -6,12 +6,12 @@ export default function Portfolio() {
   const [active, setActive] = useState<number | null>(null);
 
   const projects = [
-    { title: "Living Room Interior", image: "/project/1.jpeg" },
-    { title: "Bedroom Design", image: "/project/3.jpeg" },
-    { title: "Modern Kitchen", image: "/project/4.jpeg" },
-    { title: "TV Unit Design", image: "/project/5.jpeg" },
-    { title: "Wardrobe & Storage", image: "/project/6.jpeg" },
-    { title: "Lighting & Ceiling", image: "/project/7.jpeg" },
+    { title: "", image: "/project/1.jpeg" },
+    { title: "", image: "/project/3.jpeg" },
+    { title: "", image: "/project/4.jpeg" },
+    { title: "", image: "/project/5.jpeg" },
+    { title: "", image: "/project/6.jpeg" },
+    { title: "", image: "/project/7.jpeg" },
   ];
 
   const container = {
@@ -29,7 +29,7 @@ export default function Portfolio() {
   };
 
   return (
-    <section id="projects" className="w-full py-16 sm:py-20 md:py-24 px-4 sm:px-6 md:px-10 border-t border-[#E5E5E5]">
+    <section id="portfolio" className="w-full py-16 sm:py-20 md:py-24 px-4 sm:px-6 md:px-10 border-t border-[#E5E5E5]">
       <div className="max-w-7xl mx-auto">
 
         {/* Heading */}

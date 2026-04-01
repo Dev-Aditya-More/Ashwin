@@ -4,7 +4,7 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between gap-4 text-sm">
         
         <p className="text-[#111111]">
-          &copy; {new Date().getFullYear()} Ashwin Interiors. All rights reserved.
+          &copy; {new Date().getFullYear()} Ashwin. All rights reserved.
         </p>
 
         <p className="text-[#555555]">

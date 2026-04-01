@@ -13,36 +13,29 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const links = ["Home", "Projects", "Services", "About", "Contact"];
+  const links = ["Home", "Portfolio", "Services", "About", "Contact"];
 
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         scrolled
           ? "bg-black/90 backdrop-blur-lg border-b border-white/10"
-          : "bg-gradient-to-b from-black/70 to-transparent"
+          : "bg-gradient-to-b from-black/80 via-black/40 to-transparent"
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-10 flex items-center justify-between h-[70px] md:h-[84px] transition-all">
-
-        {/* Logo */}
-        <Link href="#hero" className="flex items-center gap-2">
-          <img
-            src="/ashwinLogo.png"
-            alt="Ashwin"
-            className="h-8 md:h-10 w-auto brightness-0 invert"
-          />
-        </Link>
-
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-10 flex items-center justify-center h-[70px] md:h-[84px] transition-all">
         {/* Desktop Nav */}
-        <nav className="hidden md:flex items-center gap-10">
+        <nav className="hidden md:flex items-center gap-8 lg:gap-10 px-6 py-2">
           {links.map((link) => (
             <Link
               key={link}
               href={`#${link.toLowerCase()}`}
-              className="text-[11px] tracking-[0.18em] uppercase text-white/70 hover:text-[#DDB96A] transition"
+              className="group relative text-[11px] tracking-[0.22em] uppercase text-white/60 hover:text-white transition"
             >
-              {link}
+              <span className="relative">
+                {link}
+                <span className="absolute left-0 -bottom-1 w-0 h-[1px] bg-[var(--gold)] transition-all duration-300 group-hover:w-full"></span>
+              </span>
             </Link>
           ))}
         </nav>
