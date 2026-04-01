@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 const services = [
   {
     number: "01",
-    title: "Architectural Design",
+    title: "Civil Design",
     description:
       "Thoughtful planning and design that balances structure, aesthetics, and functionality for modern living spaces.",
   },

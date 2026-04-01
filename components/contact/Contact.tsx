@@ -63,7 +63,7 @@ export default function Contact() {
 
               <a
                 href="tel:+919822990577"
-                className="font-serif text-lg sm:text-xl md:text-2xl text-[#111111] hover:text-[var(--accent-gold)] transition"
+                className="font-sans text-base sm:text-lg md:text-xl text-[#111111] tracking-wide hover:text-[var(--accent-gold)] transition"
               >
                 +91 9822 990 577
               </a>
@@ -83,7 +83,7 @@ export default function Contact() {
 
               <a
                 href="mailto:vikas@ashwin.world"
-                className="font-serif text-lg sm:text-xl md:text-2xl text-[#111111] hover:text-[var(--accent-gold)] transition"
+                className="font-sans text-base sm:text-lg md:text-xl text-[#111111] tracking-wide hover:text-[var(--accent-gold)] transition"
               >
                 vikas@ashwin.world
               </a>
