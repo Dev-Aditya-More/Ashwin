@@ -7,10 +7,6 @@ export default function Footer() {
           &copy; {new Date().getFullYear()} Ashwin. All rights reserved.
         </p>
 
-        <p className="text-[#555555]">
-          Chhatrapati Sambhajinagar, Maharashtra
-        </p>
-
       </div>
     </footer>
   );

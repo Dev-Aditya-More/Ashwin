@@ -101,7 +101,7 @@ export default function Contact() {
                 Location
               </p>
 
-              <p className="text-xs sm:text-sm text-[#555555] leading-relaxed">
+              <p className="font-sans text-[14px] sm:text-[15px] md:text-[16px] text-[#111111] tracking-wide hover:text-[var(--accent-gold)] transition">
                 Chhatrapati Sambhajinagar <br />
                 Maharashtra, India
               </p>
