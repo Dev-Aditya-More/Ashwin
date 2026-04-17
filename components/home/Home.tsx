@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import SocialLinks from "../ui/SocialLinks";
 
 export default function Home() {
   return (
@@ -72,6 +73,15 @@ export default function Home() {
               </span>
             </a>
           </motion.div>
+
+          {/* Social Links */}
+          <div className="mt-6 flex flex-col items-center">
+            {/* Divider */}
+            <div className="w-12 h-[1px] bg-black/50 mb-4 opacity-60" />
+
+            <SocialLinks />
+          </div>
+
         </div>
       </div>
     </section>
