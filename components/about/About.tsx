@@ -1,12 +1,15 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 export default function About() {
   return (
-    <section id="about" className="w-full py-16 sm:py-20 md:py-24 px-4 sm:px-6 md:px-10 border-t border-[#E5E5E5] bg-white">
+    <section
+      id="about"
+      className="w-full py-16 sm:py-20 md:py-24 px-4 sm:px-6 md:px-10 border-t border-[#E5E5E5] bg-white"
+    >
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-center">
-
         {/* Image */}
         <motion.div
           initial={{ opacity: 0, x: -40 }}
@@ -18,14 +21,19 @@ export default function About() {
           <div className="absolute -top-3 -left-3 right-3 bottom-3 sm:-top-5 sm:-left-5 sm:right-5 sm:bottom-5 border border-[var(--accent-gold)] pointer-events-none" />
 
           <div className="w-full aspect-[4/5] overflow-hidden">
-            <motion.img
-              src="/project/3.jpeg"
-              alt="Work"
+            <motion.div
               initial={{ scale: 1.1 }}
               whileInView={{ scale: 1 }}
               transition={{ duration: 1 }}
-              className="w-full h-full object-cover grayscale-[20%] brightness-90 group-hover:scale-105 transition duration-700"
-            />
+              className="w-full h-full relative"
+            >
+              <Image
+                src="/project/3.jpeg"
+                alt="Luxury living room interior design in Sambhajinagar"
+                fill
+                className="object-cover grayscale-[20%] brightness-90 group-hover:scale-105 transition duration-700"
+              />
+            </motion.div>
           </div>
         </motion.div>
 
@@ -36,7 +44,6 @@ export default function About() {
           transition={{ duration: 0.7, ease: "easeOut", delay: 0.1 }}
           viewport={{ once: true }}
         >
-
           {/* Label */}
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -49,6 +56,11 @@ export default function About() {
             About Us
           </motion.p>
 
+          <h2 className="sr-only">
+            About Ashwin Enterprises – Interior and Architectural Design in
+            Sambhajinagar
+          </h2>
+
           {/* Heading */}
           <motion.h2
             initial={{ opacity: 0, y: 25 }}
@@ -59,7 +71,9 @@ export default function About() {
           >
             Crafting Spaces
             <br />
-            <span className="italic text-[var(--accent-gold)]">With Purpose</span>
+            <span className="italic text-[var(--accent-gold)]">
+              With Purpose
+            </span>
           </motion.h2>
 
           {/* Divider */}
@@ -79,7 +93,10 @@ export default function About() {
             viewport={{ once: true }}
             className="text-xs sm:text-sm text-[#555555] leading-relaxed mb-3 sm:mb-4 max-w-md"
           >
-            Established in 2016, we bring years of experience in civil, architectural, landscape, and interior design, delivering thoughtful solutions for residential and commercial spaces.
+            Established in 2016, Ashwin Enterprises provides civil,
+            architectural, landscape, and interior design services in
+            Chhatrapati Sambhajinagar, Maharashtra, delivering thoughtful
+            solutions for residential and commercial spaces.
           </motion.p>
 
           <motion.p
@@ -89,7 +106,8 @@ export default function About() {
             viewport={{ once: true }}
             className="text-xs sm:text-sm text-[#555555] leading-relaxed mb-6 sm:mb-8 max-w-md"
           >
-            From concept to execution, every project is handled with attention to detail, ensuring quality, precision, and a seamless experience.
+            From concept to execution, every project is handled with attention
+            to detail, ensuring quality, precision, and a seamless experience.
           </motion.p>
 
           {/* Points (staggered) */}
@@ -131,15 +149,17 @@ export default function About() {
               >
                 <div className="w-2 h-2 bg-[var(--accent-gold)] mt-2 rounded-full" />
                 <div>
-                  <p className="text-xs sm:text-sm text-[#111111]">{item.title}</p>
-                  <p className="text-[11px] sm:text-xs text-[#777777]">{item.desc}</p>
+                  <p className="text-xs sm:text-sm text-[#111111]">
+                    {item.title}
+                  </p>
+                  <p className="text-[11px] sm:text-xs text-[#777777]">
+                    {item.desc}
+                  </p>
                 </div>
               </motion.div>
             ))}
           </motion.div>
-
         </motion.div>
-
       </div>
     </section>
   );
