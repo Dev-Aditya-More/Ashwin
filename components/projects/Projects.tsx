@@ -79,17 +79,13 @@ export default function Projects({ isFullPage = false }: Props) {
           {projects.slice(0, visibleCount).map((project, index) => (
             <motion.div
               key={index}
-              variants={item}
-              transition={{ duration: 0.4 }}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: (index % 12) * 0.05 }}
               onClick={() => setSelected(index)}
               className="group relative overflow-hidden cursor-pointer"
             >
-              <motion.div
-                initial={{ scale: 1.08 }}
-                whileInView={{ scale: 1 }}
-                transition={{ duration: 0.6 }}
-                className="relative w-full h-[200px] sm:h-[240px] md:h-[300px]"
-              >
+              <div className="relative w-full h-[200px] sm:h-[240px] md:h-[300px]">
                 <Image
                   src={project.image}
                   alt={project.title}
@@ -97,9 +93,7 @@ export default function Projects({ isFullPage = false }: Props) {
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
                 />
-              </motion.div>
-
-              {/* Overlay */}
+              </div>
               <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 md:group-hover:opacity-100 transition duration-300">
                 <p className="text-white text-xs sm:text-sm text-center px-2">
                   {project.title}
