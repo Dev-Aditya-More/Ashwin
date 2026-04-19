@@ -25,12 +25,12 @@ export default function SocialLinks() {
       </a>
 
       <a
-        href="https://mail.google.com/mail/?view=cm&to=vikas@ashwin.world"
-        target="_blank"
-        className="font-sans text-base sm:text-lg md:text-xl text-[#111111] tracking-wide hover:text-[var(--accent-gold)] transition"
-      >
-        vikas@ashwin.world
-      </a>
+    href="https://mail.google.com/mail/?view=cm&to=vikas@ashwin.world"
+    target="_blank"
+    className="text-black/50 hover:text-[var(--accent-gold)] transition duration-300 transform hover:scale-110 hover:drop-shadow-[0_0_6px_rgba(193,155,81,0.6)]"
+  >
+    <MdEmail size={20} />
+  </a>
     </div>
   );
 }
