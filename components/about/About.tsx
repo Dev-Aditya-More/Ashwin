@@ -57,7 +57,7 @@ export default function About() {
           </motion.p>
 
           <h2 className="sr-only">
-            About Ashwin Enterprises – Interior and Architectural Design in
+            About Ashwin – Interior and Architectural Design in
             Sambhajinagar
           </h2>
 
@@ -93,7 +93,7 @@ export default function About() {
             viewport={{ once: true }}
             className="text-xs sm:text-sm text-[#555555] leading-relaxed mb-3 sm:mb-4 max-w-md"
           >
-            Established in 2016, Ashwin Enterprises provides civil,
+            Established in 2016, Ashwin provides civil,
             architectural, landscape, and interior design services in
             Chhatrapati Sambhajinagar, Maharashtra, delivering thoughtful
             solutions for residential and commercial spaces.

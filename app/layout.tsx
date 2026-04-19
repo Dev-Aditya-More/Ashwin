@@ -20,33 +20,33 @@ export const metadata = {
   metadataBase: new URL("https://ashwin.world"),
 
   title: {
-    default: "Ashwin Enterprises | Interior & Architectural Design",
-    template: "%s | Ashwin Enterprises",
+    default: "Ashwin | Interior & Architectural Design",
+    template: "%s | Ashwin",
   },
 
   description:
-    "Ashwin Enterprises offers civil planning, architectural design, interior design, and site execution services in Chhatrapati Sambhajinagar, Maharashtra.",
+    "Ashwin offers civil planning, architectural design, interior design, and site execution services in Chhatrapati Sambhajinagar, Maharashtra.",
 
   keywords: [
     "interior designer Sambhajinagar",
     "architect Sambhajinagar",
     "civil planning Maharashtra",
     "home interior design India",
-    "Ashwin Enterprises",
+    "Ashwin",
   ],
 
   openGraph: {
-    title: "Ashwin Enterprises",
+    title: "Ashwin",
     description:
       "Interior, architectural, and civil design solutions in Sambhajinagar.",
     url: "https://ashwin.world",
-    siteName: "Ashwin Enterprises",
+    siteName: "Ashwin",
     images: [
       {
         url: "/ashwinLogo.png", // make sure this exists in public
         width: 1200,
         height: 630,
-        alt: "Ashwin Enterprises",
+        alt: "Ashwin",
       },
     ],
     locale: "en_IN",
@@ -55,7 +55,7 @@ export const metadata = {
 
   twitter: {
     card: "summary_large_image",
-    title: "Ashwin Enterprises",
+    title: "Ashwin",
     description:
       "Interior & architectural design services in Sambhajinagar.",
     images: ["/ashwinLogo.png"],
@@ -82,7 +82,7 @@ export default function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "LocalBusiness",
-              name: "Ashwin Enterprises",
+              name: "Ashwin",
               url: "https://ashwin.world",
               telephone: "+919822990577",
               address: {

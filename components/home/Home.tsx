@@ -38,7 +38,7 @@ export default function Home() {
           >
             <Image
               src="/ashwinLogo.png"
-              alt="Ashwin Enterprises Logo"
+              alt="Ashwin Logo"
               width={220}
               height={120}
               priority
