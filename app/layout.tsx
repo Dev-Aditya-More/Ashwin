@@ -3,7 +3,6 @@ import "./globals.css";
 import Navbar from "../components/navbar/Navbar";
 import WhatsAppFloat from "@/components/ui/WhatsappFloat";
 import SmoothScroll from "@/components/ui/SmoothScroll";
-import Image from "next/image";
 
 const serif = Playfair_Display({
   subsets: ["latin"],
