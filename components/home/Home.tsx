@@ -5,6 +5,26 @@ import SocialLinks from "../ui/SocialLinks";
 import Image from "next/image";
 
 export default function Home() {
+  const phoneNumber = "+919822990577";
+
+  const handleCallClick = () => {
+    if (typeof window === "undefined") return;
+
+    const isMobile =
+      /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(
+        navigator.userAgent,
+      );
+
+    if (isMobile) {
+      window.location.href = `tel:${phoneNumber}`;
+    } else {
+      navigator.clipboard.writeText(phoneNumber);
+
+      // optional but clean feedback
+      alert(`Number copied: ${phoneNumber}`);
+    }
+  };
+
   return (
     <section
       id="home"
@@ -53,15 +73,16 @@ export default function Home() {
             transition={{ delay: 0.4, duration: 0.6 }}
             className="mt-6 flex flex-col sm:flex-row gap-4 justify-center"
           >
-            <a
-              href="tel:+919822990577"
+            <button
+              onClick={handleCallClick}
               className="relative overflow-hidden text-xs sm:text-sm px-5 sm:px-6 py-2.5 sm:py-3 text-white border bg-[var(--accent-blue)] group text-center w-full sm:w-auto"
             >
               <span className="absolute inset-0 w-0 bg-[var(--accent-blue)] transition-all duration-300 group-hover:w-full"></span>
+
               <span className="relative z-10 group-hover:text-black transition">
                 Call Now
               </span>
-            </a>
+            </button>
 
             <a
               href="https://wa.me/919822990577?text=Hi%20Ashwin,%20I%20am%20interested%20in%20your%20services.%20Can%20we%20discuss%20further?"
