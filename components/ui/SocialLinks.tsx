@@ -6,7 +6,6 @@ import { MdEmail } from "react-icons/md";
 export default function SocialLinks() {
   return (
     <div className="flex items-center gap-6">
-
       <a
         href="https://instagram.com/ashwin_design"
         target="_blank"
@@ -26,12 +25,12 @@ export default function SocialLinks() {
       </a>
 
       <a
-        href="mailto:vikas@ashwin.world"
-        className="text-black/50 hover:text-[var(--accent-gold)] transition duration-300 transform hover:scale-110 hover:drop-shadow-[0_0_6px_rgba(193,155,81,0.6)]"
+        href="https://mail.google.com/mail/?view=cm&to=vikas@ashwin.world"
+        target="_blank"
+        className="font-sans text-base sm:text-lg md:text-xl text-[#111111] tracking-wide hover:text-[var(--accent-gold)] transition"
       >
-        <MdEmail size={20} />
+        vikas@ashwin.world
       </a>
-
     </div>
   );
 }
