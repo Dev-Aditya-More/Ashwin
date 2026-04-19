@@ -26,7 +26,7 @@ export default function SocialLinks() {
       </a>
 
       <a
-        href="mailto:yourmail@gmail.com"
+        href="mailto:vikas@ashwin.world"
         className="text-black/50 hover:text-[var(--accent-gold)] transition duration-300 transform hover:scale-110 hover:drop-shadow-[0_0_6px_rgba(193,155,81,0.6)]"
       >
         <MdEmail size={20} />

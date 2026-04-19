@@ -172,14 +172,17 @@ export default function Contact() {
               </p>
             </div>
 
-            {/* CTA */}
-            <a
-              href="https://www.google.com/maps/search/?api=1&query=Ghole+Complex+Beed+Bypass+Road+Sambhajinagar"
-              target="_blank"
-              className="mt-6 inline-block text-sm text-[var(--accent-gold)] underline"
-            >
-              Open in Google Maps →
-            </a>
+            <div className="mt-6 w-full h-[250px] sm:h-[300px] md:h-[350px] overflow-hidden rounded-md border border-[#E5E5E5]">
+              <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3752.761221579262!2d75.346383!3d19.8500537!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bdba30014f04415%3A0xd747294cbd8764c5!2sASHWIN!5e0!3m2!1sen!2sin!4v1776590380548!5m2!1sen!2sin"
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              ></iframe>
+            </div>
           </motion.div>
         </div>
       </div>
