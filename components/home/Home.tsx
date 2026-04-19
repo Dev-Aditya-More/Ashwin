@@ -45,9 +45,7 @@ export default function Home() {
       <div className="relative z-10 flex justify-center px-4 sm:px-6 md:px-10">
         <div className="text-center px-6 py-8 rounded-xl bg-white max-w-3xl w-full">
           {/* ✅ SEO Heading (invisible visually if needed) */}
-          <h1 className="sr-only">
-            Interior and Architectural Design in Sambhajinagar
-          </h1>
+          <h1>Interior & Architectural Design Services in Maharashtra</h1>
 
           {/* Logo */}
           <motion.div
