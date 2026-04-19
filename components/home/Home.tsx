@@ -46,11 +46,6 @@ export default function Home() {
             />
           </motion.div>
 
-          <p className="mt-5 text-sm sm:text-base text-black/70 max-w-md mx-auto leading-relaxed tracking-[0.02em]">
-            Civil planning, architectural design & interior solutions in
-              Chhatrapati Sambhajinagar
-          </p>
-
           {/* Buttons */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
