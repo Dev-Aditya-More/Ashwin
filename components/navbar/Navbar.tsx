@@ -1,9 +1,12 @@
 "use client";
 import Link from "next/link";
+import { useRouter, usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 
 export default function Navbar() {
+  const router = useRouter();
+  const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -14,6 +17,24 @@ export default function Navbar() {
   }, []);
 
   const links = ["Home", "Portfolio", "Services", "About", "Contact"];
+
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, link: string) => {
+    e.preventDefault();
+    const id = link.toLowerCase();
+    
+    // If we're on the home page, scroll to the section
+    if (pathname === "/") {
+      const element = document.getElementById(id);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+        window.history.replaceState(null, "", `#${id}`);
+      }
+    } else {
+      // If we're on a sub-page, navigate to home with the hash
+      router.push(`/#${id}`);
+    }
+    setMenuOpen(false);
+  };
 
   return (
     <header
@@ -33,14 +54,7 @@ export default function Navbar() {
             <Link
               key={link}
               href={`#${link.toLowerCase()}`}
-              onClick={(e) => {
-                e.preventDefault();
-                const id = link.toLowerCase();
-                document.getElementById(id)?.scrollIntoView({
-                  behavior: "smooth",
-                });
-                window.history.replaceState(null, "", `#${id}`);
-              }}
+              onClick={(e) => handleNavClick(e, link)}
               className="group relative text-[11px] tracking-[0.22em] uppercase text-white/60 hover:text-white transition"
             >
               <span className="relative">
@@ -69,15 +83,7 @@ export default function Navbar() {
             <Link
               key={link}
               href={`#${link.toLowerCase()}`}
-              onClick={(e) => {
-  e.preventDefault();
-  const id = link.toLowerCase();
-  document.getElementById(id)?.scrollIntoView({
-    behavior: "smooth",
-  });
-  window.history.replaceState(null, "", `#${id}`);
-  setMenuOpen(false);
-}}
+              onClick={(e) => handleNavClick(e, link)}
               className="text-sm uppercase tracking-widest text-white/80 hover:text-[#DDB96A] transition"
             >
               {link}
