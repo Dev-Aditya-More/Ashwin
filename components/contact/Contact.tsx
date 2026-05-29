@@ -1,8 +1,46 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useState } from "react";
 
 export default function Contact() {
+  const [form, setForm] = useState({
+    name: "",
+    phone: "",
+    email: "",
+    service: "",
+    message: "",
+  });
+  const [submitted, setSubmitted] = useState(false);
+
+  function handleChange(
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
+  ) {
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  }
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const text = [
+      `Hi Ashwin, I'd like to make an enquiry.`,
+      `*Name:* ${form.name}`,
+      form.phone ? `*Phone:* ${form.phone}` : null,
+      form.email ? `*Email:* ${form.email}` : null,
+      form.service ? `*Service:* ${form.service}` : null,
+      form.message ? `*Message:* ${form.message}` : null,
+    ]
+      .filter(Boolean)
+      .join("\n");
+
+    window.open(
+      `https://wa.me/919822990577?text=${encodeURIComponent(text)}`,
+      "_blank"
+    );
+    setSubmitted(true);
+  }
+
   return (
     <section
       id="contact"
@@ -34,7 +72,7 @@ export default function Contact() {
             viewport={{ once: true }}
             className="font-serif text-2xl sm:text-4xl md:text-6xl lg:text-7xl text-[#111111] leading-tight"
           >
-            Let’s hear
+            Let&apos;s hear
             <br />
             <span className="italic text-[var(--accent-gold)]">From You</span>
           </motion.h2>
@@ -42,7 +80,7 @@ export default function Contact() {
 
         {/* Grid */}
         <div className="grid grid-cols-1 md:grid-cols-[1fr_1.5fr] gap-8 sm:gap-10 md:gap-12 items-start">
-          {/* Left */}
+          {/* Left — contact details */}
           <motion.div
             initial={{ opacity: 0, x: -40 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -60,7 +98,6 @@ export default function Contact() {
               <p className="text-[9px] sm:text-[10px] tracking-[0.25em] uppercase text-[#888888] mb-2">
                 Phone
               </p>
-
               <a
                 href="tel:+919822990577"
                 className="font-sans text-base sm:text-lg md:text-xl text-[#111111] tracking-wide hover:text-[var(--accent-gold)] transition"
@@ -80,7 +117,6 @@ export default function Contact() {
               <p className="text-[9px] sm:text-[10px] tracking-[0.25em] uppercase text-[#888888] mb-2">
                 Email
               </p>
-
               <a
                 href="mailto:vikas@ashwin.world"
                 className="font-sans text-base sm:text-lg md:text-xl text-[#111111] tracking-wide hover:text-[var(--accent-gold)] transition"
@@ -89,7 +125,7 @@ export default function Contact() {
               </a>
             </motion.div>
 
-            {/* Location */}
+            {/* Address */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -98,11 +134,15 @@ export default function Contact() {
               className="mb-6 sm:mb-8 md:mb-10"
             >
               <p className="text-[9px] sm:text-[10px] tracking-[0.25em] uppercase text-[#888888] mb-2">
-                Location
+                Address
               </p>
-
-              <p className="font-sans text-[14px] sm:text-[15px] md:text-[16px] text-[#111111] tracking-wide hover:text-[var(--accent-gold)] transition">
-                Chhatrapati Sambhajinagar <br />
+              <p className="font-sans text-[14px] sm:text-[15px] md:text-[16px] text-[#111111] tracking-wide leading-relaxed">
+                10, Ghole Complex, Near Mhaske Petrol Pump
+                <br />
+                Beed Bypass Road
+                <br />
+                Chhatrapati Sambhajinagar – 431010
+                <br />
                 Maharashtra, India
               </p>
             </motion.div>
@@ -116,7 +156,7 @@ export default function Contact() {
               className="h-[1px] bg-[#E5E5E5] mb-6 sm:mb-8"
             />
 
-            {/* Buttons (UNCHANGED, just wrapped) */}
+            {/* CTA Buttons */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -124,65 +164,165 @@ export default function Contact() {
               viewport={{ once: true }}
               className="flex flex-col sm:flex-row gap-3 sm:gap-4"
             >
-              {/* Call */}
               <a
                 href="tel:+919822990577"
                 className="relative overflow-hidden text-xs sm:text-sm px-5 sm:px-6 py-2.5 sm:py-3 border border-[#111111] group text-center w-full sm:w-auto"
               >
-                <span className="absolute inset-0 w-0 bg-[var(--accent-blue)] transition-all duration-600 group-hover:w-full"></span>
+                <span className="absolute inset-0 w-0 bg-[var(--accent-blue)] transition-all duration-600 group-hover:w-full" />
                 <span className="relative z-10 group-hover:text-white transition">
                   Call Now
                 </span>
               </a>
 
-              {/* WhatsApp */}
               <a
                 href="https://wa.me/919822990577?text=Hi%20Ashwin,%20I%20am%20interested%20in%20your%20services.%20Can%20we%20discuss%20further?"
                 className="relative overflow-hidden text-xs sm:text-sm px-5 sm:px-6 py-2.5 sm:py-3 bg-[#111111] text-white group text-center w-full sm:w-auto"
               >
-                <span className="absolute inset-0 w-0 bg-[var(--accent-gold)] transition-all duration-600 group-hover:w-full"></span>
+                <span className="absolute inset-0 w-0 bg-[var(--accent-gold)] transition-all duration-600 group-hover:w-full" />
                 <span className="relative z-10">Chat on WhatsApp</span>
               </a>
             </motion.div>
           </motion.div>
 
-          {/* Map */}
+          {/* Right — Inquiry Form */}
           <motion.div
             initial={{ opacity: 0, x: 40 }}
             whileInView={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.7, ease: "easeOut", delay: 0.2 }}
             viewport={{ once: true }}
-            className="w-full border border-[var(--accent-gold)] bg-white p-6 sm:p-8 md:p-10 flex flex-col justify-between"
+            className="w-full border border-[var(--accent-gold)] bg-white p-6 sm:p-8 md:p-10"
           >
-            {/* Title */}
-            <div>
-              <p className="text-[10px] tracking-[0.25em] uppercase text-[#888888] mb-4">
-                Address
-              </p>
+            <p className="text-[10px] tracking-[0.25em] uppercase text-[#888888] mb-1">
+              Enquiry
+            </p>
+            <h3 className="font-serif text-xl sm:text-2xl text-[#111111] mb-6">
+              Send us a message
+            </h3>
 
-              {/* Main Address */}
-              <p className="font-sans text-base sm:text-lg md:text-xl text-[#111111] tracking-wide hover:text-[var(--accent-gold)] transition">
-                10, Ghole Complex <br />
-                Near Mhaske Petrol Pump <br />
-                Beed Bypass Road
-              </p>
+            {submitted ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center gap-4">
+                <p className="text-[10px] tracking-[0.25em] uppercase text-[var(--accent-gold)]">
+                  Message Sent
+                </p>
+                <p className="font-sans text-[#111111] text-base">
+                  Your enquiry has been forwarded via WhatsApp.
+                  <br />
+                  We&apos;ll get back to you shortly.
+                </p>
+                <button
+                  onClick={() => {
+                    setSubmitted(false);
+                    setForm({
+                      name: "",
+                      phone: "",
+                      email: "",
+                      service: "",
+                      message: "",
+                    });
+                  }}
+                  className="mt-2 text-xs tracking-widest uppercase underline underline-offset-4 text-[#888888] hover:text-[var(--accent-gold)] transition"
+                >
+                  Send another
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                {/* Name */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-[9px] tracking-[0.2em] uppercase text-[#888888]">
+                    Name <span className="text-[var(--accent-gold)]">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    required
+                    value={form.name}
+                    onChange={handleChange}
+                    placeholder="Your full name"
+                    className="w-full border border-[#E5E5E5] bg-[#fafafa] px-4 py-3 text-sm text-[#111111] placeholder:text-[#aaaaaa] outline-none focus:border-[var(--accent-gold)] transition"
+                  />
+                </div>
 
-              <p className="text-sm text-[#666666] mt-3">
-                Chhatrapati Sambhajinagar - 431010
-              </p>
-            </div>
+                {/* Phone + Email row */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[9px] tracking-[0.2em] uppercase text-[#888888]">
+                      Phone <span className="text-[var(--accent-gold)]">*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      required
+                      value={form.phone}
+                      onChange={handleChange}
+                      placeholder="+91 XXXXX XXXXX"
+                      className="w-full border border-[#E5E5E5] bg-[#fafafa] px-4 py-3 text-sm text-[#111111] placeholder:text-[#aaaaaa] outline-none focus:border-[var(--accent-gold)] transition"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[9px] tracking-[0.2em] uppercase text-[#888888]">
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={form.email}
+                      onChange={handleChange}
+                      placeholder="your@email.com"
+                      className="w-full border border-[#E5E5E5] bg-[#fafafa] px-4 py-3 text-sm text-[#111111] placeholder:text-[#aaaaaa] outline-none focus:border-[var(--accent-gold)] transition"
+                    />
+                  </div>
+                </div>
 
-            <div className="mt-6 w-full h-[250px] sm:h-[300px] md:h-[350px] overflow-hidden rounded-md border border-[#E5E5E5]">
-              <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3752.761221579262!2d75.346383!3d19.8500537!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bdba30014f04415%3A0xd747294cbd8764c5!2sASHWIN!5e0!3m2!1sen!2sin!4v1776590380548!5m2!1sen!2sin"
-                width="100%"
-                height="100%"
-                style={{ border: 0 }}
-                allowFullScreen
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-              ></iframe>
-            </div>
+                {/* Service */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-[9px] tracking-[0.2em] uppercase text-[#888888]">
+                    Service Interested In
+                  </label>
+                  <select
+                    name="service"
+                    value={form.service}
+                    onChange={handleChange}
+                    className="w-full border border-[#E5E5E5] bg-[#fafafa] px-4 py-3 text-sm text-[#111111] outline-none focus:border-[var(--accent-gold)] transition appearance-none cursor-pointer"
+                  >
+                    <option value="">Select a service</option>
+                    <option>Civil Planning</option>
+                    <option>Architectural Design</option>
+                    <option>Interior Design</option>
+                    <option>Site Execution</option>
+                    <option>Complete Project</option>
+                  </select>
+                </div>
+
+                {/* Message */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-[9px] tracking-[0.2em] uppercase text-[#888888]">
+                    Message
+                  </label>
+                  <textarea
+                    name="message"
+                    value={form.message}
+                    onChange={handleChange}
+                    rows={4}
+                    placeholder="Tell us about your project or requirement…"
+                    className="w-full border border-[#E5E5E5] bg-[#fafafa] px-4 py-3 text-sm text-[#111111] placeholder:text-[#aaaaaa] outline-none focus:border-[var(--accent-gold)] transition resize-none"
+                  />
+                </div>
+
+                {/* Submit */}
+                <button
+                  type="submit"
+                  className="relative overflow-hidden mt-1 text-xs sm:text-sm tracking-widest uppercase px-6 py-3 bg-[#111111] text-white group text-center w-full"
+                >
+                  <span className="absolute inset-0 w-0 bg-[var(--accent-gold)] transition-all duration-500 group-hover:w-full" />
+                  <span className="relative z-10">Send Enquiry via WhatsApp</span>
+                </button>
+
+                <p className="text-[10px] text-[#aaaaaa] text-center mt-1">
+                  Your message will open in WhatsApp for quick response.
+                </p>
+              </form>
+            )}
           </motion.div>
         </div>
       </div>
