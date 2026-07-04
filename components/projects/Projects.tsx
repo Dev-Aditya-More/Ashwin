@@ -14,7 +14,8 @@ export default function Projects({ isFullPage = false }: Props) {
   const [visibleCount, setVisibleCount] = useState(isFullPage ? 12 : 6);
 
   const projects = Array.from({ length: 74 }, (_, i) => ({
-    title: `Interior project ${i + 1}`,
+    title: `Project ${i + 1}`,
+    alt: `Interior and architectural design project by Ashwin Interiors, Chhatrapati Sambhajinagar`,
     image: `/project/${i + 1}.jpeg`,
   }));
 
@@ -88,7 +89,7 @@ export default function Projects({ isFullPage = false }: Props) {
               <div className="relative w-full h-[200px] sm:h-[240px] md:h-[300px]">
                 <Image
                   src={project.image}
-                  alt={project.title}
+                  alt={project.alt}
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
@@ -150,7 +151,7 @@ export default function Projects({ isFullPage = false }: Props) {
           >
             <Image
               src={projects[selected].image}
-              alt={projects[selected].title}
+              alt={projects[selected].alt}
               width={1200}
               height={800}
               className="w-full h-auto object-contain rounded-lg shadow-2xl"

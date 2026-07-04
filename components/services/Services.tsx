@@ -1,39 +1,8 @@
 "use client";
 import { useState } from "react";
 import { motion } from "framer-motion";
-
-const services = [
-  {
-    title: "Landscape Design",
-    description:
-      "Creating harmonious outdoor spaces that blend nature, functionality, and aesthetics for a serene living experience.",
-  },
-  {
-    title: "Civil Planning",
-    description:
-      "Thoughtful planning and design that balances structure, aesthetics, and functionality for modern living spaces.",
-  },
-  {
-    title: "Architectural Design",
-    description:
-      "Creative architectural solutions that blend form and function, creating visually striking and livable spaces.",
-  },
-  {
-    title: "Interior Design",
-    description:
-      "End-to-end interior solutions focused on comfort, material harmony, and refined visual appeal.",
-  },
-  {
-    title: "Space Planning",
-    description:
-      "Efficient layouts that maximize usability while maintaining openness, flow, and elegance.",
-  },
-  {
-    title: "Site Execution & Supervision",
-    description:
-      "Careful on-site coordination to ensure quality, timelines, and design accuracy are maintained.",
-  },
-];
+import Link from "next/link";
+import { services } from "@/lib/services-data";
 
 export default function Services() {
   const [hovered, setHovered] = useState<number | null>(null);
@@ -122,18 +91,40 @@ export default function Services() {
                     {s.title}
                   </h3>
 
-                  <p
-                    className={`text-xs sm:text-sm text-[var(--text-muted)] mt-2 transition-all duration-300 ${
+                  <div
+                    className={`transition-all duration-300 ${
                       isActive ? "max-h-40 opacity-100" : "max-h-0 opacity-0"
                     } overflow-hidden`}
                   >
-                    {s.description}
-                  </p>
+                    <p className="text-xs sm:text-sm text-[var(--text-muted)] mt-2">
+                      {s.shortDescription}
+                    </p>
+                    <Link
+                      href={`/services/${s.slug}`}
+                      onClick={(e) => e.stopPropagation()}
+                      className="inline-block mt-2 text-xs tracking-widest uppercase text-[var(--gold)] hover:text-[var(--gold-light)] transition"
+                    >
+                      Learn more &rarr;
+                    </Link>
+                  </div>
                 </div>
               </motion.div>
             );
           })}
         </motion.div>
+
+        {/* View All */}
+        <div className="mt-10 flex justify-center">
+          <Link
+            href="/services"
+            className="relative overflow-hidden text-xs sm:text-sm px-6 py-3 border border-[var(--text-primary)] text-[var(--text-primary)] group"
+          >
+            <span className="absolute inset-0 w-0 bg-[var(--accent-gold)] transition-all duration-300 group-hover:w-full"></span>
+            <span className="relative z-10 group-hover:text-black transition">
+              View All Services
+            </span>
+          </Link>
+        </div>
       </div>
     </section>
   );

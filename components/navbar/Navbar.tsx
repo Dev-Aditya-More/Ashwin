@@ -16,12 +16,23 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const links = ["Home", "Portfolio", "Services", "About", "Contact"];
+  // "page" links are real routes Google can crawl directly.
+  // "anchor" links only exist as sections on the homepage.
+  const links: { label: string; href: string; type: "page" | "anchor" }[] = [
+    { label: "Home", href: "/", type: "anchor" },
+    { label: "Portfolio", href: "/portfolio", type: "page" },
+    { label: "Services", href: "/services", type: "page" },
+    { label: "About", href: "/#about", type: "anchor" },
+    { label: "Contact", href: "/#contact", type: "anchor" },
+  ];
 
-  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, link: string) => {
+  const handleAnchorClick = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    href: string
+  ) => {
     e.preventDefault();
-    const id = link.toLowerCase();
-    
+    const id = href === "/" ? "home" : href.replace("/#", "");
+
     // If we're on the home page, scroll to the section
     if (pathname === "/") {
       const element = document.getElementById(id);
@@ -52,13 +63,17 @@ export default function Navbar() {
         <nav className="hidden md:flex items-center gap-8 lg:gap-10 px-6 py-2">
           {links.map((link) => (
             <Link
-              key={link}
-              href={`#${link.toLowerCase()}`}
-              onClick={(e) => handleNavClick(e, link)}
+              key={link.label}
+              href={link.href}
+              onClick={
+                link.type === "anchor"
+                  ? (e) => handleAnchorClick(e, link.href)
+                  : () => setMenuOpen(false)
+              }
               className="group relative text-[11px] tracking-[0.22em] uppercase text-white/60 hover:text-white transition"
             >
               <span className="relative">
-                {link}
+                {link.label}
                 <span className="absolute left-0 -bottom-1 w-0 h-[1px] bg-[var(--gold)] transition-all duration-300 group-hover:w-full"></span>
               </span>
             </Link>
@@ -81,12 +96,16 @@ export default function Navbar() {
         <div className="md:hidden bg-black/95 backdrop-blur-lg px-6 py-6 flex flex-col gap-6">
           {links.map((link) => (
             <Link
-              key={link}
-              href={`#${link.toLowerCase()}`}
-              onClick={(e) => handleNavClick(e, link)}
+              key={link.label}
+              href={link.href}
+              onClick={
+                link.type === "anchor"
+                  ? (e) => handleAnchorClick(e, link.href)
+                  : () => setMenuOpen(false)
+              }
               className="text-sm uppercase tracking-widest text-white/80 hover:text-[#DDB96A] transition"
             >
-              {link}
+              {link.label}
             </Link>
           ))}
         </div>
