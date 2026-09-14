@@ -80,6 +80,7 @@ create table if not exists client_payments (
   amount numeric(12,2) not null check (amount >= 0),
   payment_date date not null default current_date,
   note text,
+  payment_mode text,
   created_at timestamptz not null default now(),
   created_by text
 );
@@ -108,6 +109,8 @@ create table if not exists labour_payments (
   amount numeric(12,2) not null check (amount >= 0),
   payment_date date not null default current_date,
   note text,
+  payment_mode text,
+  entry_type text not null default 'Payment', -- 'Payment' | 'Advance'
   created_at timestamptz not null default now(),
   created_by text
 );
@@ -120,6 +123,7 @@ create table if not exists vendor_bills (
   vendor_id uuid not null references vendors(id) on delete cascade,
   project_id uuid references projects(id) on delete set null,
   financial_year_id uuid references financial_years(id) on delete set null,
+  bill_no text,
   description text not null,
   amount numeric(12,2) not null check (amount >= 0),
   bill_date date not null default current_date,
@@ -134,6 +138,7 @@ create table if not exists vendor_payments (
   amount numeric(12,2) not null check (amount >= 0),
   payment_date date not null default current_date,
   note text,
+  payment_mode text,
   created_at timestamptz not null default now(),
   created_by text
 );

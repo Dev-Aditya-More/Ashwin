@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import SocialLinks from "../ui/SocialLinks";
 import Image from "next/image";
+import { Logo } from "@/components/brand/Logo";
 
 export default function Home() {
   const phoneNumber = "+919822990577";
@@ -54,14 +55,7 @@ export default function Home() {
             transition={{ duration: 0.7, ease: "easeOut" }}
             className="flex justify-center"
           >
-            <Image
-              src="/ashwinLogo.png"
-              alt="Ashwin Logo"
-              width={260}
-              height={112}
-              priority
-              className="w-[200px] sm:w-[260px] h-auto object-contain"
-            />
+            <Logo className="w-[220px] sm:w-[280px] h-auto" />
           </motion.div>
 
           {/* Buttons */}

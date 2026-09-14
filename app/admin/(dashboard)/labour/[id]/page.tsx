@@ -7,10 +7,14 @@ import {
   EditLabourerDialog,
   AddLabourWorkDialog,
   AddLabourPaymentDialog,
+  EditLabourWorkDialog,
+  EditLabourPaymentDialog,
 } from "@/components/admin/dialogs/LabourDialogs";
 import { TrackVisit } from "@/components/admin/TrackVisit";
+import { LabourLedgerTable } from "@/components/admin/EntityLedger";
 import { formatDate, formatMoney } from "@/lib/format";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -60,78 +64,99 @@ export default async function LabourDetailPage({
 
       {labourer.phone && <p className="text-sm text-[var(--text-muted)]">📞 {labourer.phone}</p>}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Section
-          title="Work Entries"
-          action={
-            <AddLabourWorkDialog
-              labourerId={id}
-              projects={projects}
-              defaultRate={labourer.default_rate}
-            />
-          }
-        >
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Description</TableHead>
-                <TableHead>Qty × Rate</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {work.map((w) => (
-                <TableRow key={w.id}>
-                  <TableCell>{w.description}</TableCell>
-                  <TableCell className="text-[var(--text-muted)]">
-                    {w.quantity} × {formatMoney(w.rate)}
-                  </TableCell>
-                  <TableCell className="text-[var(--text-muted)]">{formatDate(w.work_date)}</TableCell>
-                  <TableCell className="text-right font-medium">{formatMoney(w.amount)}</TableCell>
-                </TableRow>
-              ))}
-              {work.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center text-[var(--text-muted)] py-6">
-                    No work recorded yet.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </Section>
+      <Tabs defaultValue="overview">
+        <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="ledger">Ledger</TabsTrigger>
+        </TabsList>
 
-        <Section title="Payments Made" action={<AddLabourPaymentDialog labourerId={id} />}>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Note</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {payments.map((p) => (
-                <TableRow key={p.id}>
-                  <TableCell>{p.note ?? "—"}</TableCell>
-                  <TableCell className="text-[var(--text-muted)]">{formatDate(p.payment_date)}</TableCell>
-                  <TableCell className="text-right font-medium text-rose-600">
-                    - {formatMoney(p.amount)}
-                  </TableCell>
-                </TableRow>
-              ))}
-              {payments.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={3} className="text-center text-[var(--text-muted)] py-6">
-                    No payments recorded yet.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </Section>
-      </div>
+        <TabsContent value="overview">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <Section
+              title="Work Entries"
+              action={
+                <AddLabourWorkDialog
+                  labourerId={id}
+                  projects={projects}
+                  defaultRate={labourer.default_rate}
+                />
+              }
+            >
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Description</TableHead>
+                    <TableHead>Qty × Rate</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead className="text-right">Amount</TableHead>
+                    <TableHead className="w-9" />
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {work.map((w) => (
+                    <TableRow key={w.id}>
+                      <TableCell>{w.description}</TableCell>
+                      <TableCell className="text-[var(--text-muted)]">
+                        {w.quantity} × {formatMoney(w.rate)}
+                      </TableCell>
+                      <TableCell className="text-[var(--text-muted)]">{formatDate(w.work_date)}</TableCell>
+                      <TableCell className="text-right font-medium">{formatMoney(w.amount)}</TableCell>
+                      <TableCell>
+                        <EditLabourWorkDialog work={w} labourerId={id} projects={projects} />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {work.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center text-[var(--text-muted)] py-6">
+                        No work recorded yet.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </Section>
+
+            <Section title="Payments Made" action={<AddLabourPaymentDialog labourerId={id} />}>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Note</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead className="text-right">Amount</TableHead>
+                    <TableHead className="w-9" />
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {payments.map((p) => (
+                    <TableRow key={p.id}>
+                      <TableCell>{p.note ?? "—"}</TableCell>
+                      <TableCell className="text-[var(--text-muted)]">{formatDate(p.payment_date)}</TableCell>
+                      <TableCell className="text-right font-medium text-rose-600">
+                        - {formatMoney(p.amount)}
+                      </TableCell>
+                      <TableCell>
+                        <EditLabourPaymentDialog payment={p} labourerId={id} />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {payments.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center text-[var(--text-muted)] py-6">
+                        No payments recorded yet.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </Section>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="ledger">
+          <LabourLedgerTable work={work} payments={payments} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

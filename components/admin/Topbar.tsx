@@ -39,37 +39,42 @@ export default function Topbar({
       <div className="flex-1 sm:hidden" />
       <MobileSearch />
 
-      <div className="hidden lg:flex items-center gap-2 text-sm text-[var(--text-secondary)] shrink-0">
-        <CalendarDays className="size-4" />
-        <span className="whitespace-nowrap">{today}</span>
-        <span className="text-[var(--text-muted)]">·</span>
-        <span className="font-medium text-[var(--text-primary)] whitespace-nowrap">{fyLabel}</span>
-      </div>
+      {/* Pinned to the far right regardless of how much room the (max-width
+          capped) search box leaves — was previously just floating with a
+          gap after it since nothing here had ml-auto. */}
+      <div className="ml-auto flex items-center gap-3 shrink-0">
+        <div className="hidden lg:flex items-center gap-2 text-sm text-[var(--text-secondary)]">
+          <CalendarDays className="size-4" />
+          <span className="whitespace-nowrap">{today}</span>
+          <span className="text-[var(--text-muted)]">·</span>
+          <span className="font-medium text-[var(--text-primary)] whitespace-nowrap">{fyLabel}</span>
+        </div>
 
-      <DropdownMenu>
-        <DropdownMenuTrigger className="outline-none shrink-0">
-          <Avatar className="size-9">
-            <AvatarFallback className="bg-[var(--accent-blue)] text-white text-xs font-semibold">
-              {initials(userEmail) || "AE"}
-            </AvatarFallback>
-          </Avatar>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-56">
-          <div className="px-2 py-1.5 text-xs text-[var(--text-muted)] truncate">{userEmail}</div>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem asChild>
-            <Link href="/admin/settings">Settings</Link>
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <form action={logout}>
+        <DropdownMenu>
+          <DropdownMenuTrigger className="outline-none shrink-0">
+            <Avatar className="size-9">
+              <AvatarFallback className="bg-[var(--accent-blue)] text-white text-xs font-semibold">
+                {initials(userEmail) || "AE"}
+              </AvatarFallback>
+            </Avatar>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <div className="px-2 py-1.5 text-xs text-[var(--text-muted)] truncate">{userEmail}</div>
+            <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-              <button type="submit" className="w-full flex items-center gap-2 text-left">
-                <LogOut className="size-4" /> Sign out
-              </button>
+              <Link href="/admin/settings">Settings</Link>
             </DropdownMenuItem>
-          </form>
-        </DropdownMenuContent>
-      </DropdownMenu>
+            <DropdownMenuSeparator />
+            <form action={logout}>
+              <DropdownMenuItem asChild>
+                <button type="submit" className="w-full flex items-center gap-2 text-left">
+                  <LogOut className="size-4" /> Sign out
+                </button>
+              </DropdownMenuItem>
+            </form>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     </header>
   );
 }

@@ -1,18 +1,23 @@
 "use client";
 
-import { Plus } from "lucide-react";
+import { Plus, Pencil } from "lucide-react";
 import { FormDialog } from "@/components/admin/FormDialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { PaymentModeSelect, ProjectSelect } from "@/components/admin/dialogs/shared";
 import {
   createClientRecord,
   updateClientRecord,
   addClientWork,
   addClientPayment,
+  updateClientWork,
+  updateClientPayment,
 } from "@/lib/actions/clients";
-import type { Client } from "@/lib/types";
+import type { Client, ClientWork, ClientPayment } from "@/lib/types";
+
+type ProjectOption = { id: string; name: string };
 
 export function AddClientDialog() {
   return (
@@ -78,7 +83,7 @@ export function AddClientWorkDialog({
   projects,
 }: {
   clientId: string;
-  projects: { id: string; name: string }[];
+  projects: ProjectOption[];
 }) {
   return (
     <FormDialog
@@ -105,23 +110,53 @@ export function AddClientWorkDialog({
           <Input id="work_date" name="work_date" type="date" defaultValue={today()} />
         </div>
       </div>
-      {projects.length > 0 && (
+      <ProjectSelect projects={projects} />
+    </FormDialog>
+  );
+}
+
+export function EditClientWorkDialog({
+  work,
+  clientId,
+  projects,
+}: {
+  work: ClientWork;
+  clientId: string;
+  projects: ProjectOption[];
+}) {
+  return (
+    <FormDialog
+      trigger={
+        <Button variant="ghost" size="icon-sm" title="Edit">
+          <Pencil className="size-3.5" />
+        </Button>
+      }
+      title="Edit Work / Billed Amount"
+      action={(fd) => updateClientWork(work.id, clientId, fd)}
+    >
+      <div className="space-y-1.5">
+        <Label htmlFor="description">Description</Label>
+        <Input id="description" name="description" defaultValue={work.description} required />
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="space-y-1.5">
-          <Label htmlFor="project_id">Project / Site (optional)</Label>
-          <select
-            id="project_id"
-            name="project_id"
-            className="w-full h-9 rounded-md border border-[var(--border)] bg-background px-3 text-sm"
-          >
-            <option value="">— None —</option>
-            {projects.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
+          <Label htmlFor="amount">Amount (₹)</Label>
+          <Input
+            id="amount"
+            name="amount"
+            type="number"
+            min="0"
+            step="0.01"
+            defaultValue={work.amount}
+            required
+          />
         </div>
-      )}
+        <div className="space-y-1.5">
+          <Label htmlFor="work_date">Date</Label>
+          <Input id="work_date" name="work_date" type="date" defaultValue={work.work_date} />
+        </div>
+      </div>
+      <ProjectSelect projects={projects} defaultValue={work.project_id ?? ""} />
     </FormDialog>
   );
 }
@@ -131,7 +166,7 @@ export function AddClientPaymentDialog({
   projects,
 }: {
   clientId: string;
-  projects: { id: string; name: string }[];
+  projects: ProjectOption[];
 }) {
   return (
     <FormDialog
@@ -154,26 +189,58 @@ export function AddClientPaymentDialog({
           <Input id="payment_date" name="payment_date" type="date" defaultValue={today()} />
         </div>
       </div>
-      {projects.length > 0 && (
-        <div className="space-y-1.5">
-          <Label htmlFor="project_id">Project / Site (optional)</Label>
-          <select
-            id="project_id"
-            name="project_id"
-            className="w-full h-9 rounded-md border border-[var(--border)] bg-background px-3 text-sm"
-          >
-            <option value="">— None —</option>
-            {projects.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
+      <ProjectSelect projects={projects} />
+      <PaymentModeSelect />
       <div className="space-y-1.5">
         <Label htmlFor="note">Note (optional)</Label>
-        <Input id="note" name="note" placeholder="e.g. Cash, UPI, cheque no." />
+        <Input id="note" name="note" placeholder="e.g. Cheque no., UTR ref." />
+      </div>
+    </FormDialog>
+  );
+}
+
+export function EditClientPaymentDialog({
+  payment,
+  clientId,
+  projects,
+}: {
+  payment: ClientPayment;
+  clientId: string;
+  projects: ProjectOption[];
+}) {
+  return (
+    <FormDialog
+      trigger={
+        <Button variant="ghost" size="icon-sm" title="Edit">
+          <Pencil className="size-3.5" />
+        </Button>
+      }
+      title="Edit Payment Received"
+      action={(fd) => updateClientPayment(payment.id, clientId, fd)}
+    >
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <Label htmlFor="amount">Amount (₹)</Label>
+          <Input
+            id="amount"
+            name="amount"
+            type="number"
+            min="0"
+            step="0.01"
+            defaultValue={payment.amount}
+            required
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="payment_date">Date</Label>
+          <Input id="payment_date" name="payment_date" type="date" defaultValue={payment.payment_date} />
+        </div>
+      </div>
+      <ProjectSelect projects={projects} defaultValue={payment.project_id ?? ""} />
+      <PaymentModeSelect defaultValue={payment.payment_mode ?? ""} />
+      <div className="space-y-1.5">
+        <Label htmlFor="note">Note (optional)</Label>
+        <Input id="note" name="note" defaultValue={payment.note ?? ""} placeholder="e.g. Cheque no., UTR ref." />
       </div>
     </FormDialog>
   );

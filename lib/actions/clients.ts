@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { hasRecentDuplicate, duplicateWarning } from "@/lib/actions/duplicate-check";
-import { currentUserEmail, insertWithActor } from "@/lib/actions/audit-helper";
+import { currentUserEmail, insertWithActor, updateSafely } from "@/lib/actions/audit-helper";
 import type { Client, ClientBalance, ClientWork, ClientPayment } from "@/lib/types";
 
 export async function listClients(): Promise<(Client & { balance: number })[]> {
@@ -132,6 +132,43 @@ export async function addClientWork(
   revalidatePath("/admin");
 }
 
+export async function updateClientWork(id: string, clientId: string, formData: FormData) {
+  const description = String(formData.get("description") ?? "").trim();
+  const amount = Number(formData.get("amount") ?? 0);
+  const work_date = String(formData.get("work_date") ?? "") || new Date().toISOString().slice(0, 10);
+  const project_id = String(formData.get("project_id") ?? "") || null;
+  if (!description || !amount) return;
+
+  const supabase = await createClient();
+  await supabase
+    .from("client_work")
+    .update({ description, amount, work_date, project_id })
+    .eq("id", id);
+  revalidatePath(`/admin/clients/${clientId}`);
+  revalidatePath("/admin");
+}
+
+export async function updateClientPayment(id: string, clientId: string, formData: FormData) {
+  const amount = Number(formData.get("amount") ?? 0);
+  const payment_date =
+    String(formData.get("payment_date") ?? "") || new Date().toISOString().slice(0, 10);
+  const note = String(formData.get("note") ?? "").trim() || null;
+  const payment_mode = String(formData.get("payment_mode") ?? "").trim() || null;
+  const project_id = String(formData.get("project_id") ?? "") || null;
+  if (!amount) return;
+
+  const supabase = await createClient();
+  await updateSafely(
+    supabase,
+    "client_payments",
+    id,
+    { amount, payment_date, note, project_id },
+    { payment_mode }
+  );
+  revalidatePath(`/admin/clients/${clientId}`);
+  revalidatePath("/admin");
+}
+
 export async function addClientPayment(
   clientId: string,
   formData: FormData
@@ -140,6 +177,7 @@ export async function addClientPayment(
   const payment_date =
     String(formData.get("payment_date") ?? "") || new Date().toISOString().slice(0, 10);
   const note = String(formData.get("note") ?? "").trim() || null;
+  const payment_mode = String(formData.get("payment_mode") ?? "").trim() || null;
   const project_id = String(formData.get("project_id") ?? "") || null;
   const confirmed = formData.get("confirm") === "1";
   if (!amount) return;
@@ -174,7 +212,8 @@ export async function addClientPayment(
       note,
       financial_year_id: fy.data?.id ?? null,
     },
-    actorEmail
+    actorEmail,
+    { payment_mode }
   );
   revalidatePath(`/admin/clients/${clientId}`);
   revalidatePath("/admin");

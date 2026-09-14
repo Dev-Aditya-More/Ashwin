@@ -1,6 +1,6 @@
 import Link from "next/link";
-import Image from "next/image";
 import { services } from "@/lib/services-data";
+import { Logo } from "@/components/brand/Logo";
 
 export default function Footer() {
   return (
@@ -8,13 +8,7 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-8 text-sm">
         {/* Brand */}
         <div className="col-span-2 sm:col-span-1">
-          <Image
-            src="/ashwinLogo.png"
-            alt="Ashwin Interiors"
-            width={170}
-            height={73}
-            className="h-9 w-auto object-contain"
-          />
+          <Logo className="w-[150px] h-auto" />
           <p className="mt-3 text-xs text-[#777777] leading-relaxed">
             Civil, architectural, landscape, and interior design services —
             based in Chhatrapati Sambhajinagar, serving clients across India.
@@ -121,13 +115,7 @@ export default function Footer() {
           &copy; {new Date().getFullYear()} Ashwin Interiors. All rights
           reserved.
         </p>
-        <Image
-          src="/ashwinLogoMarathi.png"
-          alt="अश्विन"
-          width={140}
-          height={60}
-          className="h-6 w-auto object-contain opacity-80"
-        />
+        <Logo marathi className="w-[110px] h-auto opacity-80" />
       </div>
     </footer>
   );

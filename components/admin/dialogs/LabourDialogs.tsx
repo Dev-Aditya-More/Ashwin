@@ -1,18 +1,24 @@
 "use client";
 
-import { Plus } from "lucide-react";
+import { Plus, Pencil } from "lucide-react";
 import { FormDialog } from "@/components/admin/FormDialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { PaymentModeSelect, ProjectSelect, EntryTypeSelect } from "@/components/admin/dialogs/shared";
 import {
   createLabourerRecord,
   updateLabourerRecord,
   addLabourWork,
   addLabourPayment,
+  updateLabourWork,
+  updateLabourPayment,
 } from "@/lib/actions/labour";
-import type { Labourer } from "@/lib/types";
+import type { Labourer, LabourPayment } from "@/lib/types";
+import type { LabourWorkWithSite } from "@/lib/actions/labour";
+
+type ProjectOption = { id: string; name: string };
 
 export function AddLabourerDialog() {
   return (
@@ -82,7 +88,7 @@ export function AddLabourWorkDialog({
   defaultRate,
 }: {
   labourerId: string;
-  projects: { id: string; name: string }[];
+  projects: ProjectOption[];
   defaultRate: number | null;
 }) {
   return (
@@ -123,23 +129,50 @@ export function AddLabourWorkDialog({
           <Input id="work_date" name="work_date" type="date" defaultValue={today()} />
         </div>
       </div>
-      {projects.length > 0 && (
+      <ProjectSelect projects={projects} />
+    </FormDialog>
+  );
+}
+
+export function EditLabourWorkDialog({
+  work,
+  labourerId,
+  projects,
+}: {
+  work: LabourWorkWithSite;
+  labourerId: string;
+  projects: ProjectOption[];
+}) {
+  return (
+    <FormDialog
+      trigger={
+        <Button variant="ghost" size="icon-sm" title="Edit">
+          <Pencil className="size-3.5" />
+        </Button>
+      }
+      title="Edit Work Entry"
+      description="Amount = Quantity × Rate"
+      action={(fd) => updateLabourWork(work.id, labourerId, fd)}
+    >
+      <div className="space-y-1.5">
+        <Label htmlFor="description">Description</Label>
+        <Input id="description" name="description" defaultValue={work.description} required />
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="space-y-1.5">
-          <Label htmlFor="project_id">Project / Site (optional)</Label>
-          <select
-            id="project_id"
-            name="project_id"
-            className="w-full h-9 rounded-md border border-[var(--border)] bg-background px-3 text-sm"
-          >
-            <option value="">— None —</option>
-            {projects.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
+          <Label htmlFor="quantity">Quantity</Label>
+          <Input id="quantity" name="quantity" type="number" min="0" step="0.01" defaultValue={work.quantity} required />
         </div>
-      )}
+        <div className="space-y-1.5">
+          <Label htmlFor="rate">Rate (₹)</Label>
+          <Input id="rate" name="rate" type="number" min="0" step="0.01" defaultValue={work.rate} required />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="work_date">Date</Label>
+          <Input id="work_date" name="work_date" type="date" defaultValue={work.work_date} />
+        </div>
+      </div>
+      <ProjectSelect projects={projects} defaultValue={work.project_id ?? ""} />
     </FormDialog>
   );
 }
@@ -166,9 +199,52 @@ export function AddLabourPaymentDialog({ labourerId }: { labourerId: string }) {
           <Input id="payment_date" name="payment_date" type="date" defaultValue={today()} />
         </div>
       </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <EntryTypeSelect />
+        <PaymentModeSelect />
+      </div>
       <div className="space-y-1.5">
         <Label htmlFor="note">Note (optional)</Label>
         <Input id="note" name="note" placeholder="e.g. Weekly wages" />
+      </div>
+    </FormDialog>
+  );
+}
+
+export function EditLabourPaymentDialog({
+  payment,
+  labourerId,
+}: {
+  payment: LabourPayment;
+  labourerId: string;
+}) {
+  return (
+    <FormDialog
+      trigger={
+        <Button variant="ghost" size="icon-sm" title="Edit">
+          <Pencil className="size-3.5" />
+        </Button>
+      }
+      title="Edit Payment Made"
+      action={(fd) => updateLabourPayment(payment.id, labourerId, fd)}
+    >
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <Label htmlFor="amount">Amount (₹)</Label>
+          <Input id="amount" name="amount" type="number" min="0" step="0.01" defaultValue={payment.amount} required />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="payment_date">Date</Label>
+          <Input id="payment_date" name="payment_date" type="date" defaultValue={payment.payment_date} />
+        </div>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <EntryTypeSelect defaultValue={payment.entry_type ?? "Payment"} />
+        <PaymentModeSelect defaultValue={payment.payment_mode ?? ""} />
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="note">Note (optional)</Label>
+        <Input id="note" name="note" defaultValue={payment.note ?? ""} placeholder="e.g. Weekly wages" />
       </div>
     </FormDialog>
   );

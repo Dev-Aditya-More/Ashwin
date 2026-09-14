@@ -1,18 +1,23 @@
 "use client";
 
-import { Plus } from "lucide-react";
+import { Plus, Pencil } from "lucide-react";
 import { FormDialog } from "@/components/admin/FormDialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { PaymentModeSelect, ProjectSelect } from "@/components/admin/dialogs/shared";
 import {
   createVendorRecord,
   updateVendorRecord,
   addVendorBill,
   addVendorPayment,
+  updateVendorBill,
+  updateVendorPayment,
 } from "@/lib/actions/vendors";
-import type { Vendor } from "@/lib/types";
+import type { Vendor, VendorBill, VendorPayment } from "@/lib/types";
+
+type ProjectOption = { id: string; name: string };
 
 export function AddVendorDialog() {
   return (
@@ -74,7 +79,7 @@ export function AddVendorBillDialog({
   projects,
 }: {
   vendorId: string;
-  projects: { id: string; name: string }[];
+  projects: ProjectOption[];
 }) {
   return (
     <FormDialog
@@ -87,13 +92,19 @@ export function AddVendorBillDialog({
       action={(fd) => addVendorBill(vendorId, fd)}
       submitLabel="Add Bill"
     >
-      <div className="space-y-1.5">
-        <Label htmlFor="description">Description</Label>
-        <Input id="description" name="description" placeholder="e.g. 12mm toughened glass, 40 sqft" required />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <Label htmlFor="description">Item / Material</Label>
+          <Input id="description" name="description" placeholder="e.g. 12mm toughened glass, 40 sqft" required />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="bill_no">Bill No. (optional)</Label>
+          <Input id="bill_no" name="bill_no" placeholder="e.g. INV-2381" />
+        </div>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="space-y-1.5">
-          <Label htmlFor="amount">Amount (₹)</Label>
+          <Label htmlFor="amount">Bill Amount (₹)</Label>
           <Input id="amount" name="amount" type="number" min="0" step="0.01" required />
         </div>
         <div className="space-y-1.5">
@@ -101,23 +112,51 @@ export function AddVendorBillDialog({
           <Input id="bill_date" name="bill_date" type="date" defaultValue={today()} />
         </div>
       </div>
-      {projects.length > 0 && (
+      <ProjectSelect projects={projects} />
+    </FormDialog>
+  );
+}
+
+export function EditVendorBillDialog({
+  bill,
+  vendorId,
+  projects,
+}: {
+  bill: VendorBill;
+  vendorId: string;
+  projects: ProjectOption[];
+}) {
+  return (
+    <FormDialog
+      trigger={
+        <Button variant="ghost" size="icon-sm" title="Edit">
+          <Pencil className="size-3.5" />
+        </Button>
+      }
+      title="Edit Vendor Bill"
+      action={(fd) => updateVendorBill(bill.id, vendorId, fd)}
+    >
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="space-y-1.5">
-          <Label htmlFor="project_id">Project / Site (optional)</Label>
-          <select
-            id="project_id"
-            name="project_id"
-            className="w-full h-9 rounded-md border border-[var(--border)] bg-background px-3 text-sm"
-          >
-            <option value="">— None —</option>
-            {projects.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
+          <Label htmlFor="description">Item / Material</Label>
+          <Input id="description" name="description" defaultValue={bill.description} required />
         </div>
-      )}
+        <div className="space-y-1.5">
+          <Label htmlFor="bill_no">Bill No. (optional)</Label>
+          <Input id="bill_no" name="bill_no" defaultValue={bill.bill_no ?? ""} />
+        </div>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <Label htmlFor="amount">Bill Amount (₹)</Label>
+          <Input id="amount" name="amount" type="number" min="0" step="0.01" defaultValue={bill.amount} required />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="bill_date">Date</Label>
+          <Input id="bill_date" name="bill_date" type="date" defaultValue={bill.bill_date} />
+        </div>
+      </div>
+      <ProjectSelect projects={projects} defaultValue={bill.project_id ?? ""} />
     </FormDialog>
   );
 }
@@ -144,9 +183,46 @@ export function AddVendorPaymentDialog({ vendorId }: { vendorId: string }) {
           <Input id="payment_date" name="payment_date" type="date" defaultValue={today()} />
         </div>
       </div>
+      <PaymentModeSelect />
       <div className="space-y-1.5">
         <Label htmlFor="note">Note (optional)</Label>
-        <Input id="note" name="note" placeholder="e.g. Bank transfer, cheque no." />
+        <Input id="note" name="note" placeholder="e.g. Cheque no., UTR ref." />
+      </div>
+    </FormDialog>
+  );
+}
+
+export function EditVendorPaymentDialog({
+  payment,
+  vendorId,
+}: {
+  payment: VendorPayment;
+  vendorId: string;
+}) {
+  return (
+    <FormDialog
+      trigger={
+        <Button variant="ghost" size="icon-sm" title="Edit">
+          <Pencil className="size-3.5" />
+        </Button>
+      }
+      title="Edit Payment Made"
+      action={(fd) => updateVendorPayment(payment.id, vendorId, fd)}
+    >
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <Label htmlFor="amount">Amount (₹)</Label>
+          <Input id="amount" name="amount" type="number" min="0" step="0.01" defaultValue={payment.amount} required />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="payment_date">Date</Label>
+          <Input id="payment_date" name="payment_date" type="date" defaultValue={payment.payment_date} />
+        </div>
+      </div>
+      <PaymentModeSelect defaultValue={payment.payment_mode ?? ""} />
+      <div className="space-y-1.5">
+        <Label htmlFor="note">Note (optional)</Label>
+        <Input id="note" name="note" defaultValue={payment.note ?? ""} placeholder="e.g. Cheque no., UTR ref." />
       </div>
     </FormDialog>
   );

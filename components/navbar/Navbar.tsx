@@ -1,9 +1,9 @@
 "use client";
 import Link from "next/link";
-import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
+import { Logo } from "@/components/brand/Logo";
 
 export default function Navbar() {
   const router = useRouter();
@@ -60,14 +60,7 @@ export default function Navbar() {
         {/* Logo (also balances the hamburger/spacer on the right for centering) */}
         <div className="flex-1 flex items-center">
           <Link href="/" onClick={() => setMenuOpen(false)} className="flex items-center">
-            <Image
-              src="/ashwinLogo.png"
-              alt="Ashwin"
-              width={170}
-              height={73}
-              priority
-              className="h-8 md:h-10 w-auto object-contain brightness-0 invert"
-            />
+            <Logo variant="light" className="h-10 md:h-12" />
           </Link>
         </div>
 

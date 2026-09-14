@@ -7,31 +7,29 @@ import {
   UserSquare2,
 } from "lucide-react";
 import Link from "next/link";
-import dynamic from "next/dynamic";
-import { getDashboardData } from "@/lib/actions/dashboard";
-import { listWhatsappContacts } from "@/lib/actions/whatsapp";
+import { getDashboardData, getMonthlyPerformance } from "@/lib/actions/dashboard";
+import { listClients } from "@/lib/actions/clients";
+import { listLabourers } from "@/lib/actions/labour";
+import { listVendors } from "@/lib/actions/vendors";
 import { StatCard } from "@/components/admin/StatCard";
-import { ActivityList } from "@/components/admin/ActivityList";
-import { WhatsappComposer } from "@/components/admin/WhatsappComposer";
-import { RecentlyViewed } from "@/components/admin/RecentlyViewed";
+import { QuickAccess, MonthlyPerformance, LedgerTable } from "@/components/admin/LedgerBlocks";
 import { Button } from "@/components/ui/button";
-
-// recharts is one of the heaviest client bundles in the app — split it
-// into its own chunk so it doesn't delay the rest of the dashboard
-// from painting and becoming interactive.
-const MonthlyChart = dynamic(
-  () => import("@/components/admin/MonthlyChart").then((m) => m.MonthlyChart),
-  { loading: () => <div className="h-72 rounded-lg bg-[var(--bg-2)] animate-pulse" /> }
-);
+import { getGreeting } from "@/lib/format";
 
 export default async function DashboardPage() {
-  const [data, contacts] = await Promise.all([getDashboardData(), listWhatsappContacts()]);
+  const [data, clients, labourers, vendors, monthly] = await Promise.all([
+    getDashboardData(),
+    listClients(),
+    listLabourers(),
+    listVendors(),
+    getMonthlyPerformance(),
+  ]);
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold">Good Afternoon!</h1>
+          <h1 className="text-2xl font-semibold">{getGreeting()}</h1>
           <p className="text-sm text-[var(--text-muted)]">
             Here&apos;s what&apos;s happening with your business.
           </p>
@@ -105,23 +103,28 @@ export default async function DashboardPage() {
         />
       </div>
 
-      <RecentlyViewed />
+      <QuickAccess />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <ActivityList title="Recent Client Activity" viewAllHref="/admin/clients" rows={data.clientActivity} />
-        <ActivityList title="Recent Labour Activity" viewAllHref="/admin/labour" rows={data.labourActivity} />
-        <ActivityList title="Recent Vendor Activity" viewAllHref="/admin/vendors" rows={data.vendorActivity} />
-      </div>
+      <MonthlyPerformance rows={monthly} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2 rounded-xl border border-[var(--border)] bg-white p-4">
-          <p className="font-semibold text-sm mb-2">Monthly Overview</p>
-          <MonthlyChart data={data.monthly} />
-        </div>
-        <div className="rounded-xl border border-[var(--border)] bg-white p-4">
-          <WhatsappComposer contacts={contacts} compact />
-        </div>
-      </div>
+      <LedgerTable
+        title="Client Ledger"
+        category="Client"
+        rows={clients.filter((c) => c.balance > 0)}
+        tone="emerald"
+      />
+      <LedgerTable
+        title="Labour Ledger"
+        category="Labour"
+        rows={labourers.filter((l) => l.balance > 0)}
+        tone="amber"
+      />
+      <LedgerTable
+        title="Vendor Ledger"
+        category="Vendor"
+        rows={vendors.filter((v) => v.balance > 0)}
+        tone="rose"
+      />
     </div>
   );
 }

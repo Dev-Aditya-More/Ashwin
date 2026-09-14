@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { hasRecentDuplicate, duplicateWarning } from "@/lib/actions/duplicate-check";
-import { currentUserEmail, insertWithActor } from "@/lib/actions/audit-helper";
+import { currentUserEmail, insertWithActor, updateSafely } from "@/lib/actions/audit-helper";
 import type { Vendor, VendorBalance, VendorBill, VendorPayment } from "@/lib/types";
 
 export async function listVendors(): Promise<(Vendor & { balance: number })[]> {
@@ -85,6 +85,7 @@ export async function addVendorBill(
   const description = String(formData.get("description") ?? "").trim();
   const amount = Number(formData.get("amount") ?? 0);
   const bill_date = String(formData.get("bill_date") ?? "") || new Date().toISOString().slice(0, 10);
+  const bill_no = String(formData.get("bill_no") ?? "").trim() || null;
   const project_id = String(formData.get("project_id") ?? "") || null;
   const confirmed = formData.get("confirm") === "1";
   if (!description || !amount) return;
@@ -119,7 +120,48 @@ export async function addVendorBill(
       bill_date,
       financial_year_id: fy.data?.id ?? null,
     },
-    actorEmail
+    actorEmail,
+    { bill_no }
+  );
+  revalidatePath(`/admin/vendors/${vendorId}`);
+  revalidatePath("/admin");
+}
+
+export async function updateVendorBill(id: string, vendorId: string, formData: FormData) {
+  const description = String(formData.get("description") ?? "").trim();
+  const amount = Number(formData.get("amount") ?? 0);
+  const bill_date = String(formData.get("bill_date") ?? "") || new Date().toISOString().slice(0, 10);
+  const bill_no = String(formData.get("bill_no") ?? "").trim() || null;
+  const project_id = String(formData.get("project_id") ?? "") || null;
+  if (!description || !amount) return;
+
+  const supabase = await createClient();
+  await updateSafely(
+    supabase,
+    "vendor_bills",
+    id,
+    { description, amount, bill_date, project_id },
+    { bill_no }
+  );
+  revalidatePath(`/admin/vendors/${vendorId}`);
+  revalidatePath("/admin");
+}
+
+export async function updateVendorPayment(id: string, vendorId: string, formData: FormData) {
+  const amount = Number(formData.get("amount") ?? 0);
+  const payment_date =
+    String(formData.get("payment_date") ?? "") || new Date().toISOString().slice(0, 10);
+  const note = String(formData.get("note") ?? "").trim() || null;
+  const payment_mode = String(formData.get("payment_mode") ?? "").trim() || null;
+  if (!amount) return;
+
+  const supabase = await createClient();
+  await updateSafely(
+    supabase,
+    "vendor_payments",
+    id,
+    { amount, payment_date, note },
+    { payment_mode }
   );
   revalidatePath(`/admin/vendors/${vendorId}`);
   revalidatePath("/admin");
@@ -133,6 +175,7 @@ export async function addVendorPayment(
   const payment_date =
     String(formData.get("payment_date") ?? "") || new Date().toISOString().slice(0, 10);
   const note = String(formData.get("note") ?? "").trim() || null;
+  const payment_mode = String(formData.get("payment_mode") ?? "").trim() || null;
   const confirmed = formData.get("confirm") === "1";
   if (!amount) return;
 
@@ -165,7 +208,8 @@ export async function addVendorPayment(
       note,
       financial_year_id: fy.data?.id ?? null,
     },
-    actorEmail
+    actorEmail,
+    { payment_mode }
   );
   revalidatePath(`/admin/vendors/${vendorId}`);
   revalidatePath("/admin");

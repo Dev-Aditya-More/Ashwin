@@ -1,8 +1,8 @@
 "use client";
 
 import { useActionState } from "react";
-import Image from "next/image";
 import { login } from "@/lib/actions/auth";
+import { Logo } from "@/components/brand/Logo";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -14,14 +14,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-sm bg-white border border-[var(--border)] rounded-2xl shadow-sm p-8">
         <div className="flex flex-col items-center text-center mb-2">
-          <Image
-            src="/ashwinLogo.png"
-            alt="Ashwin"
-            width={170}
-            height={73}
-            priority
-            className="h-11 w-auto object-contain"
-          />
+          <Logo className="w-[170px] h-auto" />
           <p className="text-xs text-[var(--text-muted)] mt-1">Admin Dashboard</p>
         </div>
 

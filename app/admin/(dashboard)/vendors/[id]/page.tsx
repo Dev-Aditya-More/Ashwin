@@ -7,10 +7,14 @@ import {
   EditVendorDialog,
   AddVendorBillDialog,
   AddVendorPaymentDialog,
+  EditVendorBillDialog,
+  EditVendorPaymentDialog,
 } from "@/components/admin/dialogs/VendorDialogs";
 import { TrackVisit } from "@/components/admin/TrackVisit";
+import { VendorLedgerTable } from "@/components/admin/EntityLedger";
 import { formatDate, formatMoney } from "@/lib/format";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -63,65 +67,86 @@ export default async function VendorDetailPage({
         {vendor.category && <span>🏷️ {vendor.category}</span>}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Section title="Bills" action={<AddVendorBillDialog vendorId={id} projects={projects} />}>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Description</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {bills.map((b) => (
-                <TableRow key={b.id}>
-                  <TableCell>{b.description}</TableCell>
-                  <TableCell className="text-[var(--text-muted)]">{formatDate(b.bill_date)}</TableCell>
-                  <TableCell className="text-right font-medium">{formatMoney(b.amount)}</TableCell>
-                </TableRow>
-              ))}
-              {bills.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={3} className="text-center text-[var(--text-muted)] py-6">
-                    No bills recorded yet.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </Section>
+      <Tabs defaultValue="overview">
+        <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="ledger">Ledger</TabsTrigger>
+        </TabsList>
 
-        <Section title="Payments Made" action={<AddVendorPaymentDialog vendorId={id} />}>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Note</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {payments.map((p) => (
-                <TableRow key={p.id}>
-                  <TableCell>{p.note ?? "—"}</TableCell>
-                  <TableCell className="text-[var(--text-muted)]">{formatDate(p.payment_date)}</TableCell>
-                  <TableCell className="text-right font-medium text-rose-600">
-                    - {formatMoney(p.amount)}
-                  </TableCell>
-                </TableRow>
-              ))}
-              {payments.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={3} className="text-center text-[var(--text-muted)] py-6">
-                    No payments recorded yet.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </Section>
-      </div>
+        <TabsContent value="overview">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <Section title="Bills" action={<AddVendorBillDialog vendorId={id} projects={projects} />}>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Item / Material</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead className="text-right">Amount</TableHead>
+                    <TableHead className="w-9" />
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {bills.map((b) => (
+                    <TableRow key={b.id}>
+                      <TableCell>{b.description}</TableCell>
+                      <TableCell className="text-[var(--text-muted)]">{formatDate(b.bill_date)}</TableCell>
+                      <TableCell className="text-right font-medium">{formatMoney(b.amount)}</TableCell>
+                      <TableCell>
+                        <EditVendorBillDialog bill={b} vendorId={id} projects={projects} />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {bills.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center text-[var(--text-muted)] py-6">
+                        No bills recorded yet.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </Section>
+
+            <Section title="Payments Made" action={<AddVendorPaymentDialog vendorId={id} />}>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Note</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead className="text-right">Amount</TableHead>
+                    <TableHead className="w-9" />
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {payments.map((p) => (
+                    <TableRow key={p.id}>
+                      <TableCell>{p.note ?? "—"}</TableCell>
+                      <TableCell className="text-[var(--text-muted)]">{formatDate(p.payment_date)}</TableCell>
+                      <TableCell className="text-right font-medium text-rose-600">
+                        - {formatMoney(p.amount)}
+                      </TableCell>
+                      <TableCell>
+                        <EditVendorPaymentDialog payment={p} vendorId={id} />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {payments.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center text-[var(--text-muted)] py-6">
+                        No payments recorded yet.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </Section>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="ledger">
+          <VendorLedgerTable bills={bills} payments={payments} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

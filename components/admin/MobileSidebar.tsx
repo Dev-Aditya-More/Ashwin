@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Menu, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NAV } from "./Sidebar";
+import { Logo } from "@/components/brand/Logo";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 
@@ -24,13 +24,7 @@ export default function MobileSidebar() {
       <SheetContent side="left" className="w-64 p-0">
         <SheetTitle className="sr-only">Navigation</SheetTitle>
         <div className="h-16 flex items-center px-5 border-b border-[var(--border)]">
-          <Image
-            src="/ashwinLogo.png"
-            alt="Ashwin"
-            width={170}
-            height={73}
-            className="h-9 w-auto object-contain"
-          />
+          <Logo className="w-[150px] h-auto" />
         </div>
         <nav className="py-3 px-3 space-y-0.5">
           {NAV.map((item) => {

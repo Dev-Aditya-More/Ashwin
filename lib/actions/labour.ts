@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { hasRecentDuplicate, duplicateWarning } from "@/lib/actions/duplicate-check";
-import { currentUserEmail, insertWithActor } from "@/lib/actions/audit-helper";
+import { currentUserEmail, insertWithActor, updateSafely } from "@/lib/actions/audit-helper";
 import type { Labourer, LabourBalance, LabourWork, LabourPayment } from "@/lib/types";
 
 export async function listLabourers(): Promise<(Labourer & { balance: number })[]> {
@@ -21,18 +21,37 @@ export async function listLabourers(): Promise<(Labourer & { balance: number })[
   return (labourers ?? []).map((l) => ({ ...l, balance: balanceMap.get(l.id) ?? 0 }));
 }
 
+export type LabourWorkWithSite = LabourWork & {
+  site_location: string | null;
+  client_name: string | null;
+};
+
 export async function getLabourer(id: string) {
   const supabase = await createClient();
   const [{ data: labourer }, { data: balance }, { data: work }, { data: payments }] = await Promise.all([
     supabase.from("labourers").select("*").eq("id", id).single(),
     supabase.from("labour_balances").select("*").eq("labourer_id", id).maybeSingle(),
-    supabase.from("labour_work").select("*").eq("labourer_id", id).order("work_date", { ascending: false }),
+    supabase
+      .from("labour_work")
+      .select("*, projects(site_address, clients(name))")
+      .eq("labourer_id", id)
+      .order("work_date", { ascending: false }),
     supabase
       .from("labour_payments")
       .select("*")
       .eq("labourer_id", id)
       .order("payment_date", { ascending: false }),
   ]);
+
+  type WorkRow = LabourWork & {
+    projects: { site_address: string | null; clients: { name: string } | null } | null;
+  };
+
+  const workWithSite: LabourWorkWithSite[] = ((work ?? []) as WorkRow[]).map((w) => ({
+    ...w,
+    site_location: w.projects?.site_address ?? null,
+    client_name: w.projects?.clients?.name ?? null,
+  }));
 
   return {
     labourer: labourer as Labourer,
@@ -43,7 +62,7 @@ export async function getLabourer(id: string) {
       total_paid: 0,
       balance: 0,
     },
-    work: (work ?? []) as LabourWork[],
+    work: workWithSite,
     payments: (payments ?? []) as LabourPayment[],
   };
 }
@@ -133,6 +152,45 @@ export async function addLabourWork(
   revalidatePath("/admin");
 }
 
+export async function updateLabourWork(id: string, labourerId: string, formData: FormData) {
+  const description = String(formData.get("description") ?? "").trim();
+  const quantity = Number(formData.get("quantity") ?? 1);
+  const rate = Number(formData.get("rate") ?? 0);
+  const work_date = String(formData.get("work_date") ?? "") || new Date().toISOString().slice(0, 10);
+  const project_id = String(formData.get("project_id") ?? "") || null;
+  const amount = quantity * rate;
+  if (!description || !amount) return;
+
+  const supabase = await createClient();
+  await supabase
+    .from("labour_work")
+    .update({ description, quantity, rate, amount, work_date, project_id })
+    .eq("id", id);
+  revalidatePath(`/admin/labour/${labourerId}`);
+  revalidatePath("/admin");
+}
+
+export async function updateLabourPayment(id: string, labourerId: string, formData: FormData) {
+  const amount = Number(formData.get("amount") ?? 0);
+  const payment_date =
+    String(formData.get("payment_date") ?? "") || new Date().toISOString().slice(0, 10);
+  const note = String(formData.get("note") ?? "").trim() || null;
+  const payment_mode = String(formData.get("payment_mode") ?? "").trim() || null;
+  const entry_type = String(formData.get("entry_type") ?? "Payment").trim() || "Payment";
+  if (!amount) return;
+
+  const supabase = await createClient();
+  await updateSafely(
+    supabase,
+    "labour_payments",
+    id,
+    { amount, payment_date, note },
+    { payment_mode, entry_type }
+  );
+  revalidatePath(`/admin/labour/${labourerId}`);
+  revalidatePath("/admin");
+}
+
 /**
  * Pays several labourers in one go (e.g. weekly wage day) — one shared
  * payment date/note, one amount field per labourer, a single bulk insert.
@@ -187,6 +245,8 @@ export async function addLabourPayment(
   const payment_date =
     String(formData.get("payment_date") ?? "") || new Date().toISOString().slice(0, 10);
   const note = String(formData.get("note") ?? "").trim() || null;
+  const payment_mode = String(formData.get("payment_mode") ?? "").trim() || null;
+  const entry_type = String(formData.get("entry_type") ?? "Payment").trim() || "Payment";
   const confirmed = formData.get("confirm") === "1";
   if (!amount) return;
 
@@ -219,7 +279,8 @@ export async function addLabourPayment(
       note,
       financial_year_id: fy.data?.id ?? null,
     },
-    actorEmail
+    actorEmail,
+    { payment_mode, entry_type }
   );
   revalidatePath(`/admin/labour/${labourerId}`);
   revalidatePath("/admin");

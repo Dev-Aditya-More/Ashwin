@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
@@ -15,6 +14,7 @@ import {
   Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Logo } from "@/components/brand/Logo";
 
 export const NAV = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
@@ -34,14 +34,7 @@ export default function Sidebar() {
     <aside className="hidden md:flex md:flex-col w-64 shrink-0 border-r border-[var(--border)] bg-white h-screen sticky top-0">
       <div className="h-16 flex items-center px-5 border-b border-[var(--border)]">
         <Link href="/admin" className="flex items-center">
-          <Image
-            src="/ashwinLogo.png"
-            alt="Ashwin"
-            width={170}
-            height={73}
-            className="h-9 w-auto object-contain"
-            priority
-          />
+          <Logo className="w-[150px] h-auto" />
         </Link>
       </div>
 

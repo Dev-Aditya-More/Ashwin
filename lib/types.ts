@@ -57,6 +57,8 @@ export type ClientWork = {
   created_at: string;
 };
 
+export type PaymentMode = "Cash" | "UPI" | "Bank Transfer" | "Cheque" | "Other";
+
 export type ClientPayment = {
   id: string;
   client_id: string;
@@ -65,6 +67,7 @@ export type ClientPayment = {
   amount: number;
   payment_date: string;
   note: string | null;
+  payment_mode?: PaymentMode | null;
   created_at: string;
 };
 
@@ -81,6 +84,8 @@ export type LabourWork = {
   created_at: string;
 };
 
+export type LabourEntryType = "Payment" | "Advance";
+
 export type LabourPayment = {
   id: string;
   labourer_id: string;
@@ -88,6 +93,8 @@ export type LabourPayment = {
   amount: number;
   payment_date: string;
   note: string | null;
+  payment_mode?: PaymentMode | null;
+  entry_type?: LabourEntryType;
   created_at: string;
 };
 
@@ -96,6 +103,7 @@ export type VendorBill = {
   vendor_id: string;
   project_id: string | null;
   financial_year_id: string | null;
+  bill_no?: string | null;
   description: string;
   amount: number;
   bill_date: string;
@@ -109,6 +117,7 @@ export type VendorPayment = {
   amount: number;
   payment_date: string;
   note: string | null;
+  payment_mode?: PaymentMode | null;
   created_at: string;
 };
 
