@@ -49,7 +49,7 @@ export default async function ProjectDetailPage({
         <Link href="/admin/projects" className="text-[var(--text-muted)] hover:text-[var(--text-primary)]">
           <ArrowLeft className="size-4" />
         </Link>
-        <h1 className="text-xl font-semibold flex-1">{project.name}</h1>
+        <h1 className="text-xl font-semibold flex-1 min-w-0 truncate">{project.name}</h1>
         <EditProjectDialog project={project} clients={clients} />
         <form action={deleteProject.bind(null, id)}>
           <Button variant="destructive" size="sm" type="submit">

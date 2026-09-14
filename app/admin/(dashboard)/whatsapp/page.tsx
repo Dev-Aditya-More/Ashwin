@@ -16,7 +16,7 @@ export default async function WhatsappPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="rounded-xl border border-[var(--border)] bg-white p-4">
           <WhatsappComposer contacts={contacts} />
         </div>

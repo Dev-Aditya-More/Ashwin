@@ -30,8 +30,8 @@ export default function Topbar({
     <header className="sticky top-0 z-20 h-16 border-b border-[var(--border)] bg-white/90 backdrop-blur-sm flex items-center gap-3 px-4 md:px-6">
       <MobileSidebar />
 
-      <div className="hidden sm:flex items-center gap-2 flex-1 max-w-md">
-        <div className="relative w-full">
+      <div className="hidden sm:flex items-center gap-2 flex-1 min-w-0 max-w-md">
+        <div className="relative w-full min-w-0">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[var(--text-muted)]" />
           <input
             placeholder="Search clients, workers, vendors, projects…"
@@ -42,15 +42,15 @@ export default function Topbar({
 
       <div className="flex-1 sm:hidden" />
 
-      <div className="hidden md:flex items-center gap-2 text-sm text-[var(--text-secondary)]">
+      <div className="hidden lg:flex items-center gap-2 text-sm text-[var(--text-secondary)] shrink-0">
         <CalendarDays className="size-4" />
-        <span>{today}</span>
+        <span className="whitespace-nowrap">{today}</span>
         <span className="text-[var(--text-muted)]">·</span>
-        <span className="font-medium text-[var(--text-primary)]">{fyLabel}</span>
+        <span className="font-medium text-[var(--text-primary)] whitespace-nowrap">{fyLabel}</span>
       </div>
 
       <DropdownMenu>
-        <DropdownMenuTrigger className="outline-none">
+        <DropdownMenuTrigger className="outline-none shrink-0">
           <Avatar className="size-9">
             <AvatarFallback className="bg-[var(--accent-blue)] text-white text-xs font-semibold">
               {initials(userEmail) || "AE"}

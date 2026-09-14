@@ -95,7 +95,7 @@ export function AddClientWorkDialog({
         <Label htmlFor="description">Description</Label>
         <Input id="description" name="description" placeholder="e.g. Window glass fitting" required />
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="space-y-1.5">
           <Label htmlFor="amount">Amount (₹)</Label>
           <Input id="amount" name="amount" type="number" min="0" step="0.01" required />
@@ -144,7 +144,7 @@ export function AddClientPaymentDialog({
       action={(fd) => addClientPayment(clientId, fd)}
       submitLabel="Add Payment"
     >
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="space-y-1.5">
           <Label htmlFor="amount">Amount (₹)</Label>
           <Input id="amount" name="amount" type="number" min="0" step="0.01" required />

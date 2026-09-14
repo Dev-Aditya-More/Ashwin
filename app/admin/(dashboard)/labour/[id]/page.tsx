@@ -41,7 +41,7 @@ export default async function LabourDetailPage({
         <Link href="/admin/labour" className="text-[var(--text-muted)] hover:text-[var(--text-primary)]">
           <ArrowLeft className="size-4" />
         </Link>
-        <h1 className="text-xl font-semibold flex-1">{labourer.name}</h1>
+        <h1 className="text-xl font-semibold flex-1 min-w-0 truncate">{labourer.name}</h1>
         <EditLabourerDialog labourer={labourer} />
         <form action={deleteLabourerRecord.bind(null, id)}>
           <Button variant="destructive" size="sm" type="submit">

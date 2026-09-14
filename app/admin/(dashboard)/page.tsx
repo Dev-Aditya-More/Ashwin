@@ -27,7 +27,7 @@ export default async function DashboardPage() {
             Here&apos;s what&apos;s happening with your business.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button asChild variant="outline">
             <Link href="/admin/clients">+ Add Client</Link>
           </Button>
@@ -96,7 +96,7 @@ export default async function DashboardPage() {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <ActivityList title="Recent Client Activity" viewAllHref="/admin/clients" rows={data.clientActivity} />
         <ActivityList title="Recent Labour Activity" viewAllHref="/admin/labour" rows={data.labourActivity} />
         <ActivityList title="Recent Vendor Activity" viewAllHref="/admin/vendors" rows={data.vendorActivity} />

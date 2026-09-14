@@ -41,7 +41,7 @@ export default async function VendorDetailPage({
         <Link href="/admin/vendors" className="text-[var(--text-muted)] hover:text-[var(--text-primary)]">
           <ArrowLeft className="size-4" />
         </Link>
-        <h1 className="text-xl font-semibold flex-1">{vendor.name}</h1>
+        <h1 className="text-xl font-semibold flex-1 min-w-0 truncate">{vendor.name}</h1>
         <EditVendorDialog vendor={vendor} />
         <form action={deleteVendorRecord.bind(null, id)}>
           <Button variant="destructive" size="sm" type="submit">

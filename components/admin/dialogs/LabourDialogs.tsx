@@ -101,7 +101,7 @@ export function AddLabourWorkDialog({
         <Label htmlFor="description">Description</Label>
         <Input id="description" name="description" placeholder="e.g. Glass cutting, 2 days" required />
       </div>
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="space-y-1.5">
           <Label htmlFor="quantity">Quantity</Label>
           <Input id="quantity" name="quantity" type="number" min="0" step="0.01" defaultValue="1" required />
@@ -156,7 +156,7 @@ export function AddLabourPaymentDialog({ labourerId }: { labourerId: string }) {
       action={(fd) => addLabourPayment(labourerId, fd)}
       submitLabel="Add Payment"
     >
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="space-y-1.5">
           <Label htmlFor="amount">Amount (₹)</Label>
           <Input id="amount" name="amount" type="number" min="0" step="0.01" required />

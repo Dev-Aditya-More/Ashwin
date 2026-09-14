@@ -91,7 +91,7 @@ export function AddVendorBillDialog({
         <Label htmlFor="description">Description</Label>
         <Input id="description" name="description" placeholder="e.g. 12mm toughened glass, 40 sqft" required />
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="space-y-1.5">
           <Label htmlFor="amount">Amount (₹)</Label>
           <Input id="amount" name="amount" type="number" min="0" step="0.01" required />
@@ -134,7 +134,7 @@ export function AddVendorPaymentDialog({ vendorId }: { vendorId: string }) {
       action={(fd) => addVendorPayment(vendorId, fd)}
       submitLabel="Add Payment"
     >
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="space-y-1.5">
           <Label htmlFor="amount">Amount (₹)</Label>
           <Input id="amount" name="amount" type="number" min="0" step="0.01" required />
