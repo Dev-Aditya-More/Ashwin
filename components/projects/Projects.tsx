@@ -28,11 +28,6 @@ export default function Projects({ isFullPage = false }: Props) {
     },
   };
 
-  const item = {
-    hidden: { opacity: 0, y: 30 },
-    show: { opacity: 1, y: 0 },
-  };
-
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setSelected(null);
@@ -69,13 +64,14 @@ export default function Projects({ isFullPage = false }: Props) {
           </motion.div>
         )}
 
-        {/* Grid */}
+        {/* Grid — 2-up even on the smallest phones (a single stacked column
+            of 74 photos reads as an endless scroll, not a gallery) */}
         <motion.div
           variants={container}
           initial="hidden"
           whileInView="show"
           viewport={{ once: true }}
-          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 md:gap-8"
+          className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-5 md:gap-6 lg:gap-7"
         >
           {projects.slice(0, visibleCount).map((project, index) => (
             <motion.div
@@ -84,19 +80,19 @@ export default function Projects({ isFullPage = false }: Props) {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: (index % 12) * 0.05 }}
               onClick={() => setSelected(index)}
-              className="group relative overflow-hidden cursor-pointer"
+              className="group relative overflow-hidden cursor-pointer rounded-md sm:rounded-lg shadow-sm hover:shadow-lg transition-shadow duration-300"
             >
-              <div className="relative w-full h-[200px] sm:h-[240px] md:h-[300px]">
+              <div className="relative w-full aspect-[4/5] sm:aspect-[3/4] md:aspect-[4/3] lg:aspect-[5/4]">
                 <Image
                   src={project.image}
                   alt={project.alt}
                   fill
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  sizes="(max-width: 640px) 50vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                   className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
                 />
               </div>
-              <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 md:group-hover:opacity-100 transition duration-300">
-                <p className="text-white text-xs sm:text-sm text-center px-2">
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-2 py-2 sm:opacity-0 sm:group-hover:opacity-100 transition duration-300">
+                <p className="text-white text-[11px] sm:text-sm text-center truncate">
                   {project.title}
                 </p>
               </div>
