@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
@@ -56,8 +57,19 @@ export default function Navbar() {
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-10 flex items-center h-[70px] md:h-[84px] transition-all">
-        {/* Empty left spacer (only for desktop centering) */}
-        <div className="hidden md:block flex-1" />
+        {/* Logo (also balances the hamburger/spacer on the right for centering) */}
+        <div className="flex-1 flex items-center">
+          <Link href="/" onClick={() => setMenuOpen(false)} className="flex items-center">
+            <Image
+              src="/ashwinLogo.png"
+              alt="Ashwin"
+              width={170}
+              height={73}
+              priority
+              className="h-8 md:h-10 w-auto object-contain brightness-0 invert"
+            />
+          </Link>
+        </div>
 
         {/* Desktop Nav (centered) */}
         <nav className="hidden md:flex items-center gap-8 lg:gap-10 px-6 py-2">

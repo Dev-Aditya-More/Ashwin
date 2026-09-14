@@ -49,14 +49,14 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard
           icon={Users}
-          label="Money to Receive"
+          label="Client Receivable"
           value={data.clientReceivable}
           sublabel="From clients"
           tone="green"
         />
         <StatCard
           icon={Truck}
-          label="Money to Pay Vendors"
+          label="Vendor Payable"
           value={data.vendorPayable}
           sublabel="Materials & bills"
           tone="red"
@@ -80,7 +80,7 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard
           icon={TrendingUp}
-          label="Total Revenue (FY)"
+          label="Total FY Revenue"
           value={data.totalRevenue}
           sublabel="From client work"
         />

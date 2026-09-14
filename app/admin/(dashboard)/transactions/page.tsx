@@ -1,4 +1,5 @@
-import { Download } from "lucide-react";
+import Link from "next/link";
+import { Download, X } from "lucide-react";
 import { listTransactions } from "@/lib/actions/transactions";
 import { formatDate, formatMoney, shortName } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
@@ -27,8 +28,20 @@ const CATEGORY_TONE: Record<string, string> = {
   Vendor: "bg-rose-50 text-rose-700 border-rose-200",
 };
 
-export default async function TransactionsPage() {
-  const transactions = await listTransactions(200);
+const MONTH_LABEL: Record<string, string> = {
+  "01": "January", "02": "February", "03": "March", "04": "April",
+  "05": "May", "06": "June", "07": "July", "08": "August",
+  "09": "September", "10": "October", "11": "November", "12": "December",
+};
+
+export default async function TransactionsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ month?: string }>;
+}) {
+  const { month } = await searchParams;
+  const transactions = await listTransactions(200, undefined, month);
+  const monthLabel = month ? `${MONTH_LABEL[month.slice(5, 7)] ?? ""} ${month.slice(0, 4)}` : null;
 
   return (
     <div className="space-y-4">
@@ -40,11 +53,25 @@ export default async function TransactionsPage() {
           </p>
         </div>
         <Button asChild variant="outline">
-          <a href="/admin/transactions/export">
+          <a href={`/admin/transactions/export${month ? `?month=${month}` : ""}`}>
             <Download className="size-4" /> Export CSV
           </a>
         </Button>
       </div>
+
+      {monthLabel && (
+        <div className="flex items-center gap-2">
+          <Badge className="bg-blue-50 text-blue-700 border-blue-200 gap-1.5">
+            Filtered: {monthLabel}
+          </Badge>
+          <Link
+            href="/admin/transactions"
+            className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] flex items-center gap-1"
+          >
+            <X className="size-3" /> Clear
+          </Link>
+        </div>
+      )}
 
       <div className="rounded-xl border border-[var(--border)] bg-white overflow-hidden">
         <Table>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { Building2 } from "lucide-react";
+import Image from "next/image";
 import { login } from "@/lib/actions/auth";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,14 +13,16 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-sm bg-white border border-[var(--border)] rounded-2xl shadow-sm p-8">
-        <div className="flex items-center gap-2 mb-1">
-          <div className="size-9 rounded-xl bg-[var(--accent-blue)]/10 flex items-center justify-center">
-            <Building2 className="size-5 text-[var(--accent-blue)]" />
-          </div>
-          <div>
-            <p className="font-semibold text-[15px] leading-tight">Ashwin Enterprises</p>
-            <p className="text-xs text-[var(--text-muted)] leading-tight">Admin dashboard</p>
-          </div>
+        <div className="flex flex-col items-center text-center mb-2">
+          <Image
+            src="/ashwinLogo.png"
+            alt="Ashwin"
+            width={170}
+            height={73}
+            priority
+            className="h-11 w-auto object-contain"
+          />
+          <p className="text-xs text-[var(--text-muted)] mt-1">Admin Dashboard</p>
         </div>
 
         <form action={formAction} className="mt-6 space-y-4">

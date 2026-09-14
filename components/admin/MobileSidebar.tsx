@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Menu, Building2, Settings } from "lucide-react";
+import { Menu, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NAV } from "./Sidebar";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
@@ -22,11 +23,14 @@ export default function MobileSidebar() {
       </SheetTrigger>
       <SheetContent side="left" className="w-64 p-0">
         <SheetTitle className="sr-only">Navigation</SheetTitle>
-        <div className="h-16 flex items-center gap-2.5 px-5 border-b border-[var(--border)]">
-          <div className="size-9 rounded-lg bg-[var(--accent-blue)] flex items-center justify-center shrink-0">
-            <Building2 className="size-5 text-white" />
-          </div>
-          <p className="font-semibold text-[14px]">Ashwin Enterprises</p>
+        <div className="h-16 flex items-center px-5 border-b border-[var(--border)]">
+          <Image
+            src="/ashwinLogo.png"
+            alt="Ashwin"
+            width={170}
+            height={73}
+            className="h-9 w-auto object-contain"
+          />
         </div>
         <nav className="py-3 px-3 space-y-0.5">
           {NAV.map((item) => {

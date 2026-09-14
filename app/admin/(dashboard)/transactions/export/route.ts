@@ -18,8 +18,9 @@ function csvEscape(value: string | number): string {
   return str;
 }
 
-export async function GET() {
-  const transactions = await listTransactions(5000);
+export async function GET(request: Request) {
+  const month = new URL(request.url).searchParams.get("month") ?? undefined;
+  const transactions = await listTransactions(5000, undefined, month);
 
   const header = ["Date", "Category", "Name", "Type", "Description", "Amount", "Direction", "Added By"];
   const rows = transactions.map((t) => [

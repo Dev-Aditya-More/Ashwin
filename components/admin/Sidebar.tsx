@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
@@ -31,14 +32,17 @@ export default function Sidebar() {
 
   return (
     <aside className="hidden md:flex md:flex-col w-64 shrink-0 border-r border-[var(--border)] bg-white h-screen sticky top-0">
-      <div className="h-16 flex items-center gap-2.5 px-5 border-b border-[var(--border)]">
-        <div className="size-9 rounded-lg bg-[var(--accent-blue)] flex items-center justify-center shrink-0">
-          <Building2 className="size-5 text-white" />
-        </div>
-        <div className="leading-tight min-w-0">
-          <p className="font-semibold text-[14px] truncate">Ashwin Enterprises</p>
-          <p className="text-[11px] text-[var(--text-muted)] truncate">Work. People. Progress.</p>
-        </div>
+      <div className="h-16 flex items-center px-5 border-b border-[var(--border)]">
+        <Link href="/admin" className="flex items-center">
+          <Image
+            src="/ashwinLogo.png"
+            alt="Ashwin"
+            width={170}
+            height={73}
+            className="h-9 w-auto object-contain"
+            priority
+          />
+        </Link>
       </div>
 
       <nav className="flex-1 overflow-y-auto py-3 px-3 space-y-0.5">

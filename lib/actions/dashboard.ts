@@ -29,7 +29,17 @@ export type DashboardData = {
   clientActivity: ActivityRow[];
   labourActivity: ActivityRow[];
   vendorActivity: ActivityRow[];
-  monthly: { month: string; revenue: number; labour: number; vendor: number }[];
+  monthly: MonthlyRow[];
+};
+
+export type MonthlyRow = {
+  key: string; // "YYYY-MM" — usable as a query param for filtering transactions
+  month: string;
+  year: number;
+  revenue: number;
+  labour: number;
+  vendor: number;
+  net: number;
 };
 
 function sum(rows: { balance: number }[] | null) {
@@ -148,42 +158,78 @@ function buildMonthlySeries(
   clientWork: { amount: number; work_date: string }[],
   labourWork: { amount: number; work_date: string }[],
   vendorBills: { amount: number; bill_date: string }[]
-) {
+): MonthlyRow[] {
   const start = new Date(startDate);
   const end = new Date(endDate);
-  const months: { key: string; month: string; revenue: number; labour: number; vendor: number }[] = [];
+  const months: MonthlyRow[] = [];
 
   const cursor = new Date(start.getFullYear(), start.getMonth(), 1);
   const last = new Date(end.getFullYear(), end.getMonth(), 1);
 
   while (cursor <= last) {
+    const year = cursor.getFullYear();
+    const monthIndex = cursor.getMonth();
     months.push({
-      key: `${cursor.getFullYear()}-${cursor.getMonth()}`,
+      key: `${year}-${String(monthIndex + 1).padStart(2, "0")}`,
       month: cursor.toLocaleString("en-IN", { month: "short" }),
+      year,
       revenue: 0,
       labour: 0,
       vendor: 0,
+      net: 0,
     });
     cursor.setMonth(cursor.getMonth() + 1);
   }
 
-  const bucket = (dateStr: string) => {
+  const bucketKey = (dateStr: string) => {
     const d = new Date(dateStr);
-    return months.find((m) => m.key === `${d.getFullYear()}-${d.getMonth()}`);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
   };
+  const byKey = new Map(months.map((m) => [m.key, m]));
 
   clientWork.forEach((r) => {
-    const m = bucket(r.work_date);
+    const m = byKey.get(bucketKey(r.work_date));
     if (m) m.revenue += Number(r.amount);
   });
   labourWork.forEach((r) => {
-    const m = bucket(r.work_date);
+    const m = byKey.get(bucketKey(r.work_date));
     if (m) m.labour += Number(r.amount);
   });
   vendorBills.forEach((r) => {
-    const m = bucket(r.bill_date);
+    const m = byKey.get(bucketKey(r.bill_date));
     if (m) m.vendor += Number(r.amount);
   });
 
-  return months.map(({ month, revenue, labour, vendor }) => ({ month, revenue, labour, vendor }));
+  months.forEach((m) => {
+    m.net = m.revenue - m.labour - m.vendor;
+  });
+
+  return months;
+}
+
+/**
+ * Lighter-weight than getDashboardData — just the active FY's
+ * month-by-month revenue/labour/vendor/net, for the Reports page.
+ */
+export async function getMonthlyPerformance(): Promise<MonthlyRow[]> {
+  const supabase = await createClient();
+
+  const [activeFy, clientWork, labourWork, vendorBills] = await Promise.all([
+    supabase.from("financial_years").select("id, start_date, end_date").eq("is_active", true).maybeSingle(),
+    supabase.from("client_work").select("amount, work_date, financial_year_id"),
+    supabase.from("labour_work").select("amount, work_date, financial_year_id"),
+    supabase.from("vendor_bills").select("amount, bill_date, financial_year_id"),
+  ]);
+
+  const fyId = activeFy.data?.id ?? null;
+  const startDate = activeFy.data?.start_date ?? "1970-01-01";
+  const endDate = activeFy.data?.end_date ?? "2999-12-31";
+
+  return buildMonthlySeries(
+    startDate,
+    endDate,
+    (clientWork.data ?? []).filter((r) => r.financial_year_id === fyId),
+    (labourWork.data ?? []).filter((r) => r.financial_year_id === fyId),
+    (vendorBills.data ?? []).filter((r) => r.financial_year_id === fyId)
+  );
 }

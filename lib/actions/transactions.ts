@@ -35,7 +35,8 @@ const DIRECTION_BY_KIND: Record<TransactionKind, "in" | "out" | "neutral"> = {
 
 export async function listTransactions(
   limit = 100,
-  projectId?: string
+  projectId?: string,
+  monthKey?: string // "YYYY-MM" — filters to that calendar month
 ): Promise<TransactionRow[]> {
   const supabase = await createClient();
 
@@ -47,6 +48,13 @@ export async function listTransactions(
     .limit(limit);
 
   if (projectId) query = query.eq("project_id", projectId);
+
+  if (monthKey && /^\d{4}-\d{2}$/.test(monthKey)) {
+    const [year, month] = monthKey.split("-").map(Number);
+    const from = `${monthKey}-01`;
+    const nextMonth = month === 12 ? `${year + 1}-01-01` : `${year}-${String(month + 1).padStart(2, "0")}-01`;
+    query = query.gte("txn_date", from).lt("txn_date", nextMonth);
+  }
 
   const [{ data: rows }, { data: clients }, { data: labourers }, { data: vendors }] =
     await Promise.all([

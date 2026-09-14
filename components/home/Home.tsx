@@ -57,10 +57,10 @@ export default function Home() {
             <Image
               src="/ashwinLogo.png"
               alt="Ashwin Logo"
-              width={220}
-              height={120}
+              width={260}
+              height={112}
               priority
-              className="object-contain"
+              className="w-[200px] sm:w-[260px] h-auto object-contain"
             />
           </motion.div>
 
