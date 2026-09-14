@@ -7,13 +7,21 @@ import {
   UserSquare2,
 } from "lucide-react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { getDashboardData } from "@/lib/actions/dashboard";
 import { listWhatsappContacts } from "@/lib/actions/whatsapp";
 import { StatCard } from "@/components/admin/StatCard";
 import { ActivityList } from "@/components/admin/ActivityList";
-import { MonthlyChart } from "@/components/admin/MonthlyChart";
 import { WhatsappComposer } from "@/components/admin/WhatsappComposer";
 import { Button } from "@/components/ui/button";
+
+// recharts is one of the heaviest client bundles in the app — split it
+// into its own chunk so it doesn't delay the rest of the dashboard
+// from painting and becoming interactive.
+const MonthlyChart = dynamic(
+  () => import("@/components/admin/MonthlyChart").then((m) => m.MonthlyChart),
+  { loading: () => <div className="h-72 rounded-lg bg-[var(--bg-2)] animate-pulse" /> }
+);
 
 export default async function DashboardPage() {
   const [data, contacts] = await Promise.all([getDashboardData(), listWhatsappContacts()]);

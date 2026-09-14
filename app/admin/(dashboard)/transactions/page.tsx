@@ -1,6 +1,8 @@
+import { Download } from "lucide-react";
 import { listTransactions } from "@/lib/actions/transactions";
 import { formatDate, formatMoney } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -30,11 +32,18 @@ export default async function TransactionsPage() {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-xl font-semibold">Transactions</h1>
-        <p className="text-sm text-[var(--text-muted)]">
-          Every money-moving event, newest first — the single source of truth behind every balance.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-semibold">Transactions</h1>
+          <p className="text-sm text-[var(--text-muted)]">
+            Every money-moving event, newest first — the single source of truth behind every balance.
+          </p>
+        </div>
+        <Button asChild variant="outline">
+          <a href="/admin/transactions/export">
+            <Download className="size-4" /> Export CSV
+          </a>
+        </Button>
       </div>
 
       <div className="rounded-xl border border-[var(--border)] bg-white overflow-hidden">

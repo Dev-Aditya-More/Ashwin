@@ -1,6 +1,8 @@
-import { Search, CalendarDays, LogOut } from "lucide-react";
+import { CalendarDays, LogOut } from "lucide-react";
 import Link from "next/link";
 import MobileSidebar from "./MobileSidebar";
+import { GlobalSearch } from "./GlobalSearch";
+import { MobileSearch } from "./MobileSearch";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,20 +29,15 @@ export default function Topbar({
   }).format(new Date());
 
   return (
-    <header className="sticky top-0 z-20 h-16 border-b border-[var(--border)] bg-white/90 backdrop-blur-sm flex items-center gap-3 px-4 md:px-6">
+    <header className="relative sticky top-0 z-20 h-16 border-b border-[var(--border)] bg-white/90 backdrop-blur-sm flex items-center gap-3 px-4 md:px-6">
       <MobileSidebar />
 
       <div className="hidden sm:flex items-center gap-2 flex-1 min-w-0 max-w-md">
-        <div className="relative w-full min-w-0">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[var(--text-muted)]" />
-          <input
-            placeholder="Search clients, workers, vendors, projects…"
-            className="w-full h-9 rounded-lg border border-[var(--border)] bg-[var(--bg-2)] pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-[var(--accent-blue)]/30"
-          />
-        </div>
+        <GlobalSearch />
       </div>
 
       <div className="flex-1 sm:hidden" />
+      <MobileSearch />
 
       <div className="hidden lg:flex items-center gap-2 text-sm text-[var(--text-secondary)] shrink-0">
         <CalendarDays className="size-4" />

@@ -36,87 +36,77 @@ function sum(rows: { balance: number }[] | null) {
   return (rows ?? []).reduce((acc, r) => acc + Number(r.balance), 0);
 }
 
+/**
+ * Everything below fires in ONE Promise.all batch — a single network
+ * round trip to Supabase — rather than being split across several
+ * sequential awaits. That's the difference between the dashboard
+ * feeling instant vs. feeling like it's loading in stages.
+ */
 export async function getDashboardData(): Promise<DashboardData> {
   const supabase = await createClient();
 
-  const activeFy = await supabase
-    .from("financial_years")
-    .select("*")
-    .eq("is_active", true)
-    .maybeSingle();
+  const [
+    activeFy,
+    clientBalances,
+    labourBalances,
+    vendorBalances,
+    clients,
+    labourers,
+    vendors,
+    clientWork,
+    labourWork,
+    vendorBills,
+    recentTxns,
+  ] = await Promise.all([
+    supabase.from("financial_years").select("*").eq("is_active", true).maybeSingle(),
+    supabase.from("client_balances").select("*"),
+    supabase.from("labour_balances").select("*"),
+    supabase.from("vendor_balances").select("*"),
+    supabase.from("clients").select("id, name"),
+    supabase.from("labourers").select("id, name"),
+    supabase.from("vendors").select("id, name"),
+    supabase.from("client_work").select("amount, work_date, financial_year_id"),
+    supabase.from("labour_work").select("amount, work_date, financial_year_id"),
+    supabase.from("vendor_bills").select("amount, bill_date, financial_year_id"),
+    supabase
+      .from("all_transactions")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(60),
+  ]);
 
   const fyId = activeFy.data?.id ?? null;
   const startDate = activeFy.data?.start_date ?? "1970-01-01";
   const endDate = activeFy.data?.end_date ?? "2999-12-31";
 
-  const [
-    clientBalances,
-    labourBalances,
-    vendorBalances,
-    clientCount,
-    labourCount,
-    vendorCount,
-    clientWorkFy,
-    labourWorkFy,
-    vendorBillsFy,
-    clients,
-    labourers,
-    vendors,
-  ] = await Promise.all([
-    supabase.from("client_balances").select("*"),
-    supabase.from("labour_balances").select("*"),
-    supabase.from("vendor_balances").select("*"),
-    supabase.from("clients").select("id", { count: "exact", head: true }),
-    supabase.from("labourers").select("id", { count: "exact", head: true }),
-    supabase.from("vendors").select("id", { count: "exact", head: true }),
-    supabase.from("client_work").select("amount, work_date").eq("financial_year_id", fyId),
-    supabase.from("labour_work").select("amount, work_date").eq("financial_year_id", fyId),
-    supabase.from("vendor_bills").select("amount, bill_date").eq("financial_year_id", fyId),
-    supabase.from("clients").select("id, name"),
-    supabase.from("labourers").select("id, name"),
-    supabase.from("vendors").select("id, name"),
-  ]);
+  const clientWorkFy = (clientWork.data ?? []).filter((r) => r.financial_year_id === fyId);
+  const labourWorkFy = (labourWork.data ?? []).filter((r) => r.financial_year_id === fyId);
+  const vendorBillsFy = (vendorBills.data ?? []).filter((r) => r.financial_year_id === fyId);
 
   const clientReceivable = sum(clientBalances.data as ClientBalance[]);
   const labourDue = sum(labourBalances.data as LabourBalance[]);
   const vendorPayable = sum(vendorBalances.data as VendorBalance[]);
 
-  const totalRevenue = (clientWorkFy.data ?? []).reduce((a, r) => a + Number(r.amount), 0);
-  const totalLabourCost = (labourWorkFy.data ?? []).reduce((a, r) => a + Number(r.amount), 0);
-  const totalVendorCost = (vendorBillsFy.data ?? []).reduce((a, r) => a + Number(r.amount), 0);
+  const totalRevenue = clientWorkFy.reduce((a, r) => a + Number(r.amount), 0);
+  const totalLabourCost = labourWorkFy.reduce((a, r) => a + Number(r.amount), 0);
+  const totalVendorCost = vendorBillsFy.reduce((a, r) => a + Number(r.amount), 0);
 
   const clientNames = new Map((clients.data ?? []).map((c) => [c.id, c.name]));
   const labourNames = new Map((labourers.data ?? []).map((l) => [l.id, l.name]));
   const vendorNames = new Map((vendors.data ?? []).map((v) => [v.id, v.name]));
 
-  const [clientTxns, labourTxns, vendorTxns] = await Promise.all([
-    supabase
-      .from("all_transactions")
-      .select("*")
-      .in("kind", ["client_work", "client_payment"])
-      .order("created_at", { ascending: false })
-      .limit(4),
-    supabase
-      .from("all_transactions")
-      .select("*")
-      .in("kind", ["labour_work", "labour_payment"])
-      .order("created_at", { ascending: false })
-      .limit(4),
-    supabase
-      .from("all_transactions")
-      .select("*")
-      .in("kind", ["vendor_bill", "vendor_payment"])
-      .order("created_at", { ascending: false })
-      .limit(4),
-  ]);
+  const allTxns = (recentTxns.data ?? []) as Transaction[];
+  const clientTxns = allTxns.filter((t) => t.kind.startsWith("client_")).slice(0, 4);
+  const labourTxns = allTxns.filter((t) => t.kind.startsWith("labour_")).slice(0, 4);
+  const vendorTxns = allTxns.filter((t) => t.kind.startsWith("vendor_")).slice(0, 4);
 
   const toActivity = (
-    rows: Transaction[] | null,
+    rows: Transaction[],
     names: Map<string, string>,
     paymentDirection: "in" | "out",
     workLabel: string
   ): ActivityRow[] =>
-    (rows ?? []).map((t) => ({
+    rows.map((t) => ({
       id: t.id,
       name: names.get(t.entity_id) ?? "Unknown",
       label: t.kind.endsWith("payment")
@@ -129,17 +119,11 @@ export async function getDashboardData(): Promise<DashboardData> {
       date: t.txn_date,
     }));
 
-  const clientActivity = toActivity(clientTxns.data, clientNames, "in", "New work added");
-  const labourActivity = toActivity(labourTxns.data, labourNames, "out", "Work entry added");
-  const vendorActivity = toActivity(vendorTxns.data, vendorNames, "out", "New bill added");
+  const clientActivity = toActivity(clientTxns, clientNames, "in", "New work added");
+  const labourActivity = toActivity(labourTxns, labourNames, "out", "Work entry added");
+  const vendorActivity = toActivity(vendorTxns, vendorNames, "out", "New bill added");
 
-  const monthly = buildMonthlySeries(
-    startDate,
-    endDate,
-    clientWorkFy.data ?? [],
-    labourWorkFy.data ?? [],
-    vendorBillsFy.data ?? []
-  );
+  const monthly = buildMonthlySeries(startDate, endDate, clientWorkFy, labourWorkFy, vendorBillsFy);
 
   return {
     clientReceivable,
@@ -150,7 +134,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     totalLabourCost,
     totalVendorCost,
     activeAccounts:
-      (clientCount.count ?? 0) + (labourCount.count ?? 0) + (vendorCount.count ?? 0),
+      (clients.data?.length ?? 0) + (labourers.data?.length ?? 0) + (vendors.data?.length ?? 0),
     clientActivity,
     labourActivity,
     vendorActivity,
