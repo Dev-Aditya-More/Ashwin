@@ -107,6 +107,16 @@ export function AddLabourWorkDialog({
         <Label htmlFor="description">Description</Label>
         <Input id="description" name="description" placeholder="e.g. Glass cutting, 2 days" required />
       </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <Label htmlFor="site_location">Site / Location (optional)</Label>
+          <Input id="site_location" name="site_location" placeholder="e.g. Satara" />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="client_name">Client Name (optional)</Label>
+          <Input id="client_name" name="client_name" placeholder="e.g. Dhakne sir" />
+        </div>
+      </div>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="space-y-1.5">
           <Label htmlFor="quantity">Quantity</Label>
@@ -130,6 +140,9 @@ export function AddLabourWorkDialog({
         </div>
       </div>
       <ProjectSelect projects={projects} />
+      <p className="text-xs text-[var(--text-muted)]">
+        Or pick a Project/Site above instead — its site and client fill in automatically when left blank.
+      </p>
     </FormDialog>
   );
 }
@@ -157,6 +170,16 @@ export function EditLabourWorkDialog({
       <div className="space-y-1.5">
         <Label htmlFor="description">Description</Label>
         <Input id="description" name="description" defaultValue={work.description} required />
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <Label htmlFor="site_location">Site / Location (optional)</Label>
+          <Input id="site_location" name="site_location" defaultValue={work.site_location ?? ""} />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="client_name">Client Name (optional)</Label>
+          <Input id="client_name" name="client_name" defaultValue={work.client_name ?? ""} />
+        </div>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="space-y-1.5">

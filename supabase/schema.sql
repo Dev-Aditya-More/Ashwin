@@ -93,6 +93,8 @@ create table if not exists labour_work (
   labourer_id uuid not null references labourers(id) on delete cascade,
   project_id uuid references projects(id) on delete set null,
   financial_year_id uuid references financial_years(id) on delete set null,
+  site_location text,
+  client_name text,
   description text not null,
   quantity numeric(12,2) not null default 1,
   rate numeric(12,2) not null default 0,

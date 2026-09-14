@@ -76,6 +76,8 @@ export type LabourWork = {
   labourer_id: string;
   project_id: string | null;
   financial_year_id: string | null;
+  site_location?: string | null;
+  client_name?: string | null;
   description: string;
   quantity: number;
   rate: number;

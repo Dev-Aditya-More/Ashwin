@@ -47,10 +47,12 @@ export async function getLabourer(id: string) {
     projects: { site_address: string | null; clients: { name: string } | null } | null;
   };
 
+  // A work entry's own site_location/client_name (typed in directly) wins;
+  // fall back to the linked project's site/client when it wasn't typed in.
   const workWithSite: LabourWorkWithSite[] = ((work ?? []) as WorkRow[]).map((w) => ({
     ...w,
-    site_location: w.projects?.site_address ?? null,
-    client_name: w.projects?.clients?.name ?? null,
+    site_location: w.site_location ?? w.projects?.site_address ?? null,
+    client_name: w.client_name ?? w.projects?.clients?.name ?? null,
   }));
 
   return {
@@ -110,6 +112,8 @@ export async function addLabourWork(
   const rate = Number(formData.get("rate") ?? 0);
   const work_date = String(formData.get("work_date") ?? "") || new Date().toISOString().slice(0, 10);
   const project_id = String(formData.get("project_id") ?? "") || null;
+  const site_location = String(formData.get("site_location") ?? "").trim() || null;
+  const client_name = String(formData.get("client_name") ?? "").trim() || null;
   const confirmed = formData.get("confirm") === "1";
   const amount = quantity * rate;
   if (!description || !amount) return;
@@ -146,7 +150,8 @@ export async function addLabourWork(
       work_date,
       financial_year_id: fy.data?.id ?? null,
     },
-    actorEmail
+    actorEmail,
+    { site_location, client_name }
   );
   revalidatePath(`/admin/labour/${labourerId}`);
   revalidatePath("/admin");
@@ -158,14 +163,19 @@ export async function updateLabourWork(id: string, labourerId: string, formData:
   const rate = Number(formData.get("rate") ?? 0);
   const work_date = String(formData.get("work_date") ?? "") || new Date().toISOString().slice(0, 10);
   const project_id = String(formData.get("project_id") ?? "") || null;
+  const site_location = String(formData.get("site_location") ?? "").trim() || null;
+  const client_name = String(formData.get("client_name") ?? "").trim() || null;
   const amount = quantity * rate;
   if (!description || !amount) return;
 
   const supabase = await createClient();
-  await supabase
-    .from("labour_work")
-    .update({ description, quantity, rate, amount, work_date, project_id })
-    .eq("id", id);
+  await updateSafely(
+    supabase,
+    "labour_work",
+    id,
+    { description, quantity, rate, amount, work_date, project_id },
+    { site_location, client_name }
+  );
   revalidatePath(`/admin/labour/${labourerId}`);
   revalidatePath("/admin");
 }

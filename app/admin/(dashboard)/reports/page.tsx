@@ -1,8 +1,16 @@
+import dynamic from "next/dynamic";
 import { listClients } from "@/lib/actions/clients";
 import { listLabourers } from "@/lib/actions/labour";
 import { listVendors } from "@/lib/actions/vendors";
 import { getMonthlyPerformance } from "@/lib/actions/dashboard";
 import { SummaryTile, QuickAccess, MonthlyPerformance, LedgerTable } from "@/components/admin/LedgerBlocks";
+
+// recharts is one of the heaviest client bundles in the app — split it
+// into its own chunk so it doesn't delay the rest of the page.
+const MonthlyChart = dynamic(
+  () => import("@/components/admin/MonthlyChart").then((m) => m.MonthlyChart),
+  { loading: () => <div className="h-72 rounded-lg bg-[var(--bg-2)] animate-pulse" /> }
+);
 
 export default async function ReportsPage() {
   const [clients, labourers, vendors, monthly] = await Promise.all([
@@ -40,6 +48,11 @@ export default async function ReportsPage() {
       </div>
 
       <QuickAccess />
+
+      <div className="rounded-xl border border-[var(--border)] bg-white p-4">
+        <p className="font-semibold text-sm mb-2">Monthly Overview</p>
+        <MonthlyChart data={monthly} />
+      </div>
 
       <MonthlyPerformance rows={monthly} />
 
