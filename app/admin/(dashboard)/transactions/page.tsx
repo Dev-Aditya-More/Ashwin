@@ -1,6 +1,6 @@
 import { Download } from "lucide-react";
 import { listTransactions } from "@/lib/actions/transactions";
-import { formatDate, formatMoney } from "@/lib/format";
+import { formatDate, formatMoney, shortName } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -55,6 +55,7 @@ export default async function TransactionsPage() {
               <TableHead>Type</TableHead>
               <TableHead>Description</TableHead>
               <TableHead>Date</TableHead>
+              <TableHead>Added By</TableHead>
               <TableHead className="text-right">Amount</TableHead>
             </TableRow>
           </TableHeader>
@@ -70,6 +71,9 @@ export default async function TransactionsPage() {
                   {t.description}
                 </TableCell>
                 <TableCell className="text-[var(--text-muted)]">{formatDate(t.date)}</TableCell>
+                <TableCell className="text-[var(--text-muted)]">
+                  {t.addedBy ? shortName(t.addedBy) : "—"}
+                </TableCell>
                 <TableCell
                   className={
                     "text-right font-medium " +
@@ -87,7 +91,7 @@ export default async function TransactionsPage() {
             ))}
             {transactions.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6} className="text-center text-[var(--text-muted)] py-10">
+                <TableCell colSpan={7} className="text-center text-[var(--text-muted)] py-10">
                   No transactions yet.
                 </TableCell>
               </TableRow>

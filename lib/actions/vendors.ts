@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { hasRecentDuplicate, duplicateWarning } from "@/lib/actions/duplicate-check";
+import { currentUserEmail, insertWithActor } from "@/lib/actions/audit-helper";
 import type { Vendor, VendorBalance, VendorBill, VendorPayment } from "@/lib/types";
 
 export async function listVendors(): Promise<(Vendor & { balance: number })[]> {
@@ -76,42 +78,95 @@ export async function deleteVendorRecord(id: string) {
   redirect("/admin/vendors");
 }
 
-export async function addVendorBill(vendorId: string, formData: FormData) {
+export async function addVendorBill(
+  vendorId: string,
+  formData: FormData
+): Promise<{ warning?: string } | void> {
   const description = String(formData.get("description") ?? "").trim();
   const amount = Number(formData.get("amount") ?? 0);
-  const bill_date = String(formData.get("bill_date") ?? "") || undefined;
+  const bill_date = String(formData.get("bill_date") ?? "") || new Date().toISOString().slice(0, 10);
   const project_id = String(formData.get("project_id") ?? "") || null;
+  const confirmed = formData.get("confirm") === "1";
   if (!description || !amount) return;
 
   const supabase = await createClient();
-  const fy = await supabase.from("financial_years").select("id").eq("is_active", true).maybeSingle();
-  await supabase.from("vendor_bills").insert({
-    vendor_id: vendorId,
-    project_id,
-    description,
-    amount,
-    bill_date,
-    financial_year_id: fy.data?.id ?? null,
-  });
+
+  if (!confirmed) {
+    const isDuplicate = await hasRecentDuplicate(
+      supabase,
+      "vendor_bills",
+      "vendor_id",
+      vendorId,
+      amount,
+      "bill_date",
+      bill_date
+    );
+    if (isDuplicate) return { warning: duplicateWarning(amount, bill_date) };
+  }
+
+  const [fy, actorEmail] = await Promise.all([
+    supabase.from("financial_years").select("id").eq("is_active", true).maybeSingle(),
+    currentUserEmail(supabase),
+  ]);
+  await insertWithActor(
+    supabase,
+    "vendor_bills",
+    {
+      vendor_id: vendorId,
+      project_id,
+      description,
+      amount,
+      bill_date,
+      financial_year_id: fy.data?.id ?? null,
+    },
+    actorEmail
+  );
   revalidatePath(`/admin/vendors/${vendorId}`);
   revalidatePath("/admin");
 }
 
-export async function addVendorPayment(vendorId: string, formData: FormData) {
+export async function addVendorPayment(
+  vendorId: string,
+  formData: FormData
+): Promise<{ warning?: string } | void> {
   const amount = Number(formData.get("amount") ?? 0);
-  const payment_date = String(formData.get("payment_date") ?? "") || undefined;
+  const payment_date =
+    String(formData.get("payment_date") ?? "") || new Date().toISOString().slice(0, 10);
   const note = String(formData.get("note") ?? "").trim() || null;
+  const confirmed = formData.get("confirm") === "1";
   if (!amount) return;
 
   const supabase = await createClient();
-  const fy = await supabase.from("financial_years").select("id").eq("is_active", true).maybeSingle();
-  await supabase.from("vendor_payments").insert({
-    vendor_id: vendorId,
-    amount,
-    payment_date,
-    note,
-    financial_year_id: fy.data?.id ?? null,
-  });
+
+  if (!confirmed) {
+    const isDuplicate = await hasRecentDuplicate(
+      supabase,
+      "vendor_payments",
+      "vendor_id",
+      vendorId,
+      amount,
+      "payment_date",
+      payment_date
+    );
+    if (isDuplicate) return { warning: duplicateWarning(amount, payment_date) };
+  }
+
+  const [fy, actorEmail] = await Promise.all([
+    supabase.from("financial_years").select("id").eq("is_active", true).maybeSingle(),
+    currentUserEmail(supabase),
+  ]);
+  await insertWithActor(
+    supabase,
+    "vendor_payments",
+    {
+      vendor_id: vendorId,
+      amount,
+      payment_date,
+      note,
+      financial_year_id: fy.data?.id ?? null,
+    },
+    actorEmail
+  );
   revalidatePath(`/admin/vendors/${vendorId}`);
   revalidatePath("/admin");
 }

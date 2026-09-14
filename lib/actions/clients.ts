@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { hasRecentDuplicate, duplicateWarning } from "@/lib/actions/duplicate-check";
+import { currentUserEmail, insertWithActor } from "@/lib/actions/audit-helper";
 import type { Client, ClientBalance, ClientWork, ClientPayment } from "@/lib/types";
 
 export async function listClients(): Promise<(Client & { balance: number })[]> {
@@ -83,44 +85,97 @@ export async function deleteClientRecord(id: string) {
   redirect("/admin/clients");
 }
 
-export async function addClientWork(clientId: string, formData: FormData) {
+export async function addClientWork(
+  clientId: string,
+  formData: FormData
+): Promise<{ warning?: string } | void> {
   const description = String(formData.get("description") ?? "").trim();
   const amount = Number(formData.get("amount") ?? 0);
-  const work_date = String(formData.get("work_date") ?? "") || undefined;
+  const work_date = String(formData.get("work_date") ?? "") || new Date().toISOString().slice(0, 10);
   const project_id = String(formData.get("project_id") ?? "") || null;
+  const confirmed = formData.get("confirm") === "1";
   if (!description || !amount) return;
 
   const supabase = await createClient();
-  const fy = await supabase.from("financial_years").select("id").eq("is_active", true).maybeSingle();
-  await supabase.from("client_work").insert({
-    client_id: clientId,
-    project_id,
-    description,
-    amount,
-    work_date,
-    financial_year_id: fy.data?.id ?? null,
-  });
+
+  if (!confirmed) {
+    const isDuplicate = await hasRecentDuplicate(
+      supabase,
+      "client_work",
+      "client_id",
+      clientId,
+      amount,
+      "work_date",
+      work_date
+    );
+    if (isDuplicate) return { warning: duplicateWarning(amount, work_date) };
+  }
+
+  const [fy, actorEmail] = await Promise.all([
+    supabase.from("financial_years").select("id").eq("is_active", true).maybeSingle(),
+    currentUserEmail(supabase),
+  ]);
+  await insertWithActor(
+    supabase,
+    "client_work",
+    {
+      client_id: clientId,
+      project_id,
+      description,
+      amount,
+      work_date,
+      financial_year_id: fy.data?.id ?? null,
+    },
+    actorEmail
+  );
   revalidatePath(`/admin/clients/${clientId}`);
   revalidatePath("/admin");
 }
 
-export async function addClientPayment(clientId: string, formData: FormData) {
+export async function addClientPayment(
+  clientId: string,
+  formData: FormData
+): Promise<{ warning?: string } | void> {
   const amount = Number(formData.get("amount") ?? 0);
-  const payment_date = String(formData.get("payment_date") ?? "") || undefined;
+  const payment_date =
+    String(formData.get("payment_date") ?? "") || new Date().toISOString().slice(0, 10);
   const note = String(formData.get("note") ?? "").trim() || null;
   const project_id = String(formData.get("project_id") ?? "") || null;
+  const confirmed = formData.get("confirm") === "1";
   if (!amount) return;
 
   const supabase = await createClient();
-  const fy = await supabase.from("financial_years").select("id").eq("is_active", true).maybeSingle();
-  await supabase.from("client_payments").insert({
-    client_id: clientId,
-    project_id,
-    amount,
-    payment_date,
-    note,
-    financial_year_id: fy.data?.id ?? null,
-  });
+
+  if (!confirmed) {
+    const isDuplicate = await hasRecentDuplicate(
+      supabase,
+      "client_payments",
+      "client_id",
+      clientId,
+      amount,
+      "payment_date",
+      payment_date
+    );
+    if (isDuplicate) return { warning: duplicateWarning(amount, payment_date) };
+  }
+
+  const [fy, actorEmail] = await Promise.all([
+    supabase.from("financial_years").select("id").eq("is_active", true).maybeSingle(),
+    currentUserEmail(supabase),
+  ]);
+  await insertWithActor(
+    supabase,
+    "client_payments",
+    {
+      client_id: clientId,
+      project_id,
+      amount,
+      payment_date,
+      note,
+      financial_year_id: fy.data?.id ?? null,
+    },
+    actorEmail
+  );
   revalidatePath(`/admin/clients/${clientId}`);
   revalidatePath("/admin");
 }

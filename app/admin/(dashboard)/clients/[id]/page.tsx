@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Trash2 } from "lucide-react";
 import { getClient, deleteClientRecord } from "@/lib/actions/clients";
 import { EditClientDialog, AddClientWorkDialog, AddClientPaymentDialog } from "@/components/admin/dialogs/ClientDialogs";
+import { TrackVisit } from "@/components/admin/TrackVisit";
 import { formatDate, formatMoney } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,11 +32,15 @@ export default async function ClientDetailPage({
 
   return (
     <div className="space-y-6">
+      <TrackVisit id={id} name={client.name} category="Client" href={`/admin/clients/${id}`} />
       <div className="flex items-center gap-2">
         <Link href="/admin/clients" className="text-[var(--text-muted)] hover:text-[var(--text-primary)]">
           <ArrowLeft className="size-4" />
         </Link>
         <h1 className="text-xl font-semibold flex-1 min-w-0 truncate">{client.name}</h1>
+        <Button asChild variant="outline" size="sm">
+          <Link href={`/admin/clients/${id}/statement`}>Statement</Link>
+        </Button>
         <EditClientDialog client={client} />
         <form action={deleteClientRecord.bind(null, id)}>
           <Button variant="destructive" size="sm" type="submit">

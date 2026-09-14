@@ -14,6 +14,12 @@ export function formatDate(date: string | Date): string {
   }).format(new Date(date));
 }
 
+/** "vikas@ashwin.world" -> "Vikas" — for a compact "added by" tag. */
+export function shortName(email: string): string {
+  const local = email.split("@")[0] ?? email;
+  return local.charAt(0).toUpperCase() + local.slice(1);
+}
+
 export function initials(name: string): string {
   return name
     .split(" ")

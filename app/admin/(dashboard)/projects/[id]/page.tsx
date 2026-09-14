@@ -4,6 +4,7 @@ import { ArrowLeft, Trash2 } from "lucide-react";
 import { getProject, deleteProject, listClientsForSelect } from "@/lib/actions/projects";
 import { listTransactions } from "@/lib/actions/transactions";
 import { EditProjectDialog } from "@/components/admin/dialogs/ProjectDialogs";
+import { TrackVisit } from "@/components/admin/TrackVisit";
 import { formatDate, formatMoney } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -45,6 +46,7 @@ export default async function ProjectDetailPage({
 
   return (
     <div className="space-y-6">
+      <TrackVisit id={id} name={project.name} category="Project" href={`/admin/projects/${id}`} />
       <div className="flex items-center gap-2">
         <Link href="/admin/projects" className="text-[var(--text-muted)] hover:text-[var(--text-primary)]">
           <ArrowLeft className="size-4" />

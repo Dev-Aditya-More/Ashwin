@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Banknote } from "lucide-react";
 import { listLabourers } from "@/lib/actions/labour";
 import { AddLabourerDialog } from "@/components/admin/dialogs/LabourDialogs";
 import { formatMoney } from "@/lib/format";
@@ -11,6 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 export default async function LabourPage() {
   const labourers = await listLabourers();
@@ -24,7 +26,14 @@ export default async function LabourPage() {
             {labourers.length} worker{labourers.length === 1 ? "" : "s"}
           </p>
         </div>
-        <AddLabourerDialog />
+        <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline">
+            <Link href="/admin/labour/bulk-pay">
+              <Banknote className="size-4" /> Bulk Pay
+            </Link>
+          </Button>
+          <AddLabourerDialog />
+        </div>
       </div>
 
       <div className="rounded-xl border border-[var(--border)] bg-white overflow-hidden">

@@ -13,6 +13,7 @@ import { listWhatsappContacts } from "@/lib/actions/whatsapp";
 import { StatCard } from "@/components/admin/StatCard";
 import { ActivityList } from "@/components/admin/ActivityList";
 import { WhatsappComposer } from "@/components/admin/WhatsappComposer";
+import { RecentlyViewed } from "@/components/admin/RecentlyViewed";
 import { Button } from "@/components/ui/button";
 
 // recharts is one of the heaviest client bundles in the app — split it
@@ -103,6 +104,8 @@ export default async function DashboardPage() {
           isMoney={false}
         />
       </div>
+
+      <RecentlyViewed />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <ActivityList title="Recent Client Activity" viewAllHref="/admin/clients" rows={data.clientActivity} />

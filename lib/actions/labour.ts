@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { hasRecentDuplicate, duplicateWarning } from "@/lib/actions/duplicate-check";
+import { currentUserEmail, insertWithActor } from "@/lib/actions/audit-helper";
 import type { Labourer, LabourBalance, LabourWork, LabourPayment } from "@/lib/types";
 
 export async function listLabourers(): Promise<(Labourer & { balance: number })[]> {
@@ -80,46 +82,145 @@ export async function deleteLabourerRecord(id: string) {
   redirect("/admin/labour");
 }
 
-export async function addLabourWork(labourerId: string, formData: FormData) {
+export async function addLabourWork(
+  labourerId: string,
+  formData: FormData
+): Promise<{ warning?: string } | void> {
   const description = String(formData.get("description") ?? "").trim();
   const quantity = Number(formData.get("quantity") ?? 1);
   const rate = Number(formData.get("rate") ?? 0);
-  const work_date = String(formData.get("work_date") ?? "") || undefined;
+  const work_date = String(formData.get("work_date") ?? "") || new Date().toISOString().slice(0, 10);
   const project_id = String(formData.get("project_id") ?? "") || null;
+  const confirmed = formData.get("confirm") === "1";
   const amount = quantity * rate;
   if (!description || !amount) return;
 
   const supabase = await createClient();
-  const fy = await supabase.from("financial_years").select("id").eq("is_active", true).maybeSingle();
-  await supabase.from("labour_work").insert({
-    labourer_id: labourerId,
-    project_id,
-    description,
-    quantity,
-    rate,
-    amount,
-    work_date,
-    financial_year_id: fy.data?.id ?? null,
-  });
+
+  if (!confirmed) {
+    const isDuplicate = await hasRecentDuplicate(
+      supabase,
+      "labour_work",
+      "labourer_id",
+      labourerId,
+      amount,
+      "work_date",
+      work_date
+    );
+    if (isDuplicate) return { warning: duplicateWarning(amount, work_date) };
+  }
+
+  const [fy, actorEmail] = await Promise.all([
+    supabase.from("financial_years").select("id").eq("is_active", true).maybeSingle(),
+    currentUserEmail(supabase),
+  ]);
+  await insertWithActor(
+    supabase,
+    "labour_work",
+    {
+      labourer_id: labourerId,
+      project_id,
+      description,
+      quantity,
+      rate,
+      amount,
+      work_date,
+      financial_year_id: fy.data?.id ?? null,
+    },
+    actorEmail
+  );
   revalidatePath(`/admin/labour/${labourerId}`);
   revalidatePath("/admin");
 }
 
-export async function addLabourPayment(labourerId: string, formData: FormData) {
-  const amount = Number(formData.get("amount") ?? 0);
+/**
+ * Pays several labourers in one go (e.g. weekly wage day) — one shared
+ * payment date/note, one amount field per labourer, a single bulk insert.
+ */
+export async function addBulkLabourPayments(
+  formData: FormData
+): Promise<{ error: string | null; count: number }> {
   const payment_date = String(formData.get("payment_date") ?? "") || undefined;
   const note = String(formData.get("note") ?? "").trim() || null;
+
+  const rows: { labourer_id: string; amount: number; payment_date?: string; note: string | null; financial_year_id: string | null }[] = [];
+
+  const supabase = await createClient();
+  const [fy, actorEmail] = await Promise.all([
+    supabase.from("financial_years").select("id").eq("is_active", true).maybeSingle(),
+    currentUserEmail(supabase),
+  ]);
+
+  for (const [key, value] of formData.entries()) {
+    if (!key.startsWith("amount_")) continue;
+    const amount = Number(value);
+    if (!amount || amount <= 0) continue;
+    rows.push({
+      labourer_id: key.slice("amount_".length),
+      amount,
+      payment_date,
+      note,
+      financial_year_id: fy.data?.id ?? null,
+    });
+  }
+
+  if (rows.length === 0) {
+    return { error: "Enter at least one amount.", count: 0 };
+  }
+
+  try {
+    await insertWithActor(supabase, "labour_payments", rows, actorEmail);
+  } catch {
+    return { error: "Something went wrong. Please try again.", count: 0 };
+  }
+
+  revalidatePath("/admin/labour");
+  revalidatePath("/admin");
+  return { error: null, count: rows.length };
+}
+
+export async function addLabourPayment(
+  labourerId: string,
+  formData: FormData
+): Promise<{ warning?: string } | void> {
+  const amount = Number(formData.get("amount") ?? 0);
+  const payment_date =
+    String(formData.get("payment_date") ?? "") || new Date().toISOString().slice(0, 10);
+  const note = String(formData.get("note") ?? "").trim() || null;
+  const confirmed = formData.get("confirm") === "1";
   if (!amount) return;
 
   const supabase = await createClient();
-  const fy = await supabase.from("financial_years").select("id").eq("is_active", true).maybeSingle();
-  await supabase.from("labour_payments").insert({
-    labourer_id: labourerId,
-    amount,
-    payment_date,
-    note,
-    financial_year_id: fy.data?.id ?? null,
-  });
+
+  if (!confirmed) {
+    const isDuplicate = await hasRecentDuplicate(
+      supabase,
+      "labour_payments",
+      "labourer_id",
+      labourerId,
+      amount,
+      "payment_date",
+      payment_date
+    );
+    if (isDuplicate) return { warning: duplicateWarning(amount, payment_date) };
+  }
+
+  const [fy, actorEmail] = await Promise.all([
+    supabase.from("financial_years").select("id").eq("is_active", true).maybeSingle(),
+    currentUserEmail(supabase),
+  ]);
+  await insertWithActor(
+    supabase,
+    "labour_payments",
+    {
+      labourer_id: labourerId,
+      amount,
+      payment_date,
+      note,
+      financial_year_id: fy.data?.id ?? null,
+    },
+    actorEmail
+  );
   revalidatePath(`/admin/labour/${labourerId}`);
   revalidatePath("/admin");
 }

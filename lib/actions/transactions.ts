@@ -12,6 +12,7 @@ export type TransactionRow = {
   amount: number;
   direction: "in" | "out" | "neutral";
   date: string;
+  addedBy: string | null;
 };
 
 const CATEGORY_BY_KIND: Record<TransactionKind, "Client" | "Labour" | "Vendor"> = {
@@ -77,6 +78,7 @@ export async function listTransactions(
       amount: Number(t.amount),
       direction: DIRECTION_BY_KIND[t.kind],
       date: t.txn_date,
+      addedBy: t.created_by ?? null,
     };
   });
 }

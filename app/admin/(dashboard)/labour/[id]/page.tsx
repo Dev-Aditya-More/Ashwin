@@ -8,6 +8,7 @@ import {
   AddLabourWorkDialog,
   AddLabourPaymentDialog,
 } from "@/components/admin/dialogs/LabourDialogs";
+import { TrackVisit } from "@/components/admin/TrackVisit";
 import { formatDate, formatMoney } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import {
@@ -37,6 +38,7 @@ export default async function LabourDetailPage({
 
   return (
     <div className="space-y-6">
+      <TrackVisit id={id} name={labourer.name} category="Labour" href={`/admin/labour/${id}`} />
       <div className="flex items-center gap-2">
         <Link href="/admin/labour" className="text-[var(--text-muted)] hover:text-[var(--text-primary)]">
           <ArrowLeft className="size-4" />

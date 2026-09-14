@@ -8,6 +8,7 @@ import {
   AddVendorBillDialog,
   AddVendorPaymentDialog,
 } from "@/components/admin/dialogs/VendorDialogs";
+import { TrackVisit } from "@/components/admin/TrackVisit";
 import { formatDate, formatMoney } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import {
@@ -37,6 +38,7 @@ export default async function VendorDetailPage({
 
   return (
     <div className="space-y-6">
+      <TrackVisit id={id} name={vendor.name} category="Vendor" href={`/admin/vendors/${id}`} />
       <div className="flex items-center gap-2">
         <Link href="/admin/vendors" className="text-[var(--text-muted)] hover:text-[var(--text-primary)]">
           <ArrowLeft className="size-4" />

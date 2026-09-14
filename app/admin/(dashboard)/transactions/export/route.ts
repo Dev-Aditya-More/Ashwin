@@ -21,7 +21,7 @@ function csvEscape(value: string | number): string {
 export async function GET() {
   const transactions = await listTransactions(5000);
 
-  const header = ["Date", "Category", "Name", "Type", "Description", "Amount", "Direction"];
+  const header = ["Date", "Category", "Name", "Type", "Description", "Amount", "Direction", "Added By"];
   const rows = transactions.map((t) => [
     t.date,
     t.category,
@@ -30,6 +30,7 @@ export async function GET() {
     t.description,
     t.amount.toFixed(2),
     t.direction === "in" ? "Received" : t.direction === "out" ? "Paid" : "",
+    t.addedBy ?? "",
   ]);
 
   const csv = [header, ...rows].map((row) => row.map(csvEscape).join(",")).join("\r\n");

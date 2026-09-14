@@ -68,7 +68,8 @@ create table if not exists client_work (
   description text not null,
   amount numeric(12,2) not null check (amount >= 0),
   work_date date not null default current_date,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  created_by text
 );
 
 create table if not exists client_payments (
@@ -79,7 +80,8 @@ create table if not exists client_payments (
   amount numeric(12,2) not null check (amount >= 0),
   payment_date date not null default current_date,
   note text,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  created_by text
 );
 
 -- ============================================================
@@ -95,7 +97,8 @@ create table if not exists labour_work (
   rate numeric(12,2) not null default 0,
   amount numeric(12,2) not null check (amount >= 0),
   work_date date not null default current_date,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  created_by text
 );
 
 create table if not exists labour_payments (
@@ -105,7 +108,8 @@ create table if not exists labour_payments (
   amount numeric(12,2) not null check (amount >= 0),
   payment_date date not null default current_date,
   note text,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  created_by text
 );
 
 -- ============================================================
@@ -119,7 +123,8 @@ create table if not exists vendor_bills (
   description text not null,
   amount numeric(12,2) not null check (amount >= 0),
   bill_date date not null default current_date,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  created_by text
 );
 
 create table if not exists vendor_payments (
@@ -129,7 +134,8 @@ create table if not exists vendor_payments (
   amount numeric(12,2) not null check (amount >= 0),
   payment_date date not null default current_date,
   note text,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  created_by text
 );
 
 -- ============================================================
@@ -200,27 +206,27 @@ left join (
 -- Unified activity feed — every money-moving event in one shape, newest first.
 create or replace view all_transactions as
 select id, 'client_work' as kind, client_id as entity_id, project_id, financial_year_id,
-       description, amount, work_date as txn_date, created_at
+       description, amount, work_date as txn_date, created_at, created_by
 from client_work
 union all
 select id, 'client_payment' as kind, client_id as entity_id, project_id, financial_year_id,
-       coalesce(note, 'Payment received') as description, amount, payment_date as txn_date, created_at
+       coalesce(note, 'Payment received') as description, amount, payment_date as txn_date, created_at, created_by
 from client_payments
 union all
 select id, 'labour_work' as kind, labourer_id as entity_id, project_id, financial_year_id,
-       description, amount, work_date as txn_date, created_at
+       description, amount, work_date as txn_date, created_at, created_by
 from labour_work
 union all
 select id, 'labour_payment' as kind, labourer_id as entity_id, null::uuid as project_id, financial_year_id,
-       coalesce(note, 'Payment made') as description, amount, payment_date as txn_date, created_at
+       coalesce(note, 'Payment made') as description, amount, payment_date as txn_date, created_at, created_by
 from labour_payments
 union all
 select id, 'vendor_bill' as kind, vendor_id as entity_id, project_id, financial_year_id,
-       description, amount, bill_date as txn_date, created_at
+       description, amount, bill_date as txn_date, created_at, created_by
 from vendor_bills
 union all
 select id, 'vendor_payment' as kind, vendor_id as entity_id, null::uuid as project_id, financial_year_id,
-       coalesce(note, 'Payment made') as description, amount, payment_date as txn_date, created_at
+       coalesce(note, 'Payment made') as description, amount, payment_date as txn_date, created_at, created_by
 from vendor_payments;
 
 -- ============================================================

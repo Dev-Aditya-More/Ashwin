@@ -2,6 +2,7 @@
 
 import { useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
+import { TriangleAlert } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -12,6 +13,8 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+
+export type FormActionResult = { warning?: string } | void;
 
 export function FormDialog({
   trigger,
@@ -24,31 +27,61 @@ export function FormDialog({
   trigger: React.ReactNode;
   title: string;
   description?: string;
-  action: (formData: FormData) => Promise<void>;
+  action: (formData: FormData) => Promise<FormActionResult>;
   submitLabel?: string;
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
+  const [warning, setWarning] = useState<string | null>(null);
+  const pendingFormData = useRef<FormData | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
+  function reset() {
+    setOpen(false);
+    setWarning(null);
+    pendingFormData.current = null;
+    formRef.current?.reset();
+  }
+
+  function submit(formData: FormData) {
     startTransition(async () => {
       try {
-        await action(formData);
+        const result = await action(formData);
+        if (result?.warning) {
+          pendingFormData.current = formData;
+          setWarning(result.warning);
+          return;
+        }
         toast.success("Saved");
-        setOpen(false);
-        formRef.current?.reset();
+        reset();
       } catch {
         toast.error("Something went wrong. Please try again.");
       }
     });
   }
 
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setWarning(null);
+    submit(new FormData(e.currentTarget));
+  }
+
+  function handleConfirmAnyway() {
+    const formData = pendingFormData.current;
+    if (!formData) return;
+    formData.set("confirm", "1");
+    submit(formData);
+  }
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (!next) setWarning(null);
+      }}
+    >
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
@@ -57,8 +90,38 @@ export function FormDialog({
         </DialogHeader>
         <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
           {children}
+
+          {warning && (
+            <div className="flex gap-2.5 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+              <TriangleAlert className="size-4 shrink-0 mt-0.5" />
+              <div className="space-y-2">
+                <p>{warning}</p>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={pending}
+                    onClick={handleConfirmAnyway}
+                  >
+                    Add Anyway
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    disabled={pending}
+                    onClick={() => setWarning(null)}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
           <DialogFooter>
-            <Button type="submit" disabled={pending} className="w-full sm:w-auto">
+            <Button type="submit" disabled={pending || !!warning} className="w-full sm:w-auto">
               {pending ? "Saving…" : submitLabel}
             </Button>
           </DialogFooter>
