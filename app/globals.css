@@ -33,6 +33,61 @@
   --font-display: 'Cormorant Garamond', serif;
 }
 
+/* ============= SHADCN THEME TOKENS (admin UI) =============
+   The public site above uses its own bespoke variables and never
+   references these. The admin dashboard's shadcn/radix-nova
+   components (Button, Dialog, Sheet, DropdownMenu, Input, Badge, …)
+   render via classes like bg-primary / bg-popover / border-input —
+   without these tokens registered, those utilities resolve to
+   nothing and the elements paint fully transparent. */
+:root {
+  --background: #ffffff;
+  --foreground: #111111;
+  --card: #ffffff;
+  --card-foreground: #111111;
+  --popover: #ffffff;
+  --popover-foreground: #111111;
+  --primary: #3075d0;
+  --primary-foreground: #ffffff;
+  --secondary: #f1f5f9;
+  --secondary-foreground: #0f172a;
+  --muted: #f4f4f5;
+  --muted-foreground: #6b7280;
+  --accent: #f4f4f5;
+  --accent-foreground: #111111;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --input: rgba(0, 0, 0, 0.15);
+  --ring: #3075d0;
+  --radius: 0.6rem;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
 /* ================= BASE ================= */
 
 @layer base {
