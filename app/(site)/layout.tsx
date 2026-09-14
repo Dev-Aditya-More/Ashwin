@@ -1,8 +1,8 @@
 import { Playfair_Display, Inter } from "next/font/google";
 import Script from "next/script";
-import "./globals.css";
-import Navbar from "../components/navbar/Navbar";
-import Footer from "../components/footer/Footer";
+import "../globals.css";
+import Navbar from "@/components/navbar/Navbar";
+import Footer from "@/components/footer/Footer";
 import WhatsAppFloat from "@/components/ui/WhatsappFloat";
 import SmoothScroll from "@/components/ui/SmoothScroll";
 import type { Metadata, Viewport } from "next";
