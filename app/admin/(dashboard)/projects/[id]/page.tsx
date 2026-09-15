@@ -1,10 +1,10 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { getProject, deleteProject, listClientsForSelect } from "@/lib/actions/projects";
 import { listTransactions } from "@/lib/actions/transactions";
 import { EditProjectDialog } from "@/components/admin/dialogs/ProjectDialogs";
 import { TrackVisit } from "@/components/admin/TrackVisit";
+import { BackButton } from "@/components/admin/BackButton";
 import { formatDate, formatMoney } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -48,9 +48,7 @@ export default async function ProjectDetailPage({
     <div className="space-y-6">
       <TrackVisit id={id} name={project.name} category="Project" href={`/admin/projects/${id}`} />
       <div className="flex items-center gap-2">
-        <Link href="/admin/projects" className="text-[var(--text-muted)] hover:text-[var(--text-primary)]">
-          <ArrowLeft className="size-4" />
-        </Link>
+        <BackButton fallbackHref="/admin/projects" />
         <h1 className="text-xl font-semibold flex-1 min-w-0 truncate">{project.name}</h1>
         <EditProjectDialog project={project} clients={clients} />
         <form action={deleteProject.bind(null, id)}>

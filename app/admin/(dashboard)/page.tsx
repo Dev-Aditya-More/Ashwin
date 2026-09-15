@@ -8,20 +8,21 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { getDashboardData, getMonthlyPerformance } from "@/lib/actions/dashboard";
-import { listClients } from "@/lib/actions/clients";
-import { listLabourers } from "@/lib/actions/labour";
-import { listVendors } from "@/lib/actions/vendors";
+// import { listClients } from "@/lib/actions/clients";
+// import { listLabourers } from "@/lib/actions/labour";
+// import { listVendors } from "@/lib/actions/vendors";
 import { StatCard } from "@/components/admin/StatCard";
-import { QuickAccess, MonthlyPerformance, LedgerTable } from "@/components/admin/LedgerBlocks";
+// LedgerTable is unused now that the three ledgers below are commented out.
+import { QuickAccess, MonthlyPerformance /*, LedgerTable */ } from "@/components/admin/LedgerBlocks";
 import { Button } from "@/components/ui/button";
 import { getGreeting } from "@/lib/format";
 
 export default async function DashboardPage() {
-  const [data, clients, labourers, vendors, monthly] = await Promise.all([
+  const [data, monthly] = await Promise.all([
     getDashboardData(),
-    listClients(),
-    listLabourers(),
-    listVendors(),
+    // listClients(),
+    // listLabourers(),
+    // listVendors(),
     getMonthlyPerformance(),
   ]);
 
@@ -75,6 +76,8 @@ export default async function DashboardPage() {
         />
       </div>
 
+      {/* Second row lines up under the first: Vendor Cost under Vendor
+          Payable, Labour Cost under Labour Due. */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard
           icon={TrendingUp}
@@ -83,16 +86,16 @@ export default async function DashboardPage() {
           sublabel="From client work"
         />
         <StatCard
-          icon={HardHat}
-          label="Total Labour Cost"
-          value={data.totalLabourCost}
-          sublabel="Payments to workers"
-        />
-        <StatCard
           icon={Truck}
           label="Total Vendor Cost"
           value={data.totalVendorCost}
           sublabel="Material purchases"
+        />
+        <StatCard
+          icon={HardHat}
+          label="Total Labour Cost"
+          value={data.totalLabourCost}
+          sublabel="Payments to workers"
         />
         <StatCard
           icon={UserSquare2}
@@ -107,6 +110,10 @@ export default async function DashboardPage() {
 
       <MonthlyPerformance rows={monthly} />
 
+      {/* Ledger summaries removed from the dashboard per request — still
+          available in full on /admin/reports. Uncomment (and restore the
+          listClients/listLabourers/listVendors imports + Promise.all
+          entries above) if these should come back here later.
       <LedgerTable
         title="Client Ledger"
         category="Client"
@@ -125,6 +132,7 @@ export default async function DashboardPage() {
         rows={vendors.filter((v) => v.balance > 0)}
         tone="rose"
       />
+      */}
     </div>
   );
 }

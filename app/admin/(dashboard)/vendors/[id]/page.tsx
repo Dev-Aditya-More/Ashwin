@@ -1,6 +1,5 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { getVendor, deleteVendorRecord } from "@/lib/actions/vendors";
 import { listProjects } from "@/lib/actions/projects";
 import {
@@ -11,6 +10,7 @@ import {
   EditVendorPaymentDialog,
 } from "@/components/admin/dialogs/VendorDialogs";
 import { TrackVisit } from "@/components/admin/TrackVisit";
+import { BackButton } from "@/components/admin/BackButton";
 import { VendorLedgerTable } from "@/components/admin/EntityLedger";
 import { formatDate, formatMoney } from "@/lib/format";
 import { Button } from "@/components/ui/button";
@@ -44,9 +44,7 @@ export default async function VendorDetailPage({
     <div className="space-y-6">
       <TrackVisit id={id} name={vendor.name} category="Vendor" href={`/admin/vendors/${id}`} />
       <div className="flex items-center gap-2">
-        <Link href="/admin/vendors" className="text-[var(--text-muted)] hover:text-[var(--text-primary)]">
-          <ArrowLeft className="size-4" />
-        </Link>
+        <BackButton fallbackHref="/admin/vendors" />
         <h1 className="text-xl font-semibold flex-1 min-w-0 truncate">{vendor.name}</h1>
         <EditVendorDialog vendor={vendor} />
         <form action={deleteVendorRecord.bind(null, id)}>
@@ -144,7 +142,7 @@ export default async function VendorDetailPage({
         </TabsContent>
 
         <TabsContent value="ledger">
-          <VendorLedgerTable bills={bills} payments={payments} />
+          <VendorLedgerTable bills={bills} payments={payments} vendorId={id} projects={projects} />
         </TabsContent>
       </Tabs>
     </div>

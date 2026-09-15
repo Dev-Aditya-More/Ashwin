@@ -2,6 +2,18 @@ import { formatDate, formatMoney } from "@/lib/format";
 import type { ClientWork, ClientPayment, VendorBill, VendorPayment, LabourPayment } from "@/lib/types";
 import type { LabourWorkWithSite } from "@/lib/actions/labour";
 import {
+  EditClientWorkDialog,
+  EditClientPaymentDialog,
+} from "@/components/admin/dialogs/ClientDialogs";
+import {
+  EditVendorBillDialog,
+  EditVendorPaymentDialog,
+} from "@/components/admin/dialogs/VendorDialogs";
+import {
+  EditLabourWorkDialog,
+  EditLabourPaymentDialog,
+} from "@/components/admin/dialogs/LabourDialogs";
+import {
   Table,
   TableBody,
   TableCell,
@@ -9,6 +21,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+
+type ProjectOption = { id: string; name: string };
 
 function BalanceCell({ value }: { value: number }) {
   return (
@@ -35,11 +49,23 @@ function EmptyRow({ span }: { span: number }) {
 export function ClientLedgerTable({
   work,
   payments,
+  clientId,
+  projects,
 }: {
   work: ClientWork[];
   payments: ClientPayment[];
+  clientId: string;
+  projects: ProjectOption[];
 }) {
-  type Row = { date: string; sortKey: string; particulars: string; paymentMode: string | null; debit: number; credit: number };
+  type Row = {
+    date: string;
+    sortKey: string;
+    particulars: string;
+    paymentMode: string | null;
+    debit: number;
+    credit: number;
+    edit: React.ReactNode;
+  };
 
   const rows: Row[] = [
     ...work.map((w) => ({
@@ -49,6 +75,7 @@ export function ClientLedgerTable({
       paymentMode: null,
       debit: Number(w.amount),
       credit: 0,
+      edit: <EditClientWorkDialog work={w} clientId={clientId} projects={projects} />,
     })),
     ...payments.map((p) => ({
       date: p.payment_date,
@@ -57,6 +84,7 @@ export function ClientLedgerTable({
       paymentMode: p.payment_mode ?? null,
       debit: 0,
       credit: Number(p.amount),
+      edit: <EditClientPaymentDialog payment={p} clientId={clientId} projects={projects} />,
     })),
   ].sort((a, b) => a.sortKey.localeCompare(b.sortKey));
 
@@ -77,6 +105,7 @@ export function ClientLedgerTable({
             <TableHead className="text-right">Debit</TableHead>
             <TableHead className="text-right">Credit</TableHead>
             <TableHead className="text-right">Balance</TableHead>
+            <TableHead className="w-9" />
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -88,9 +117,10 @@ export function ClientLedgerTable({
               <TableCell className="text-right">{r.debit ? formatMoney(r.debit) : ""}</TableCell>
               <TableCell className="text-right text-emerald-600">{r.credit ? formatMoney(r.credit) : ""}</TableCell>
               <BalanceCell value={r.balance} />
+              <TableCell>{r.edit}</TableCell>
             </TableRow>
           ))}
-          {withBalance.length === 0 && <EmptyRow span={6} />}
+          {withBalance.length === 0 && <EmptyRow span={7} />}
         </TableBody>
       </Table>
     </div>
@@ -100,9 +130,13 @@ export function ClientLedgerTable({
 export function VendorLedgerTable({
   bills,
   payments,
+  vendorId,
+  projects,
 }: {
   bills: VendorBill[];
   payments: VendorPayment[];
+  vendorId: string;
+  projects: ProjectOption[];
 }) {
   type Row = {
     date: string;
@@ -112,6 +146,7 @@ export function VendorLedgerTable({
     paymentMode: string | null;
     billAmount: number;
     payment: number;
+    edit: React.ReactNode;
   };
 
   const rows: Row[] = [
@@ -123,6 +158,7 @@ export function VendorLedgerTable({
       paymentMode: null,
       billAmount: Number(b.amount),
       payment: 0,
+      edit: <EditVendorBillDialog bill={b} vendorId={vendorId} projects={projects} />,
     })),
     ...payments.map((p) => ({
       date: p.payment_date,
@@ -132,6 +168,7 @@ export function VendorLedgerTable({
       paymentMode: p.payment_mode ?? null,
       billAmount: 0,
       payment: Number(p.amount),
+      edit: <EditVendorPaymentDialog payment={p} vendorId={vendorId} />,
     })),
   ].sort((a, b) => a.sortKey.localeCompare(b.sortKey));
 
@@ -153,6 +190,7 @@ export function VendorLedgerTable({
             <TableHead className="text-right">Payment</TableHead>
             <TableHead>Payment Mode</TableHead>
             <TableHead className="text-right">Balance</TableHead>
+            <TableHead className="w-9" />
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -165,9 +203,10 @@ export function VendorLedgerTable({
               <TableCell className="text-right text-emerald-600">{r.payment ? formatMoney(r.payment) : ""}</TableCell>
               <TableCell className="text-[var(--text-muted)]">{r.paymentMode ?? "—"}</TableCell>
               <BalanceCell value={r.balance} />
+              <TableCell>{r.edit}</TableCell>
             </TableRow>
           ))}
-          {withBalance.length === 0 && <EmptyRow span={7} />}
+          {withBalance.length === 0 && <EmptyRow span={8} />}
         </TableBody>
       </Table>
     </div>
@@ -177,9 +216,13 @@ export function VendorLedgerTable({
 export function LabourLedgerTable({
   work,
   payments,
+  labourerId,
+  projects,
 }: {
   work: LabourWorkWithSite[];
   payments: LabourPayment[];
+  labourerId: string;
+  projects: ProjectOption[];
 }) {
   type Row = {
     date: string;
@@ -193,6 +236,7 @@ export function LabourLedgerTable({
     amountPaid: number;
     entryType: string | null;
     paymentMode: string | null;
+    edit: React.ReactNode;
   };
 
   const rows: Row[] = [
@@ -208,6 +252,7 @@ export function LabourLedgerTable({
       amountPaid: 0,
       entryType: null,
       paymentMode: null,
+      edit: <EditLabourWorkDialog work={w} labourerId={labourerId} projects={projects} />,
     })),
     ...payments.map((p) => ({
       date: p.payment_date,
@@ -221,6 +266,7 @@ export function LabourLedgerTable({
       amountPaid: Number(p.amount),
       entryType: p.entry_type ?? "Payment",
       paymentMode: p.payment_mode ?? null,
+      edit: <EditLabourPaymentDialog payment={p} labourerId={labourerId} />,
     })),
   ].sort((a, b) => a.sortKey.localeCompare(b.sortKey));
 
@@ -246,6 +292,7 @@ export function LabourLedgerTable({
             <TableHead>Entry Type</TableHead>
             <TableHead>Payment Mode</TableHead>
             <TableHead className="text-right">Balance</TableHead>
+            <TableHead className="w-9" />
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -264,9 +311,10 @@ export function LabourLedgerTable({
               <TableCell className="text-[var(--text-muted)]">{r.entryType ?? "—"}</TableCell>
               <TableCell className="text-[var(--text-muted)]">{r.paymentMode ?? "—"}</TableCell>
               <BalanceCell value={r.balance} />
+              <TableCell>{r.edit}</TableCell>
             </TableRow>
           ))}
-          {withBalance.length === 0 && <EmptyRow span={11} />}
+          {withBalance.length === 0 && <EmptyRow span={12} />}
         </TableBody>
       </Table>
     </div>
