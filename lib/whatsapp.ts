@@ -8,10 +8,14 @@ export function buildWhatsappMessage(contact: WhatsappContact): string {
   }
 
   if (contact.category === "Client") {
-    return `Hi ${contact.name}, your remaining balance is ₹${amount}. Please make the payment at the earliest. Thank you!`;
+    return `Hi ${contact.name} 😊\n\nA gentle reminder regarding the ₹${amount} pending payment. Kindly arrange the payment as soon as possible.\n\nThank you for your continued support and trust. 🙏\n\nAshwin Enterprises`;
   }
 
-  return `Hi ${contact.name}, your remaining payment due from Ashwin Enterprises is ₹${amount}. We will settle it soon. Thank you!`;
+  if (contact.category === "Vendor") {
+    return `Hi ${contact.name},\n\nYour outstanding balance of ₹${amount} is pending with Ashwin Enterprises. We will settle the payment shortly.\n\nThank you for your continued support and cooperation. 🙏\n\nAshwin Enterprises`;
+  }
+
+  return `Hi ${contact.name},\n\nYour ₹${amount} pending payment is noted and will be paid shortly by Ashwin Enterprises.\n\nThank you for your hard work and cooperation. 🙏\nWe appreciate your support,\n\nAshwin Enterprises`;
 }
 
 export function buildWhatsappLink(phone: string, message: string): string {
