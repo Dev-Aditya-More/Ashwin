@@ -1,3 +1,5 @@
+"use client";
+
 import { Phone, MessageCircle } from "lucide-react";
 import { buildWhatsappLink, buildWhatsappMessage } from "@/lib/whatsapp";
 import type { WhatsappContact } from "@/lib/actions/whatsapp";
