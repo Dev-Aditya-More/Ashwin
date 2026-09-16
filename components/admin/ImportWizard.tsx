@@ -16,7 +16,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { bulkImport, type ImportEntity, type ImportResult } from "@/lib/actions/import";
-import { detectColumnMap, parseSpreadsheet, rowsToImportRows, type ParsedSheet } from "@/lib/import-parse";
+import {
+  detectColumnMap,
+  detectTypeColumn,
+  guessSheetForEntity,
+  parseWorkbook,
+  rowMatchesEntity,
+  rowsToImportRows,
+  type ParsedWorkbook,
+} from "@/lib/import-parse";
 
 const ENTITY_LABEL: Record<ImportEntity, string> = {
   clients: "Clients",
@@ -64,22 +72,38 @@ function downloadSample(entity: ImportEntity) {
 export function ImportWizard() {
   const router = useRouter();
   const [entity, setEntity] = useState<ImportEntity>("clients");
-  const [sheet, setSheet] = useState<ParsedSheet | null>(null);
+  const [workbook, setWorkbook] = useState<ParsedWorkbook | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
+  const [sheetName, setSheetName] = useState<string>("");
   const [columnMap, setColumnMap] = useState<Record<string, string>>({});
+  const [typeColumn, setTypeColumn] = useState<string>("");
   const [pending, startTransition] = useTransition();
   const [result, setResult] = useState<ImportResult | null>(null);
 
-  function reset() {
-    setSheet(null);
-    setFileName(null);
-    setColumnMap({});
-    setResult(null);
+  const currentSheet = workbook && sheetName ? workbook.sheets[sheetName] : null;
+
+  function applySheetDefaults(wb: ParsedWorkbook, ent: ImportEntity) {
+    const sn = guessSheetForEntity(wb, ent);
+    const headers = wb.sheets[sn].headers;
+    setSheetName(sn);
+    setColumnMap(detectColumnMap(headers, ent) as Record<string, string>);
+    setTypeColumn(detectTypeColumn(headers) ?? "");
   }
 
   function selectEntity(next: string) {
-    setEntity(next as ImportEntity);
-    reset();
+    const ent = next as ImportEntity;
+    setEntity(ent);
+    setResult(null);
+    if (workbook) applySheetDefaults(workbook, ent);
+  }
+
+  function selectSheet(name: string) {
+    if (!workbook) return;
+    setSheetName(name);
+    setResult(null);
+    const headers = workbook.sheets[name].headers;
+    setColumnMap(detectColumnMap(headers, entity) as Record<string, string>);
+    setTypeColumn(detectTypeColumn(headers) ?? "");
   }
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
@@ -88,25 +112,28 @@ export function ImportWizard() {
     if (!file) return;
 
     try {
-      const parsed = await parseSpreadsheet(file);
-      if (parsed.rows.length === 0) {
+      const wb = await parseWorkbook(file);
+      const hasRows = wb.sheetNames.some((n) => wb.sheets[n].rows.length > 0);
+      if (!hasRows) {
         toast.error("That file has no rows.");
         return;
       }
       setFileName(file.name);
-      setSheet(parsed);
+      setWorkbook(wb);
       setResult(null);
-      const detected = detectColumnMap(parsed.headers, entity);
-      setColumnMap(detected as Record<string, string>);
+      applySheetDefaults(wb, entity);
     } catch {
-      toast.error("Couldn't read that file — is it a valid .csv or .xlsx?");
+      toast.error("Couldn't read that file — is it a valid .csv or Excel file?");
     }
   }
 
   const importRows = useMemo(() => {
-    if (!sheet) return [];
-    return rowsToImportRows(sheet.rows, columnMap as never);
-  }, [sheet, columnMap]);
+    if (!currentSheet) return [];
+    const rows = typeColumn
+      ? currentSheet.rows.filter((r) => rowMatchesEntity(r[typeColumn] ?? "", entity))
+      : currentSheet.rows;
+    return rowsToImportRows(rows, columnMap as never);
+  }, [currentSheet, columnMap, typeColumn, entity]);
 
   const readyCount = importRows.filter((r) => r.name.trim()).length;
 
@@ -142,7 +169,12 @@ export function ImportWizard() {
           <label className="inline-flex items-center gap-2 rounded-lg border border-dashed border-[var(--border)] px-4 py-2.5 text-sm cursor-pointer hover:bg-[var(--bg-2)] transition-colors">
             <Upload className="size-4" />
             {fileName ? "Choose a different file" : "Choose CSV or Excel file"}
-            <input type="file" accept=".csv,.xlsx,.xls" className="hidden" onChange={handleFile} />
+            <input
+              type="file"
+              accept=".csv,.xlsx,.xls,.xlsm"
+              className="hidden"
+              onChange={handleFile}
+            />
           </label>
           <Button type="button" variant="ghost" size="sm" onClick={() => downloadSample(entity)}>
             <Download className="size-4" /> Download sample template
@@ -150,8 +182,49 @@ export function ImportWizard() {
           {fileName && <span className="text-sm text-[var(--text-muted)]">{fileName}</span>}
         </div>
 
-        {sheet && (
+        {workbook && currentSheet && (
           <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              {workbook.sheetNames.length > 1 && (
+                <div className="space-y-1.5">
+                  <Label>Sheet</Label>
+                  <select
+                    value={sheetName}
+                    onChange={(e) => selectSheet(e.target.value)}
+                    className="w-full h-9 rounded-md border border-[var(--border)] bg-background px-3 text-sm"
+                  >
+                    {workbook.sheetNames.map((n) => (
+                      <option key={n} value={n}>
+                        {n}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-[var(--text-muted)]">
+                    One workbook, one sheet per type — pick the sheet feeding this tab.
+                  </p>
+                </div>
+              )}
+              <div className="space-y-1.5">
+                <Label>Type Column (optional)</Label>
+                <select
+                  value={typeColumn}
+                  onChange={(e) => setTypeColumn(e.target.value)}
+                  className="w-full h-9 rounded-md border border-[var(--border)] bg-background px-3 text-sm"
+                >
+                  <option value="">— This sheet is all {ENTITY_LABEL[entity].toLowerCase()} —</option>
+                  {currentSheet.headers.map((h) => (
+                    <option key={h} value={h}>
+                      {h}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-[var(--text-muted)]">
+                  If one sheet mixes clients, vendors &amp; labour together, pick the column that
+                  says which is which.
+                </p>
+              </div>
+            </div>
+
             <div className="space-y-2">
               <p className="text-sm font-medium">Match your columns</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -166,7 +239,7 @@ export function ImportWizard() {
                       className="w-full h-9 rounded-md border border-[var(--border)] bg-background px-3 text-sm"
                     >
                       <option value="">— Not in file —</option>
-                      {sheet.headers.map((h) => (
+                      {currentSheet.headers.map((h) => (
                         <option key={h} value={h}>
                           {h}
                         </option>
@@ -201,6 +274,12 @@ export function ImportWizard() {
               {importRows.length > 8 && (
                 <p className="text-xs text-[var(--text-muted)] px-4 py-2 border-t border-[var(--border)]">
                   + {importRows.length - 8} more row(s)
+                </p>
+              )}
+              {importRows.length === 0 && (
+                <p className="text-sm text-[var(--text-muted)] px-4 py-6 text-center">
+                  No rows matched {ENTITY_LABEL[entity].toLowerCase()} on this sheet — check the
+                  Type Column or Sheet picked above.
                 </p>
               )}
             </div>

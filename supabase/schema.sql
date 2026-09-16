@@ -146,6 +146,17 @@ create table if not exists vendor_payments (
 );
 
 -- ============================================================
+-- 6.5. APP LOCK — extra PIN gate on top of email/password sign-in
+-- ============================================================
+create table if not exists app_lock (
+  id text primary key default 'default',
+  pin_hash text,
+  salt text,
+  updated_at timestamptz not null default now(),
+  updated_by text
+);
+
+-- ============================================================
 -- 7. INDEXES
 -- ============================================================
 create index if not exists idx_projects_client on projects(client_id);
@@ -250,6 +261,7 @@ alter table labour_work enable row level security;
 alter table labour_payments enable row level security;
 alter table vendor_bills enable row level security;
 alter table vendor_payments enable row level security;
+alter table app_lock enable row level security;
 
 do $$
 declare
@@ -258,7 +270,7 @@ begin
   for t in select unnest(array[
     'financial_years','clients','labourers','vendors','projects',
     'client_work','client_payments','labour_work','labour_payments',
-    'vendor_bills','vendor_payments'
+    'vendor_bills','vendor_payments','app_lock'
   ])
   loop
     execute format(

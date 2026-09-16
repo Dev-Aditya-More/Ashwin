@@ -73,6 +73,10 @@ export default async function LabourPage() {
                     <Badge className="bg-amber-50 text-amber-700 border-amber-200">
                       {formatMoney(l.balance)}
                     </Badge>
+                  ) : l.balance < 0 ? (
+                    <Badge className="bg-blue-50 text-blue-700 border-blue-200">
+                      Advance {formatMoney(Math.abs(l.balance))}
+                    </Badge>
                   ) : (
                     <Badge variant="secondary">Settled</Badge>
                   )}

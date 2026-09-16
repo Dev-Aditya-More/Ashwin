@@ -62,6 +62,10 @@ export default async function VendorsPage() {
                     <Badge className="bg-rose-50 text-rose-700 border-rose-200">
                       {formatMoney(v.balance)}
                     </Badge>
+                  ) : v.balance < 0 ? (
+                    <Badge className="bg-blue-50 text-blue-700 border-blue-200">
+                      Advance {formatMoney(Math.abs(v.balance))}
+                    </Badge>
                   ) : (
                     <Badge variant="secondary">Settled</Badge>
                   )}

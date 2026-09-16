@@ -1,7 +1,9 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { PIN_COOKIE } from "@/lib/pin-lock";
 
 export async function login(
   _prevState: { error: string | null },
@@ -27,5 +29,7 @@ export async function login(
 export async function logout() {
   const supabase = await createClient();
   await supabase.auth.signOut();
+  const jar = await cookies();
+  jar.delete({ name: PIN_COOKIE, path: "/admin" });
   redirect("/admin/login");
 }

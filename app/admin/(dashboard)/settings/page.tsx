@@ -1,13 +1,15 @@
 import { listFinancialYears, createFinancialYear, setActiveFinancialYear } from "@/lib/actions/financial-years";
 import { logout } from "@/lib/actions/auth";
+import { getPinLockStatus } from "@/lib/actions/pin-lock";
 import { formatDate } from "@/lib/format";
+import { PinLockSettings } from "@/components/admin/PinLockSettings";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 
 export default async function SettingsPage() {
-  const years = await listFinancialYears();
+  const [years, pinLock] = await Promise.all([listFinancialYears(), getPinLockStatus()]);
 
   return (
     <div className="space-y-6 max-w-2xl">
@@ -66,6 +68,8 @@ export default async function SettingsPage() {
           </div>
         </form>
       </div>
+
+      <PinLockSettings enabled={pinLock.enabled} />
 
       <div className="rounded-xl border border-[var(--border)] bg-white p-4">
         <p className="font-semibold text-sm mb-3">Session</p>
