@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { addBulkLabourPayments } from "@/lib/actions/labour";
 import { formatMoney } from "@/lib/format";
+import { endOfCurrentMonth } from "@/lib/date-limits";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -49,7 +50,7 @@ export function BulkPayForm({ labourers }: { labourers: Labourer[] }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-md">
         <div className="space-y-1.5">
           <Label htmlFor="payment_date">Payment Date</Label>
-          <Input id="payment_date" name="payment_date" type="date" defaultValue={today()} />
+          <Input id="payment_date" name="payment_date" type="date" defaultValue={today()} max={endOfCurrentMonth()} />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="note">Note (applies to all)</Label>

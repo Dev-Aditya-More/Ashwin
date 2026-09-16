@@ -7,23 +7,33 @@ import {
   UserSquare2,
 } from "lucide-react";
 import Link from "next/link";
-import { getDashboardData, getMonthlyPerformance } from "@/lib/actions/dashboard";
+import { getDashboardData, getMonthlyPerformance, getDailyPerformance } from "@/lib/actions/dashboard";
 // import { listClients } from "@/lib/actions/clients";
 // import { listLabourers } from "@/lib/actions/labour";
 // import { listVendors } from "@/lib/actions/vendors";
 import { StatCard } from "@/components/admin/StatCard";
 // LedgerTable is unused now that the three ledgers below are commented out.
 import { QuickAccess, MonthlyPerformance /*, LedgerTable */ } from "@/components/admin/LedgerBlocks";
+import { AddEntityDropdown } from "@/components/admin/AddEntityDropdown";
 import { Button } from "@/components/ui/button";
 import { getGreeting } from "@/lib/format";
 
-export default async function DashboardPage() {
-  const [data, monthly] = await Promise.all([
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ from?: string; to?: string }>;
+}) {
+  const { from, to } = await searchParams;
+  const validRange =
+    from && to && /^\d{4}-\d{2}-\d{2}$/.test(from) && /^\d{4}-\d{2}-\d{2}$/.test(to) && from <= to;
+
+  const [data, monthly, dailyRows] = await Promise.all([
     getDashboardData(),
     // listClients(),
     // listLabourers(),
     // listVendors(),
     getMonthlyPerformance(),
+    validRange ? getDailyPerformance(from, to) : Promise.resolve(undefined),
   ]);
 
   return (
@@ -36,10 +46,8 @@ export default async function DashboardPage() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <AddEntityDropdown />
           <Button asChild variant="outline">
-            <Link href="/admin/clients">+ Add Client</Link>
-          </Button>
-          <Button asChild>
             <Link href="/admin/transactions">View Transactions</Link>
           </Button>
         </div>
@@ -108,7 +116,7 @@ export default async function DashboardPage() {
 
       <QuickAccess />
 
-      <MonthlyPerformance rows={monthly} />
+      <MonthlyPerformance rows={monthly} dailyRows={dailyRows} from={from} to={to} />
 
       {/* Ledger summaries removed from the dashboard per request — still
           available in full on /admin/reports. Uncomment (and restore the

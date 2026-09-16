@@ -3,6 +3,7 @@ import { Banknote } from "lucide-react";
 import { listLabourers } from "@/lib/actions/labour";
 import { AddLabourerDialog } from "@/components/admin/dialogs/LabourDialogs";
 import { formatMoney } from "@/lib/format";
+import { QuickContactActions } from "@/components/admin/QuickContactActions";
 import {
   Table,
   TableBody,
@@ -36,14 +37,17 @@ export default async function LabourPage() {
         </div>
       </div>
 
-      <div className="rounded-xl border border-[var(--border)] bg-white overflow-hidden">
+      <div className="rounded-xl border border-[var(--border)] bg-white overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead>Phone</TableHead>
               <TableHead>Default Rate</TableHead>
-              <TableHead className="text-right">Money to Pay</TableHead>
+              <TableHead className="text-right">Total Owed</TableHead>
+              <TableHead className="text-right">Total Paid</TableHead>
+              <TableHead className="text-right">Balance</TableHead>
+              <TableHead className="text-center w-24">Contact</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -58,6 +62,12 @@ export default async function LabourPage() {
                 <TableCell className="text-[var(--text-muted)]">
                   {l.default_rate ? formatMoney(l.default_rate) : "—"}
                 </TableCell>
+                <TableCell className="text-right text-[var(--text-muted)]">
+                  {l.totalWork ? formatMoney(l.totalWork) : "—"}
+                </TableCell>
+                <TableCell className="text-right text-[var(--text-muted)]">
+                  {l.totalPaid ? formatMoney(l.totalPaid) : "—"}
+                </TableCell>
                 <TableCell className="text-right">
                   {l.balance > 0 ? (
                     <Badge className="bg-amber-50 text-amber-700 border-amber-200">
@@ -67,11 +77,20 @@ export default async function LabourPage() {
                     <Badge variant="secondary">Settled</Badge>
                   )}
                 </TableCell>
+                <TableCell>
+                  <QuickContactActions
+                    id={l.id}
+                    name={l.name}
+                    phone={l.phone}
+                    balance={l.balance}
+                    category="Labour"
+                  />
+                </TableCell>
               </TableRow>
             ))}
             {labourers.length === 0 && (
               <TableRow>
-                <TableCell colSpan={4} className="text-center text-[var(--text-muted)] py-10">
+                <TableCell colSpan={7} className="text-center text-[var(--text-muted)] py-10">
                   No labourers yet. Add your first worker to get started.
                 </TableCell>
               </TableRow>

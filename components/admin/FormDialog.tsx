@@ -14,24 +14,33 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
-export type FormActionResult = { warning?: string } | void;
+export type FormActionResult = { warning?: string; id?: string } | void;
 
 export function FormDialog({
   trigger,
+  open: openProp,
+  onOpenChange: onOpenChangeProp,
   title,
   description,
   action,
   submitLabel = "Save",
   children,
 }: {
-  trigger: React.ReactNode;
+  trigger?: React.ReactNode;
+  /** Controlled open state — omit to let the dialog manage its own (uncontrolled) state via `trigger`. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   title: string;
   description?: string;
   action: (formData: FormData) => Promise<FormActionResult>;
   submitLabel?: string;
   children: React.ReactNode;
 }) {
-  const [open, setOpen] = useState(false);
+  const isControlled = openProp !== undefined;
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = isControlled ? openProp : internalOpen;
+  const setOpen = isControlled ? onOpenChangeProp! : setInternalOpen;
+
   const [pending, startTransition] = useTransition();
   const [warning, setWarning] = useState<string | null>(null);
   const pendingFormData = useRef<FormData | null>(null);
@@ -82,7 +91,7 @@ export function FormDialog({
         if (!next) setWarning(null);
       }}
     >
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>

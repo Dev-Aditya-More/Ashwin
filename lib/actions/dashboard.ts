@@ -207,6 +207,71 @@ function buildMonthlySeries(
   return months;
 }
 
+export type DailyRow = {
+  key: string; // "YYYY-MM-DD"
+  label: string; // "16 Sep"
+  revenue: number;
+  labour: number;
+  vendor: number;
+  net: number;
+};
+
+/**
+ * Day-by-day revenue/labour/vendor/net for an arbitrary date range —
+ * used once the FY Monthly Performance table is filtered down, since
+ * whole-month buckets get too coarse once there's a lot of activity.
+ */
+export async function getDailyPerformance(from: string, to: string): Promise<DailyRow[]> {
+  // Defensive cap — a year of daily rows is already a lot to render; anything
+  // wider almost certainly means someone fat-fingered the range.
+  const maxTo = new Date(from);
+  maxTo.setDate(maxTo.getDate() + 366);
+  if (new Date(to) > maxTo) to = maxTo.toISOString().slice(0, 10);
+
+  const supabase = await createClient();
+
+  const [clientWork, labourWork, vendorBills] = await Promise.all([
+    supabase.from("client_work").select("amount, work_date").gte("work_date", from).lte("work_date", to),
+    supabase.from("labour_work").select("amount, work_date").gte("work_date", from).lte("work_date", to),
+    supabase.from("vendor_bills").select("amount, bill_date").gte("bill_date", from).lte("bill_date", to),
+  ]);
+
+  const days = new Map<string, DailyRow>();
+  const cursor = new Date(from);
+  const last = new Date(to);
+  while (cursor <= last) {
+    const key = cursor.toISOString().slice(0, 10);
+    days.set(key, {
+      key,
+      label: cursor.toLocaleDateString("en-IN", { day: "2-digit", month: "short" }),
+      revenue: 0,
+      labour: 0,
+      vendor: 0,
+      net: 0,
+    });
+    cursor.setDate(cursor.getDate() + 1);
+  }
+
+  (clientWork.data ?? []).forEach((r) => {
+    const d = days.get(r.work_date);
+    if (d) d.revenue += Number(r.amount);
+  });
+  (labourWork.data ?? []).forEach((r) => {
+    const d = days.get(r.work_date);
+    if (d) d.labour += Number(r.amount);
+  });
+  (vendorBills.data ?? []).forEach((r) => {
+    const d = days.get(r.bill_date);
+    if (d) d.vendor += Number(r.amount);
+  });
+
+  const rows = Array.from(days.values());
+  rows.forEach((d) => {
+    d.net = d.revenue - d.labour - d.vendor;
+  });
+  return rows.reverse();
+}
+
 /**
  * Lighter-weight than getDashboardData — just the active FY's
  * month-by-month revenue/labour/vendor/net, for the Reports page.

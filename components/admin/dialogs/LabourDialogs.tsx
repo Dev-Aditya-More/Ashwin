@@ -15,6 +15,7 @@ import {
   updateLabourWork,
   updateLabourPayment,
 } from "@/lib/actions/labour";
+import { endOfCurrentMonth } from "@/lib/date-limits";
 import type { Labourer, LabourPayment } from "@/lib/types";
 import type { LabourWorkWithSite } from "@/lib/actions/labour";
 
@@ -43,6 +44,13 @@ export function AddLabourerDialog() {
       <div className="space-y-1.5">
         <Label htmlFor="default_rate">Default Rate (₹, optional)</Label>
         <Input id="default_rate" name="default_rate" type="number" min="0" step="0.01" />
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="opening_balance">Opening Balance (₹, optional)</Label>
+        <Input id="opening_balance" name="opening_balance" type="number" step="0.01" placeholder="e.g. 2000" />
+        <p className="text-xs text-[var(--text-muted)]">
+          What you already owe them, if carrying over from before.
+        </p>
       </div>
     </FormDialog>
   );
@@ -136,7 +144,7 @@ export function AddLabourWorkDialog({
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="work_date">Date</Label>
-          <Input id="work_date" name="work_date" type="date" defaultValue={today()} />
+          <Input id="work_date" name="work_date" type="date" defaultValue={today()} max={endOfCurrentMonth()} />
         </div>
       </div>
       <ProjectSelect projects={projects} />
@@ -192,7 +200,7 @@ export function EditLabourWorkDialog({
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="work_date">Date</Label>
-          <Input id="work_date" name="work_date" type="date" defaultValue={work.work_date} />
+          <Input id="work_date" name="work_date" type="date" defaultValue={work.work_date} max={endOfCurrentMonth()} />
         </div>
       </div>
       <ProjectSelect projects={projects} defaultValue={work.project_id ?? ""} />
@@ -219,7 +227,7 @@ export function AddLabourPaymentDialog({ labourerId }: { labourerId: string }) {
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="payment_date">Date</Label>
-          <Input id="payment_date" name="payment_date" type="date" defaultValue={today()} />
+          <Input id="payment_date" name="payment_date" type="date" defaultValue={today()} max={endOfCurrentMonth()} />
         </div>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -258,7 +266,7 @@ export function EditLabourPaymentDialog({
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="payment_date">Date</Label>
-          <Input id="payment_date" name="payment_date" type="date" defaultValue={payment.payment_date} />
+          <Input id="payment_date" name="payment_date" type="date" defaultValue={payment.payment_date} max={endOfCurrentMonth()} />
         </div>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

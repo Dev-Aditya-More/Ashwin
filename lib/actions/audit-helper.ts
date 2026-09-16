@@ -19,7 +19,7 @@ export async function insertWithActor(
   rows: Record<string, unknown> | Record<string, unknown>[],
   actorEmail: string | null,
   extra?: Record<string, unknown>
-) {
+): Promise<{ data: { id: string }[] | null }> {
   const withExtra = (row: Record<string, unknown>) => ({
     ...row,
     ...(extra ?? {}),
@@ -27,11 +27,15 @@ export async function insertWithActor(
   });
 
   const tagged = Array.isArray(rows) ? rows.map(withExtra) : withExtra(rows);
-  const { error } = await supabase.from(table).insert(tagged);
-  if (!error) return;
+  const { data, error } = await supabase.from(table).insert(tagged).select("id");
+  if (!error) return { data };
 
-  const { error: fallbackError } = await supabase.from(table).insert(rows);
+  const { data: fallbackData, error: fallbackError } = await supabase
+    .from(table)
+    .insert(rows)
+    .select("id");
   if (fallbackError) throw fallbackError;
+  return { data: fallbackData };
 }
 
 /**

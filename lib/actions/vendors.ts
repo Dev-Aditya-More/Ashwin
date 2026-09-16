@@ -5,20 +5,27 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { hasRecentDuplicate, duplicateWarning } from "@/lib/actions/duplicate-check";
 import { currentUserEmail, insertWithActor, updateSafely } from "@/lib/actions/audit-helper";
+import { applyOpeningBalance } from "@/lib/actions/import";
+import { isAfterCurrentMonth, FUTURE_MONTH_WARNING } from "@/lib/date-limits";
 import type { Vendor, VendorBalance, VendorBill, VendorPayment } from "@/lib/types";
 
-export async function listVendors(): Promise<(Vendor & { balance: number })[]> {
+export type VendorWithTotals = Vendor & { balance: number; totalBilled: number; totalPaid: number };
+
+export async function listVendors(): Promise<VendorWithTotals[]> {
   const supabase = await createClient();
   const [{ data: vendors }, { data: balances }] = await Promise.all([
     supabase.from("vendors").select("*").order("name"),
     supabase.from("vendor_balances").select("*"),
   ]);
 
-  const balanceMap = new Map<string, number>(
-    (balances ?? []).map((b: VendorBalance) => [b.vendor_id, b.balance])
+  const balanceMap = new Map<string, VendorBalance>(
+    (balances ?? []).map((b: VendorBalance) => [b.vendor_id, b])
   );
 
-  return (vendors ?? []).map((v) => ({ ...v, balance: balanceMap.get(v.id) ?? 0 }));
+  return (vendors ?? []).map((v) => {
+    const b = balanceMap.get(v.id);
+    return { ...v, balance: b?.balance ?? 0, totalBilled: b?.total_billed ?? 0, totalPaid: b?.total_paid ?? 0 };
+  });
 }
 
 export async function getVendor(id: string) {
@@ -48,15 +55,32 @@ export async function getVendor(id: string) {
   };
 }
 
-export async function createVendorRecord(formData: FormData) {
+export async function createVendorRecord(formData: FormData): Promise<{ id?: string }> {
   const name = String(formData.get("name") ?? "").trim();
-  if (!name) return;
+  if (!name) return {};
   const phone = String(formData.get("phone") ?? "").trim() || null;
   const category = String(formData.get("category") ?? "").trim() || null;
+  const opening_balance = Number(formData.get("opening_balance") ?? 0) || 0;
 
   const supabase = await createClient();
-  await supabase.from("vendors").insert({ name, phone, category });
+  const { data, error } = await supabase
+    .from("vendors")
+    .insert({ name, phone, category })
+    .select("id")
+    .single();
+  if (error || !data) return {};
+
+  if (opening_balance) {
+    const [fy, actorEmail] = await Promise.all([
+      supabase.from("financial_years").select("id").eq("is_active", true).maybeSingle(),
+      currentUserEmail(supabase),
+    ]);
+    await applyOpeningBalance(supabase, "vendors", data.id, opening_balance, fy.data?.id ?? null, actorEmail);
+  }
+
   revalidatePath("/admin/vendors");
+  revalidatePath("/admin");
+  return { id: data.id };
 }
 
 export async function updateVendorRecord(id: string, formData: FormData) {
@@ -81,7 +105,7 @@ export async function deleteVendorRecord(id: string) {
 export async function addVendorBill(
   vendorId: string,
   formData: FormData
-): Promise<{ warning?: string } | void> {
+): Promise<{ warning?: string; id?: string } | void> {
   const description = String(formData.get("description") ?? "").trim();
   const amount = Number(formData.get("amount") ?? 0);
   const bill_date = String(formData.get("bill_date") ?? "") || new Date().toISOString().slice(0, 10);
@@ -89,6 +113,7 @@ export async function addVendorBill(
   const project_id = String(formData.get("project_id") ?? "") || null;
   const confirmed = formData.get("confirm") === "1";
   if (!description || !amount) return;
+  if (isAfterCurrentMonth(bill_date)) return { warning: FUTURE_MONTH_WARNING };
 
   const supabase = await createClient();
 
@@ -109,7 +134,7 @@ export async function addVendorBill(
     supabase.from("financial_years").select("id").eq("is_active", true).maybeSingle(),
     currentUserEmail(supabase),
   ]);
-  await insertWithActor(
+  const { data } = await insertWithActor(
     supabase,
     "vendor_bills",
     {
@@ -125,6 +150,7 @@ export async function addVendorBill(
   );
   revalidatePath(`/admin/vendors/${vendorId}`);
   revalidatePath("/admin");
+  return { id: data?.[0]?.id };
 }
 
 export async function updateVendorBill(id: string, vendorId: string, formData: FormData) {
@@ -170,7 +196,7 @@ export async function updateVendorPayment(id: string, vendorId: string, formData
 export async function addVendorPayment(
   vendorId: string,
   formData: FormData
-): Promise<{ warning?: string } | void> {
+): Promise<{ warning?: string; id?: string } | void> {
   const amount = Number(formData.get("amount") ?? 0);
   const payment_date =
     String(formData.get("payment_date") ?? "") || new Date().toISOString().slice(0, 10);
@@ -178,6 +204,7 @@ export async function addVendorPayment(
   const payment_mode = String(formData.get("payment_mode") ?? "").trim() || null;
   const confirmed = formData.get("confirm") === "1";
   if (!amount) return;
+  if (isAfterCurrentMonth(payment_date)) return { warning: FUTURE_MONTH_WARNING };
 
   const supabase = await createClient();
 
@@ -198,7 +225,7 @@ export async function addVendorPayment(
     supabase.from("financial_years").select("id").eq("is_active", true).maybeSingle(),
     currentUserEmail(supabase),
   ]);
-  await insertWithActor(
+  const { data } = await insertWithActor(
     supabase,
     "vendor_payments",
     {
@@ -211,6 +238,21 @@ export async function addVendorPayment(
     actorEmail,
     { payment_mode }
   );
+  revalidatePath(`/admin/vendors/${vendorId}`);
+  revalidatePath("/admin");
+  return { id: data?.[0]?.id };
+}
+
+export async function deleteVendorBill(id: string, vendorId: string) {
+  const supabase = await createClient();
+  await supabase.from("vendor_bills").delete().eq("id", id);
+  revalidatePath(`/admin/vendors/${vendorId}`);
+  revalidatePath("/admin");
+}
+
+export async function deleteVendorPayment(id: string, vendorId: string) {
+  const supabase = await createClient();
+  await supabase.from("vendor_payments").delete().eq("id", id);
   revalidatePath(`/admin/vendors/${vendorId}`);
   revalidatePath("/admin");
 }

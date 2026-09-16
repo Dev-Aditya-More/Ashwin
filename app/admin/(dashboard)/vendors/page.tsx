@@ -2,6 +2,7 @@ import Link from "next/link";
 import { listVendors } from "@/lib/actions/vendors";
 import { AddVendorDialog } from "@/components/admin/dialogs/VendorDialogs";
 import { formatMoney } from "@/lib/format";
+import { QuickContactActions } from "@/components/admin/QuickContactActions";
 import {
   Table,
   TableBody,
@@ -27,14 +28,17 @@ export default async function VendorsPage() {
         <AddVendorDialog />
       </div>
 
-      <div className="rounded-xl border border-[var(--border)] bg-white overflow-hidden">
+      <div className="rounded-xl border border-[var(--border)] bg-white overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead>Category</TableHead>
               <TableHead>Phone</TableHead>
-              <TableHead className="text-right">Money to Pay</TableHead>
+              <TableHead className="text-right">Total Billed</TableHead>
+              <TableHead className="text-right">Total Paid</TableHead>
+              <TableHead className="text-right">Balance</TableHead>
+              <TableHead className="text-center w-24">Contact</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -47,6 +51,12 @@ export default async function VendorsPage() {
                 </TableCell>
                 <TableCell className="text-[var(--text-muted)]">{v.category ?? "—"}</TableCell>
                 <TableCell className="text-[var(--text-muted)]">{v.phone ?? "—"}</TableCell>
+                <TableCell className="text-right text-[var(--text-muted)]">
+                  {v.totalBilled ? formatMoney(v.totalBilled) : "—"}
+                </TableCell>
+                <TableCell className="text-right text-[var(--text-muted)]">
+                  {v.totalPaid ? formatMoney(v.totalPaid) : "—"}
+                </TableCell>
                 <TableCell className="text-right">
                   {v.balance > 0 ? (
                     <Badge className="bg-rose-50 text-rose-700 border-rose-200">
@@ -56,11 +66,20 @@ export default async function VendorsPage() {
                     <Badge variant="secondary">Settled</Badge>
                   )}
                 </TableCell>
+                <TableCell>
+                  <QuickContactActions
+                    id={v.id}
+                    name={v.name}
+                    phone={v.phone}
+                    balance={v.balance}
+                    category="Vendor"
+                  />
+                </TableCell>
               </TableRow>
             ))}
             {vendors.length === 0 && (
               <TableRow>
-                <TableCell colSpan={4} className="text-center text-[var(--text-muted)] py-10">
+                <TableCell colSpan={7} className="text-center text-[var(--text-muted)] py-10">
                   No vendors yet. Add your first vendor to get started.
                 </TableCell>
               </TableRow>

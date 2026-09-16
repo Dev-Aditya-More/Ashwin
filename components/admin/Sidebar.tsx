@@ -12,18 +12,22 @@ import {
   BarChart3,
   MessageCircle,
   Settings,
+  Sparkles,
+  Upload,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/brand/Logo";
 
 export const NAV = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
+  { label: "AI Assistant", href: "/admin/assistant", icon: Sparkles },
   { label: "Clients", href: "/admin/clients", icon: Users },
   { label: "Labour", href: "/admin/labour", icon: HardHat },
   { label: "Vendors", href: "/admin/vendors", icon: Truck },
   { label: "Projects / Sites", href: "/admin/projects", icon: Building2 },
   { label: "Transactions", href: "/admin/transactions", icon: ArrowLeftRight },
   { label: "Reports", href: "/admin/reports", icon: BarChart3 },
+  { label: "Import", href: "/admin/import", icon: Upload },
   { label: "WhatsApp", href: "/admin/whatsapp", icon: MessageCircle },
 ];
 

@@ -15,6 +15,7 @@ import {
   updateVendorBill,
   updateVendorPayment,
 } from "@/lib/actions/vendors";
+import { endOfCurrentMonth } from "@/lib/date-limits";
 import type { Vendor, VendorBill, VendorPayment } from "@/lib/types";
 
 type ProjectOption = { id: string; name: string };
@@ -42,6 +43,13 @@ export function AddVendorDialog() {
       <div className="space-y-1.5">
         <Label htmlFor="category">Category</Label>
         <Input id="category" name="category" placeholder="e.g. Glass, Hardware, Aluminium" />
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="opening_balance">Opening Balance (₹, optional)</Label>
+        <Input id="opening_balance" name="opening_balance" type="number" step="0.01" placeholder="e.g. 8000" />
+        <p className="text-xs text-[var(--text-muted)]">
+          What you already owe them, if carrying over from before.
+        </p>
       </div>
     </FormDialog>
   );
@@ -109,7 +117,7 @@ export function AddVendorBillDialog({
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="bill_date">Date</Label>
-          <Input id="bill_date" name="bill_date" type="date" defaultValue={today()} />
+          <Input id="bill_date" name="bill_date" type="date" defaultValue={today()} max={endOfCurrentMonth()} />
         </div>
       </div>
       <ProjectSelect projects={projects} />
@@ -153,7 +161,7 @@ export function EditVendorBillDialog({
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="bill_date">Date</Label>
-          <Input id="bill_date" name="bill_date" type="date" defaultValue={bill.bill_date} />
+          <Input id="bill_date" name="bill_date" type="date" defaultValue={bill.bill_date} max={endOfCurrentMonth()} />
         </div>
       </div>
       <ProjectSelect projects={projects} defaultValue={bill.project_id ?? ""} />
@@ -180,7 +188,7 @@ export function AddVendorPaymentDialog({ vendorId }: { vendorId: string }) {
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="payment_date">Date</Label>
-          <Input id="payment_date" name="payment_date" type="date" defaultValue={today()} />
+          <Input id="payment_date" name="payment_date" type="date" defaultValue={today()} max={endOfCurrentMonth()} />
         </div>
       </div>
       <PaymentModeSelect />
@@ -216,7 +224,7 @@ export function EditVendorPaymentDialog({
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="payment_date">Date</Label>
-          <Input id="payment_date" name="payment_date" type="date" defaultValue={payment.payment_date} />
+          <Input id="payment_date" name="payment_date" type="date" defaultValue={payment.payment_date} max={endOfCurrentMonth()} />
         </div>
       </div>
       <PaymentModeSelect defaultValue={payment.payment_mode ?? ""} />

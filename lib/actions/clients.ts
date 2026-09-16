@@ -5,20 +5,27 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { hasRecentDuplicate, duplicateWarning } from "@/lib/actions/duplicate-check";
 import { currentUserEmail, insertWithActor, updateSafely } from "@/lib/actions/audit-helper";
+import { applyOpeningBalance } from "@/lib/actions/import";
+import { isAfterCurrentMonth, FUTURE_MONTH_WARNING } from "@/lib/date-limits";
 import type { Client, ClientBalance, ClientWork, ClientPayment } from "@/lib/types";
 
-export async function listClients(): Promise<(Client & { balance: number })[]> {
+export type ClientWithTotals = Client & { balance: number; totalWork: number; totalPaid: number };
+
+export async function listClients(): Promise<ClientWithTotals[]> {
   const supabase = await createClient();
   const [{ data: clients }, { data: balances }] = await Promise.all([
     supabase.from("clients").select("*").order("name"),
     supabase.from("client_balances").select("*"),
   ]);
 
-  const balanceMap = new Map<string, number>(
-    (balances ?? []).map((b: ClientBalance) => [b.client_id, b.balance])
+  const balanceMap = new Map<string, ClientBalance>(
+    (balances ?? []).map((b: ClientBalance) => [b.client_id, b])
   );
 
-  return (clients ?? []).map((c) => ({ ...c, balance: balanceMap.get(c.id) ?? 0 }));
+  return (clients ?? []).map((c) => {
+    const b = balanceMap.get(c.id);
+    return { ...c, balance: b?.balance ?? 0, totalWork: b?.total_work ?? 0, totalPaid: b?.total_paid ?? 0 };
+  });
 }
 
 export async function getClient(id: string) {
@@ -55,15 +62,32 @@ export async function getClient(id: string) {
   };
 }
 
-export async function createClientRecord(formData: FormData) {
+export async function createClientRecord(formData: FormData): Promise<{ id?: string }> {
   const name = String(formData.get("name") ?? "").trim();
-  if (!name) return;
+  if (!name) return {};
   const phone = String(formData.get("phone") ?? "").trim() || null;
   const address = String(formData.get("address") ?? "").trim() || null;
+  const opening_balance = Number(formData.get("opening_balance") ?? 0) || 0;
 
   const supabase = await createClient();
-  await supabase.from("clients").insert({ name, phone, address });
+  const { data, error } = await supabase
+    .from("clients")
+    .insert({ name, phone, address })
+    .select("id")
+    .single();
+  if (error || !data) return {};
+
+  if (opening_balance) {
+    const [fy, actorEmail] = await Promise.all([
+      supabase.from("financial_years").select("id").eq("is_active", true).maybeSingle(),
+      currentUserEmail(supabase),
+    ]);
+    await applyOpeningBalance(supabase, "clients", data.id, opening_balance, fy.data?.id ?? null, actorEmail);
+  }
+
   revalidatePath("/admin/clients");
+  revalidatePath("/admin");
+  return { id: data.id };
 }
 
 export async function updateClientRecord(id: string, formData: FormData) {
@@ -88,13 +112,14 @@ export async function deleteClientRecord(id: string) {
 export async function addClientWork(
   clientId: string,
   formData: FormData
-): Promise<{ warning?: string } | void> {
+): Promise<{ warning?: string; id?: string } | void> {
   const description = String(formData.get("description") ?? "").trim();
   const amount = Number(formData.get("amount") ?? 0);
   const work_date = String(formData.get("work_date") ?? "") || new Date().toISOString().slice(0, 10);
   const project_id = String(formData.get("project_id") ?? "") || null;
   const confirmed = formData.get("confirm") === "1";
   if (!description || !amount) return;
+  if (isAfterCurrentMonth(work_date)) return { warning: FUTURE_MONTH_WARNING };
 
   const supabase = await createClient();
 
@@ -115,7 +140,7 @@ export async function addClientWork(
     supabase.from("financial_years").select("id").eq("is_active", true).maybeSingle(),
     currentUserEmail(supabase),
   ]);
-  await insertWithActor(
+  const { data } = await insertWithActor(
     supabase,
     "client_work",
     {
@@ -130,6 +155,7 @@ export async function addClientWork(
   );
   revalidatePath(`/admin/clients/${clientId}`);
   revalidatePath("/admin");
+  return { id: data?.[0]?.id };
 }
 
 export async function updateClientWork(id: string, clientId: string, formData: FormData) {
@@ -172,7 +198,7 @@ export async function updateClientPayment(id: string, clientId: string, formData
 export async function addClientPayment(
   clientId: string,
   formData: FormData
-): Promise<{ warning?: string } | void> {
+): Promise<{ warning?: string; id?: string } | void> {
   const amount = Number(formData.get("amount") ?? 0);
   const payment_date =
     String(formData.get("payment_date") ?? "") || new Date().toISOString().slice(0, 10);
@@ -181,6 +207,7 @@ export async function addClientPayment(
   const project_id = String(formData.get("project_id") ?? "") || null;
   const confirmed = formData.get("confirm") === "1";
   if (!amount) return;
+  if (isAfterCurrentMonth(payment_date)) return { warning: FUTURE_MONTH_WARNING };
 
   const supabase = await createClient();
 
@@ -201,7 +228,7 @@ export async function addClientPayment(
     supabase.from("financial_years").select("id").eq("is_active", true).maybeSingle(),
     currentUserEmail(supabase),
   ]);
-  await insertWithActor(
+  const { data } = await insertWithActor(
     supabase,
     "client_payments",
     {
@@ -215,6 +242,21 @@ export async function addClientPayment(
     actorEmail,
     { payment_mode }
   );
+  revalidatePath(`/admin/clients/${clientId}`);
+  revalidatePath("/admin");
+  return { id: data?.[0]?.id };
+}
+
+export async function deleteClientWork(id: string, clientId: string) {
+  const supabase = await createClient();
+  await supabase.from("client_work").delete().eq("id", id);
+  revalidatePath(`/admin/clients/${clientId}`);
+  revalidatePath("/admin");
+}
+
+export async function deleteClientPayment(id: string, clientId: string) {
+  const supabase = await createClient();
+  await supabase.from("client_payments").delete().eq("id", id);
   revalidatePath(`/admin/clients/${clientId}`);
   revalidatePath("/admin");
 }

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { listClients } from "@/lib/actions/clients";
 import { AddClientDialog } from "@/components/admin/dialogs/ClientDialogs";
 import { formatMoney } from "@/lib/format";
+import { QuickContactActions } from "@/components/admin/QuickContactActions";
 import {
   Table,
   TableBody,
@@ -27,27 +28,36 @@ export default async function ClientsPage() {
         <AddClientDialog />
       </div>
 
-      <div className="rounded-xl border border-[var(--border)] bg-white overflow-hidden">
+      <div className="rounded-xl border border-[var(--border)] bg-white overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead>Phone</TableHead>
               <TableHead>Address</TableHead>
-              <TableHead className="text-right">Money to Receive</TableHead>
+              <TableHead className="text-right">Total Billed</TableHead>
+              <TableHead className="text-right">Total Received</TableHead>
+              <TableHead className="text-right">Balance</TableHead>
+              <TableHead className="text-center w-24">Contact</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {clients.map((c) => (
-              <TableRow key={c.id} className="cursor-pointer">
+              <TableRow key={c.id}>
                 <TableCell className="font-medium">
                   <Link href={`/admin/clients/${c.id}`} className="hover:underline">
                     {c.name}
                   </Link>
                 </TableCell>
                 <TableCell className="text-[var(--text-muted)]">{c.phone ?? "—"}</TableCell>
-                <TableCell className="text-[var(--text-muted)] max-w-[240px] truncate">
+                <TableCell className="text-[var(--text-muted)] max-w-[200px] truncate">
                   {c.address ?? "—"}
+                </TableCell>
+                <TableCell className="text-right text-[var(--text-muted)]">
+                  {c.totalWork ? formatMoney(c.totalWork) : "—"}
+                </TableCell>
+                <TableCell className="text-right text-[var(--text-muted)]">
+                  {c.totalPaid ? formatMoney(c.totalPaid) : "—"}
                 </TableCell>
                 <TableCell className="text-right">
                   {c.balance > 0 ? (
@@ -62,12 +72,21 @@ export default async function ClientsPage() {
                     <Badge variant="secondary">Settled</Badge>
                   )}
                 </TableCell>
+                <TableCell>
+                  <QuickContactActions
+                    id={c.id}
+                    name={c.name}
+                    phone={c.phone}
+                    balance={c.balance}
+                    category="Client"
+                  />
+                </TableCell>
               </TableRow>
             ))}
             {clients.length === 0 && (
               <TableRow>
-                <TableCell colSpan={4} className="text-center text-[var(--text-muted)] py-10">
-                  No clients yet. Add your first client to get started.
+                <TableCell colSpan={7} className="text-center text-[var(--text-muted)] py-10">
+                  No clients yet. Use the Add button above to get started.
                 </TableCell>
               </TableRow>
             )}

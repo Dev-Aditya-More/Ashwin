@@ -5,20 +5,27 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { hasRecentDuplicate, duplicateWarning } from "@/lib/actions/duplicate-check";
 import { currentUserEmail, insertWithActor, updateSafely } from "@/lib/actions/audit-helper";
+import { applyOpeningBalance } from "@/lib/actions/import";
+import { isAfterCurrentMonth, FUTURE_MONTH_WARNING } from "@/lib/date-limits";
 import type { Labourer, LabourBalance, LabourWork, LabourPayment } from "@/lib/types";
 
-export async function listLabourers(): Promise<(Labourer & { balance: number })[]> {
+export type LabourerWithTotals = Labourer & { balance: number; totalWork: number; totalPaid: number };
+
+export async function listLabourers(): Promise<LabourerWithTotals[]> {
   const supabase = await createClient();
   const [{ data: labourers }, { data: balances }] = await Promise.all([
     supabase.from("labourers").select("*").order("name"),
     supabase.from("labour_balances").select("*"),
   ]);
 
-  const balanceMap = new Map<string, number>(
-    (balances ?? []).map((b: LabourBalance) => [b.labourer_id, b.balance])
+  const balanceMap = new Map<string, LabourBalance>(
+    (balances ?? []).map((b: LabourBalance) => [b.labourer_id, b])
   );
 
-  return (labourers ?? []).map((l) => ({ ...l, balance: balanceMap.get(l.id) ?? 0 }));
+  return (labourers ?? []).map((l) => {
+    const b = balanceMap.get(l.id);
+    return { ...l, balance: b?.balance ?? 0, totalWork: b?.total_work ?? 0, totalPaid: b?.total_paid ?? 0 };
+  });
 }
 
 export type LabourWorkWithSite = LabourWork & {
@@ -69,17 +76,34 @@ export async function getLabourer(id: string) {
   };
 }
 
-export async function createLabourerRecord(formData: FormData) {
+export async function createLabourerRecord(formData: FormData): Promise<{ id?: string }> {
   const name = String(formData.get("name") ?? "").trim();
-  if (!name) return;
+  if (!name) return {};
   const phone = String(formData.get("phone") ?? "").trim() || null;
   const default_rate = formData.get("default_rate")
     ? Number(formData.get("default_rate"))
     : null;
+  const opening_balance = Number(formData.get("opening_balance") ?? 0) || 0;
 
   const supabase = await createClient();
-  await supabase.from("labourers").insert({ name, phone, default_rate });
+  const { data, error } = await supabase
+    .from("labourers")
+    .insert({ name, phone, default_rate })
+    .select("id")
+    .single();
+  if (error || !data) return {};
+
+  if (opening_balance) {
+    const [fy, actorEmail] = await Promise.all([
+      supabase.from("financial_years").select("id").eq("is_active", true).maybeSingle(),
+      currentUserEmail(supabase),
+    ]);
+    await applyOpeningBalance(supabase, "labour", data.id, opening_balance, fy.data?.id ?? null, actorEmail);
+  }
+
   revalidatePath("/admin/labour");
+  revalidatePath("/admin");
+  return { id: data.id };
 }
 
 export async function updateLabourerRecord(id: string, formData: FormData) {
@@ -106,7 +130,7 @@ export async function deleteLabourerRecord(id: string) {
 export async function addLabourWork(
   labourerId: string,
   formData: FormData
-): Promise<{ warning?: string } | void> {
+): Promise<{ warning?: string; id?: string } | void> {
   const description = String(formData.get("description") ?? "").trim();
   const quantity = Number(formData.get("quantity") ?? 1);
   const rate = Number(formData.get("rate") ?? 0);
@@ -117,6 +141,7 @@ export async function addLabourWork(
   const confirmed = formData.get("confirm") === "1";
   const amount = quantity * rate;
   if (!description || !amount) return;
+  if (isAfterCurrentMonth(work_date)) return { warning: FUTURE_MONTH_WARNING };
 
   const supabase = await createClient();
 
@@ -137,7 +162,7 @@ export async function addLabourWork(
     supabase.from("financial_years").select("id").eq("is_active", true).maybeSingle(),
     currentUserEmail(supabase),
   ]);
-  await insertWithActor(
+  const { data } = await insertWithActor(
     supabase,
     "labour_work",
     {
@@ -155,6 +180,7 @@ export async function addLabourWork(
   );
   revalidatePath(`/admin/labour/${labourerId}`);
   revalidatePath("/admin");
+  return { id: data?.[0]?.id };
 }
 
 export async function updateLabourWork(id: string, labourerId: string, formData: FormData) {
@@ -210,6 +236,9 @@ export async function addBulkLabourPayments(
 ): Promise<{ error: string | null; count: number }> {
   const payment_date = String(formData.get("payment_date") ?? "") || undefined;
   const note = String(formData.get("note") ?? "").trim() || null;
+  if (payment_date && isAfterCurrentMonth(payment_date)) {
+    return { error: FUTURE_MONTH_WARNING, count: 0 };
+  }
 
   const rows: { labourer_id: string; amount: number; payment_date?: string; note: string | null; financial_year_id: string | null }[] = [];
 
@@ -250,7 +279,7 @@ export async function addBulkLabourPayments(
 export async function addLabourPayment(
   labourerId: string,
   formData: FormData
-): Promise<{ warning?: string } | void> {
+): Promise<{ warning?: string; id?: string } | void> {
   const amount = Number(formData.get("amount") ?? 0);
   const payment_date =
     String(formData.get("payment_date") ?? "") || new Date().toISOString().slice(0, 10);
@@ -259,6 +288,7 @@ export async function addLabourPayment(
   const entry_type = String(formData.get("entry_type") ?? "Payment").trim() || "Payment";
   const confirmed = formData.get("confirm") === "1";
   if (!amount) return;
+  if (isAfterCurrentMonth(payment_date)) return { warning: FUTURE_MONTH_WARNING };
 
   const supabase = await createClient();
 
@@ -279,7 +309,7 @@ export async function addLabourPayment(
     supabase.from("financial_years").select("id").eq("is_active", true).maybeSingle(),
     currentUserEmail(supabase),
   ]);
-  await insertWithActor(
+  const { data } = await insertWithActor(
     supabase,
     "labour_payments",
     {
@@ -292,6 +322,21 @@ export async function addLabourPayment(
     actorEmail,
     { payment_mode, entry_type }
   );
+  revalidatePath(`/admin/labour/${labourerId}`);
+  revalidatePath("/admin");
+  return { id: data?.[0]?.id };
+}
+
+export async function deleteLabourWork(id: string, labourerId: string) {
+  const supabase = await createClient();
+  await supabase.from("labour_work").delete().eq("id", id);
+  revalidatePath(`/admin/labour/${labourerId}`);
+  revalidatePath("/admin");
+}
+
+export async function deleteLabourPayment(id: string, labourerId: string) {
+  const supabase = await createClient();
+  await supabase.from("labour_payments").delete().eq("id", id);
   revalidatePath(`/admin/labour/${labourerId}`);
   revalidatePath("/admin");
 }
