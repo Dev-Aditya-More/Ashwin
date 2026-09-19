@@ -8,6 +8,7 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -42,6 +43,10 @@ export default async function TransactionsPage({
   const { month } = await searchParams;
   const transactions = await listTransactions(200, undefined, month);
   const monthLabel = month ? `${MONTH_LABEL[month.slice(5, 7)] ?? ""} ${month.slice(0, 4)}` : null;
+  const netTotal = transactions.reduce(
+    (a, t) => a + (t.direction === "in" ? t.amount : t.direction === "out" ? -t.amount : 0),
+    0
+  );
 
   return (
     <div className="space-y-4">
@@ -124,6 +129,21 @@ export default async function TransactionsPage({
               </TableRow>
             )}
           </TableBody>
+          {transactions.length > 0 && (
+            <TableFooter>
+              <TableRow>
+                <TableCell colSpan={6}>
+                  Net Cash Flow{transactions.length >= 200 ? " (most recent 200)" : ""}
+                </TableCell>
+                <TableCell
+                  className={`text-right ${netTotal > 0 ? "text-emerald-600" : netTotal < 0 ? "text-rose-600" : ""}`}
+                >
+                  {netTotal > 0 ? "+ " : netTotal < 0 ? "- " : ""}
+                  {formatMoney(Math.abs(netTotal))}
+                </TableCell>
+              </TableRow>
+            </TableFooter>
+          )}
         </Table>
       </div>
     </div>

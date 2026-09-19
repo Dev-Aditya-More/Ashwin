@@ -69,7 +69,7 @@ export default async function SettingsPage() {
         </form>
       </div>
 
-      <PinLockSettings enabled={pinLock.enabled} />
+      <PinLockSettings enabled={pinLock.enabled} secretConfigured={pinLock.secretConfigured} />
 
       <div className="rounded-xl border border-[var(--border)] bg-white p-4">
         <p className="font-semibold text-sm mb-3">Session</p>

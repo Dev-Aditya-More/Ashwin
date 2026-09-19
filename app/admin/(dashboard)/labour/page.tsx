@@ -8,6 +8,7 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -17,6 +18,14 @@ import { Button } from "@/components/ui/button";
 
 export default async function LabourPage() {
   const labourers = await listLabourers();
+  const totals = labourers.reduce(
+    (acc, l) => ({
+      totalWork: acc.totalWork + l.totalWork,
+      totalPaid: acc.totalPaid + l.totalPaid,
+      balance: acc.balance + l.balance,
+    }),
+    { totalWork: 0, totalPaid: 0, balance: 0 }
+  );
 
   return (
     <div className="space-y-4">
@@ -100,6 +109,20 @@ export default async function LabourPage() {
               </TableRow>
             )}
           </TableBody>
+          {labourers.length > 0 && (
+            <TableFooter>
+              <TableRow>
+                <TableCell colSpan={3}>Total</TableCell>
+                <TableCell className="text-right">{formatMoney(totals.totalWork)}</TableCell>
+                <TableCell className="text-right">{formatMoney(totals.totalPaid)}</TableCell>
+                <TableCell className="text-right">
+                  {formatMoney(totals.balance)}
+                  {totals.balance < 0 ? " advance" : ""}
+                </TableCell>
+                <TableCell />
+              </TableRow>
+            </TableFooter>
+          )}
         </Table>
       </div>
     </div>

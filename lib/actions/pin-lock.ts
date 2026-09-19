@@ -8,14 +8,14 @@ import { PIN_COOKIE, PIN_SESSION_MS, hashPin, randomSalt, signPinToken } from "@
 
 const PIN_ROW_ID = "default";
 
-export async function getPinLockStatus(): Promise<{ enabled: boolean }> {
+export async function getPinLockStatus(): Promise<{ enabled: boolean; secretConfigured: boolean }> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("app_lock")
     .select("pin_hash")
     .eq("id", PIN_ROW_ID)
     .maybeSingle();
-  return { enabled: !!data?.pin_hash };
+  return { enabled: !!data?.pin_hash, secretConfigured: !!process.env.APP_PIN_SECRET };
 }
 
 /**

@@ -3,13 +3,19 @@
 import { useActionState, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ShieldCheck } from "lucide-react";
+import { ShieldCheck, TriangleAlert } from "lucide-react";
 import { setPin, removePin } from "@/lib/actions/pin-lock";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 
-export function PinLockSettings({ enabled }: { enabled: boolean }) {
+export function PinLockSettings({
+  enabled,
+  secretConfigured,
+}: {
+  enabled: boolean;
+  secretConfigured: boolean;
+}) {
   const router = useRouter();
   const [state, formAction, pending] = useActionState(setPin, { error: null });
   const [removing, startRemoving] = useTransition();
@@ -48,6 +54,18 @@ export function PinLockSettings({ enabled }: { enabled: boolean }) {
           ? "A PIN is required on this and every device before the dashboard opens — separate from your sign-in password, so a browser that already remembers your login still can't be opened by anyone else."
           : "Not set up. Add a PIN so the dashboard stays locked even on a device that already remembers your sign-in."}
       </p>
+
+      {enabled && !secretConfigured && (
+        <div className="flex gap-2 rounded-lg border border-amber-200 bg-amber-50 p-2.5 text-sm text-amber-800">
+          <TriangleAlert className="size-4 shrink-0 mt-0.5" />
+          <p>
+            A PIN is set, but the server can&apos;t see <code>APP_PIN_SECRET</code> right now, so
+            the lock screen won&apos;t appear. This env var needs a full server restart (redeploy,
+            or stop/start <code>npm run dev</code>) to take effect — just editing{" "}
+            <code>.env.local</code> isn&apos;t enough while it&apos;s already running.
+          </p>
+        </div>
+      )}
 
       <form action={formAction} className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {enabled && (

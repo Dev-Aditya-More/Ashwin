@@ -9,6 +9,7 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -83,6 +84,16 @@ export function MonthlyPerformance({
   to?: string;
 }) {
   const filtering = !!dailyRows;
+  const totalRows = filtering ? dailyRows! : rows;
+  const totals = totalRows.reduce(
+    (acc, r) => ({
+      revenue: acc.revenue + r.revenue,
+      labour: acc.labour + r.labour,
+      vendor: acc.vendor + r.vendor,
+      net: acc.net + r.net,
+    }),
+    { revenue: 0, labour: 0, vendor: 0, net: 0 }
+  );
 
   return (
     <div className="rounded-xl border border-[var(--border)] bg-white overflow-hidden">
@@ -194,6 +205,21 @@ export function MonthlyPerformance({
               </TableRow>
             )}
           </TableBody>
+          {totalRows.length > 0 && (
+            <TableFooter>
+              <TableRow>
+                <TableCell>Total</TableCell>
+                <TableCell className="text-right">{formatMoney(totals.revenue)}</TableCell>
+                <TableCell className="text-right">{formatMoney(totals.labour)}</TableCell>
+                <TableCell className="text-right">{formatMoney(totals.vendor)}</TableCell>
+                <TableCell
+                  className={`text-right ${totals.net < 0 ? "text-rose-600" : "text-emerald-600"}`}
+                >
+                  {formatMoney(totals.net)}
+                </TableCell>
+              </TableRow>
+            </TableFooter>
+          )}
         </Table>
       </div>
     </div>
@@ -218,6 +244,7 @@ export function LedgerTable({
     amber: "text-amber-600",
     rose: "text-rose-600",
   }[tone];
+  const totalBalance = rows.reduce((a, r) => a + r.balance, 0);
 
   return (
     <div className="rounded-xl border border-[var(--border)] bg-white overflow-hidden">
@@ -288,6 +315,17 @@ export function LedgerTable({
             </TableRow>
           )}
         </TableBody>
+        {rows.length > 0 && (
+          <TableFooter>
+            <TableRow>
+              <TableCell colSpan={2}>Total</TableCell>
+              <TableCell className={`text-right font-medium ${toneClass}`}>
+                {formatMoney(totalBalance)}
+              </TableCell>
+              <TableCell />
+            </TableRow>
+          </TableFooter>
+        )}
       </Table>
     </div>
   );

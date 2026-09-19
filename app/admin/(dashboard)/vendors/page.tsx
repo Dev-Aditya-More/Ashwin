@@ -7,6 +7,7 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -15,6 +16,14 @@ import { Badge } from "@/components/ui/badge";
 
 export default async function VendorsPage() {
   const vendors = await listVendors();
+  const totals = vendors.reduce(
+    (acc, v) => ({
+      totalBilled: acc.totalBilled + v.totalBilled,
+      totalPaid: acc.totalPaid + v.totalPaid,
+      balance: acc.balance + v.balance,
+    }),
+    { totalBilled: 0, totalPaid: 0, balance: 0 }
+  );
 
   return (
     <div className="space-y-4">
@@ -89,6 +98,20 @@ export default async function VendorsPage() {
               </TableRow>
             )}
           </TableBody>
+          {vendors.length > 0 && (
+            <TableFooter>
+              <TableRow>
+                <TableCell colSpan={3}>Total</TableCell>
+                <TableCell className="text-right">{formatMoney(totals.totalBilled)}</TableCell>
+                <TableCell className="text-right">{formatMoney(totals.totalPaid)}</TableCell>
+                <TableCell className="text-right">
+                  {formatMoney(totals.balance)}
+                  {totals.balance < 0 ? " advance" : ""}
+                </TableCell>
+                <TableCell />
+              </TableRow>
+            </TableFooter>
+          )}
         </Table>
       </div>
     </div>
