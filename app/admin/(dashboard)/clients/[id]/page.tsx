@@ -9,6 +9,7 @@ import {
   EditClientWorkDialog,
   EditClientPaymentDialog,
 } from "@/components/admin/dialogs/ClientDialogs";
+import { DeleteRowButton } from "@/components/admin/dialogs/DeleteRowButton";
 import { TrackVisit } from "@/components/admin/TrackVisit";
 import { BackButton } from "@/components/admin/BackButton";
 import { ClientLedgerTable } from "@/components/admin/EntityLedger";
@@ -49,11 +50,15 @@ export default async function ClientDetailPage({
           <Link href={`/admin/clients/${id}/statement`}>Statement</Link>
         </Button>
         <EditClientDialog client={client} />
-        <form action={deleteClientRecord.bind(null, id)}>
-          <Button variant="destructive" size="sm" type="submit">
-            <Trash2 className="size-4" />
-          </Button>
-        </form>
+        <DeleteRowButton
+          what="client — this also removes all their work entries and payments"
+          action={deleteClientRecord.bind(null, id)}
+          trigger={
+            <Button variant="destructive" size="sm">
+              <Trash2 className="size-4" />
+            </Button>
+          }
+        />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">

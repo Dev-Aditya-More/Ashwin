@@ -3,6 +3,7 @@ import { Trash2 } from "lucide-react";
 import { getProject, deleteProject, listClientsForSelect } from "@/lib/actions/projects";
 import { listTransactions } from "@/lib/actions/transactions";
 import { EditProjectDialog } from "@/components/admin/dialogs/ProjectDialogs";
+import { DeleteRowButton } from "@/components/admin/dialogs/DeleteRowButton";
 import { TrackVisit } from "@/components/admin/TrackVisit";
 import { BackButton } from "@/components/admin/BackButton";
 import { formatDate, formatMoney } from "@/lib/format";
@@ -51,11 +52,15 @@ export default async function ProjectDetailPage({
         <BackButton fallbackHref="/admin/projects" />
         <h1 className="text-xl font-semibold flex-1 min-w-0 truncate">{project.name}</h1>
         <EditProjectDialog project={project} clients={clients} />
-        <form action={deleteProject.bind(null, id)}>
-          <Button variant="destructive" size="sm" type="submit">
-            <Trash2 className="size-4" />
-          </Button>
-        </form>
+        <DeleteRowButton
+          what="project"
+          action={deleteProject.bind(null, id)}
+          trigger={
+            <Button variant="destructive" size="sm">
+              <Trash2 className="size-4" />
+            </Button>
+          }
+        />
       </div>
 
       <div className="flex flex-wrap items-center gap-3 text-sm text-[var(--text-muted)]">

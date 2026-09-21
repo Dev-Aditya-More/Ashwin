@@ -9,6 +9,7 @@ import {
   EditVendorBillDialog,
   EditVendorPaymentDialog,
 } from "@/components/admin/dialogs/VendorDialogs";
+import { DeleteRowButton } from "@/components/admin/dialogs/DeleteRowButton";
 import { TrackVisit } from "@/components/admin/TrackVisit";
 import { BackButton } from "@/components/admin/BackButton";
 import { VendorLedgerTable } from "@/components/admin/EntityLedger";
@@ -47,11 +48,15 @@ export default async function VendorDetailPage({
         <BackButton fallbackHref="/admin/vendors" />
         <h1 className="text-xl font-semibold flex-1 min-w-0 truncate">{vendor.name}</h1>
         <EditVendorDialog vendor={vendor} />
-        <form action={deleteVendorRecord.bind(null, id)}>
-          <Button variant="destructive" size="sm" type="submit">
-            <Trash2 className="size-4" />
-          </Button>
-        </form>
+        <DeleteRowButton
+          what="vendor — this also removes all their bills and payments"
+          action={deleteVendorRecord.bind(null, id)}
+          trigger={
+            <Button variant="destructive" size="sm">
+              <Trash2 className="size-4" />
+            </Button>
+          }
+        />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">

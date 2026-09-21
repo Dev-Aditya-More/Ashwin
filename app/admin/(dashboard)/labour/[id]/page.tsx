@@ -9,6 +9,7 @@ import {
   EditLabourWorkDialog,
   EditLabourPaymentDialog,
 } from "@/components/admin/dialogs/LabourDialogs";
+import { DeleteRowButton } from "@/components/admin/dialogs/DeleteRowButton";
 import { TrackVisit } from "@/components/admin/TrackVisit";
 import { BackButton } from "@/components/admin/BackButton";
 import { LabourLedgerTable } from "@/components/admin/EntityLedger";
@@ -47,11 +48,15 @@ export default async function LabourDetailPage({
         <BackButton fallbackHref="/admin/labour" />
         <h1 className="text-xl font-semibold flex-1 min-w-0 truncate">{labourer.name}</h1>
         <EditLabourerDialog labourer={labourer} />
-        <form action={deleteLabourerRecord.bind(null, id)}>
-          <Button variant="destructive" size="sm" type="submit">
-            <Trash2 className="size-4" />
-          </Button>
-        </form>
+        <DeleteRowButton
+          what="labourer — this also removes all their work entries and payments"
+          action={deleteLabourerRecord.bind(null, id)}
+          trigger={
+            <Button variant="destructive" size="sm">
+              <Trash2 className="size-4" />
+            </Button>
+          }
+        />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
