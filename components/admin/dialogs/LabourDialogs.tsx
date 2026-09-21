@@ -42,11 +42,11 @@ export function AddLabourerDialog() {
         <Input id="phone" name="phone" placeholder="10-digit mobile number" />
       </div>
       <div className="space-y-1.5">
-        <Label htmlFor="default_rate">Default Rate (₹, optional)</Label>
+        <Label htmlFor="default_rate">Default Rate (₹)</Label>
         <Input id="default_rate" name="default_rate" type="number" min="0" step="0.01" />
       </div>
       <div className="space-y-1.5">
-        <Label htmlFor="opening_balance">Opening Balance (₹, optional)</Label>
+        <Label htmlFor="opening_balance">Opening Balance (₹)</Label>
         <Input id="opening_balance" name="opening_balance" type="number" step="0.01" placeholder="e.g. 2000" />
         <p className="text-xs text-[var(--text-muted)]">
           What you already owe them, if carrying over from before.
@@ -117,11 +117,11 @@ export function AddLabourWorkDialog({
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="space-y-1.5">
-          <Label htmlFor="site_location">Site / Location (optional)</Label>
+          <Label htmlFor="site_location">Site / Location</Label>
           <Input id="site_location" name="site_location" placeholder="e.g. Satara" />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="client_name">Client Name (optional)</Label>
+          <Label htmlFor="client_name">Client Name</Label>
           <Input id="client_name" name="client_name" placeholder="e.g. Dhakne sir" />
         </div>
       </div>
@@ -146,6 +146,10 @@ export function AddLabourWorkDialog({
           <Label htmlFor="work_date">Date</Label>
           <Input id="work_date" name="work_date" type="date" defaultValue={today()} max={endOfCurrentMonth()} />
         </div>
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="amount">Total Amount (₹)</Label>
+        <Input id="amount" name="amount" type="number" min="0" step="0.01" placeholder="Leave blank to use Quantity × Rate" />
       </div>
       <ProjectSelect projects={projects} />
       <p className="text-xs text-[var(--text-muted)]">
@@ -181,11 +185,11 @@ export function EditLabourWorkDialog({
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="space-y-1.5">
-          <Label htmlFor="site_location">Site / Location (optional)</Label>
+          <Label htmlFor="site_location">Site / Location</Label>
           <Input id="site_location" name="site_location" defaultValue={work.site_location ?? ""} />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="client_name">Client Name (optional)</Label>
+          <Label htmlFor="client_name">Client Name</Label>
           <Input id="client_name" name="client_name" defaultValue={work.client_name ?? ""} />
         </div>
       </div>
@@ -202,6 +206,18 @@ export function EditLabourWorkDialog({
           <Label htmlFor="work_date">Date</Label>
           <Input id="work_date" name="work_date" type="date" defaultValue={work.work_date} max={endOfCurrentMonth()} />
         </div>
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="amount">Total Amount (₹)</Label>
+        <Input
+          id="amount"
+          name="amount"
+          type="number"
+          min="0"
+          step="0.01"
+          defaultValue={work.amount}
+          placeholder="Leave blank to use Quantity × Rate"
+        />
       </div>
       <ProjectSelect projects={projects} defaultValue={work.project_id ?? ""} />
     </FormDialog>
@@ -235,7 +251,7 @@ export function AddLabourPaymentDialog({ labourerId }: { labourerId: string }) {
         <PaymentModeSelect />
       </div>
       <div className="space-y-1.5">
-        <Label htmlFor="note">Note (optional)</Label>
+        <Label htmlFor="note">Note</Label>
         <Input id="note" name="note" placeholder="e.g. Weekly wages" />
       </div>
     </FormDialog>
@@ -274,7 +290,7 @@ export function EditLabourPaymentDialog({
         <PaymentModeSelect defaultValue={payment.payment_mode ?? ""} />
       </div>
       <div className="space-y-1.5">
-        <Label htmlFor="note">Note (optional)</Label>
+        <Label htmlFor="note">Note</Label>
         <Input id="note" name="note" defaultValue={payment.note ?? ""} placeholder="e.g. Weekly wages" />
       </div>
     </FormDialog>

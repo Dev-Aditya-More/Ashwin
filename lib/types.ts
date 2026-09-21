@@ -51,6 +51,7 @@ export type ClientWork = {
   client_id: string;
   project_id: string | null;
   financial_year_id: string | null;
+  bill_no?: string | null;
   description: string;
   amount: number;
   work_date: string;

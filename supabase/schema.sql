@@ -65,6 +65,7 @@ create table if not exists client_work (
   client_id uuid not null references clients(id) on delete cascade,
   project_id uuid references projects(id) on delete set null,
   financial_year_id uuid references financial_years(id) on delete set null,
+  bill_no text,
   description text not null,
   amount numeric(12,2) not null check (amount >= 0),
   work_date date not null default current_date,

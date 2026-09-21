@@ -45,7 +45,7 @@ export function AddVendorDialog() {
         <Input id="category" name="category" placeholder="e.g. Glass, Hardware, Aluminium" />
       </div>
       <div className="space-y-1.5">
-        <Label htmlFor="opening_balance">Opening Balance (₹, optional)</Label>
+        <Label htmlFor="opening_balance">Opening Balance (₹)</Label>
         <Input id="opening_balance" name="opening_balance" type="number" step="0.01" placeholder="e.g. 8000" />
         <p className="text-xs text-[var(--text-muted)]">
           What you already owe them, if carrying over from before.
@@ -103,17 +103,17 @@ export function AddVendorBillDialog({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="space-y-1.5">
           <Label htmlFor="description">Item / Material</Label>
-          <Input id="description" name="description" placeholder="e.g. 12mm toughened glass, 40 sqft" required />
+          <Input id="description" name="description" placeholder="e.g. 12mm toughened glass, 40 sqft" />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="bill_no">Bill No. (optional)</Label>
+          <Label htmlFor="bill_no">Bill No.</Label>
           <Input id="bill_no" name="bill_no" placeholder="e.g. INV-2381" />
         </div>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="space-y-1.5">
           <Label htmlFor="amount">Bill Amount (₹)</Label>
-          <Input id="amount" name="amount" type="number" min="0" step="0.01" required />
+          <Input id="amount" name="amount" type="number" min="0" step="0.01" />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="bill_date">Date</Label>
@@ -147,17 +147,17 @@ export function EditVendorBillDialog({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="space-y-1.5">
           <Label htmlFor="description">Item / Material</Label>
-          <Input id="description" name="description" defaultValue={bill.description} required />
+          <Input id="description" name="description" defaultValue={bill.description} />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="bill_no">Bill No. (optional)</Label>
+          <Label htmlFor="bill_no">Bill No.</Label>
           <Input id="bill_no" name="bill_no" defaultValue={bill.bill_no ?? ""} />
         </div>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="space-y-1.5">
           <Label htmlFor="amount">Bill Amount (₹)</Label>
-          <Input id="amount" name="amount" type="number" min="0" step="0.01" defaultValue={bill.amount} required />
+          <Input id="amount" name="amount" type="number" min="0" step="0.01" defaultValue={bill.amount} />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="bill_date">Date</Label>
@@ -193,7 +193,7 @@ export function AddVendorPaymentDialog({ vendorId }: { vendorId: string }) {
       </div>
       <PaymentModeSelect />
       <div className="space-y-1.5">
-        <Label htmlFor="note">Note (optional)</Label>
+        <Label htmlFor="note">Note</Label>
         <Input id="note" name="note" placeholder="e.g. Cheque no., UTR ref." />
       </div>
     </FormDialog>
@@ -229,7 +229,7 @@ export function EditVendorPaymentDialog({
       </div>
       <PaymentModeSelect defaultValue={payment.payment_mode ?? ""} />
       <div className="space-y-1.5">
-        <Label htmlFor="note">Note (optional)</Label>
+        <Label htmlFor="note">Note</Label>
         <Input id="note" name="note" defaultValue={payment.note ?? ""} placeholder="e.g. Cheque no., UTR ref." />
       </div>
     </FormDialog>

@@ -2,7 +2,7 @@
 
 import { useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
-import { TriangleAlert } from "lucide-react";
+import { TriangleAlert, Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -131,7 +131,13 @@ export function FormDialog({
 
           <DialogFooter>
             <Button type="submit" disabled={pending || !!warning} className="w-full sm:w-auto">
-              {pending ? "Saving…" : submitLabel}
+              {pending ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" /> Saving…
+                </>
+              ) : (
+                submitLabel
+              )}
             </Button>
           </DialogFooter>
         </form>

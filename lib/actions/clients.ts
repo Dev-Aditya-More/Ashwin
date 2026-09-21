@@ -117,6 +117,7 @@ export async function addClientWork(
   const amount = Number(formData.get("amount") ?? 0);
   const work_date = String(formData.get("work_date") ?? "") || new Date().toISOString().slice(0, 10);
   const project_id = String(formData.get("project_id") ?? "") || null;
+  const bill_no = String(formData.get("bill_no") ?? "").trim() || null;
   const confirmed = formData.get("confirm") === "1";
   if (!description || !amount) return;
   if (isAfterCurrentMonth(work_date)) return { warning: FUTURE_MONTH_WARNING };
@@ -151,7 +152,8 @@ export async function addClientWork(
       work_date,
       financial_year_id: fy.data?.id ?? null,
     },
-    actorEmail
+    actorEmail,
+    { bill_no }
   );
   revalidatePath(`/admin/clients/${clientId}`);
   revalidatePath("/admin");
@@ -163,13 +165,17 @@ export async function updateClientWork(id: string, clientId: string, formData: F
   const amount = Number(formData.get("amount") ?? 0);
   const work_date = String(formData.get("work_date") ?? "") || new Date().toISOString().slice(0, 10);
   const project_id = String(formData.get("project_id") ?? "") || null;
+  const bill_no = String(formData.get("bill_no") ?? "").trim() || null;
   if (!description || !amount) return;
 
   const supabase = await createClient();
-  await supabase
-    .from("client_work")
-    .update({ description, amount, work_date, project_id })
-    .eq("id", id);
+  await updateSafely(
+    supabase,
+    "client_work",
+    id,
+    { description, amount, work_date, project_id },
+    { bill_no }
+  );
   revalidatePath(`/admin/clients/${clientId}`);
   revalidatePath("/admin");
 }

@@ -52,7 +52,7 @@ export function ProjectSelect({
   if (projects.length === 0) return null;
   return (
     <div className="space-y-1.5">
-      <Label htmlFor="project_id">Project / Site (optional)</Label>
+      <Label htmlFor="project_id">Project / Site</Label>
       <select
         id="project_id"
         name="project_id"

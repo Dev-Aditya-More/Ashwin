@@ -1,6 +1,10 @@
 import { formatDate, formatMoney } from "@/lib/format";
 import type { ClientWork, ClientPayment, VendorBill, VendorPayment, LabourPayment } from "@/lib/types";
 import type { LabourWorkWithSite } from "@/lib/actions/labour";
+import { deleteClientWork, deleteClientPayment } from "@/lib/actions/clients";
+import { deleteVendorBill, deleteVendorPayment } from "@/lib/actions/vendors";
+import { deleteLabourWork, deleteLabourPayment } from "@/lib/actions/labour";
+import { DeleteRowButton } from "@/components/admin/dialogs/DeleteRowButton";
 import {
   EditClientWorkDialog,
   EditClientPaymentDialog,
@@ -60,31 +64,37 @@ export function ClientLedgerTable({
   type Row = {
     date: string;
     sortKey: string;
+    billNo: string | null;
     particulars: string;
     paymentMode: string | null;
     debit: number;
     credit: number;
     edit: React.ReactNode;
+    del: React.ReactNode;
   };
 
   const rows: Row[] = [
     ...work.map((w) => ({
       date: w.work_date,
       sortKey: `${w.work_date}T${w.created_at}`,
+      billNo: w.bill_no ?? null,
       particulars: w.description,
       paymentMode: null,
       debit: Number(w.amount),
       credit: 0,
       edit: <EditClientWorkDialog work={w} clientId={clientId} projects={projects} />,
+      del: <DeleteRowButton what="work entry" action={deleteClientWork.bind(null, w.id, clientId)} />,
     })),
     ...payments.map((p) => ({
       date: p.payment_date,
       sortKey: `${p.payment_date}T${p.created_at}`,
+      billNo: null,
       particulars: p.note ?? "Payment received",
       paymentMode: p.payment_mode ?? null,
       debit: 0,
       credit: Number(p.amount),
       edit: <EditClientPaymentDialog payment={p} clientId={clientId} projects={projects} />,
+      del: <DeleteRowButton what="payment" action={deleteClientPayment.bind(null, p.id, clientId)} />,
     })),
   ].sort((a, b) => a.sortKey.localeCompare(b.sortKey));
 
@@ -100,27 +110,34 @@ export function ClientLedgerTable({
         <TableHeader>
           <TableRow>
             <TableHead>Date</TableHead>
+            <TableHead>Bill No.</TableHead>
             <TableHead>Particulars</TableHead>
             <TableHead>Payment Mode</TableHead>
             <TableHead className="text-right">Debit</TableHead>
             <TableHead className="text-right">Credit</TableHead>
             <TableHead className="text-right">Balance</TableHead>
-            <TableHead className="w-9" />
+            <TableHead className="w-16" />
           </TableRow>
         </TableHeader>
         <TableBody>
           {withBalance.map((r, i) => (
             <TableRow key={i}>
               <TableCell className="whitespace-nowrap">{formatDate(r.date)}</TableCell>
+              <TableCell className="text-[var(--text-muted)]">{r.billNo ?? "—"}</TableCell>
               <TableCell>{r.particulars}</TableCell>
               <TableCell className="text-[var(--text-muted)]">{r.paymentMode ?? "—"}</TableCell>
               <TableCell className="text-right">{r.debit ? formatMoney(r.debit) : ""}</TableCell>
               <TableCell className="text-right text-emerald-600">{r.credit ? formatMoney(r.credit) : ""}</TableCell>
               <BalanceCell value={r.balance} />
-              <TableCell>{r.edit}</TableCell>
+              <TableCell>
+                <div className="flex items-center gap-0.5">
+                  {r.edit}
+                  {r.del}
+                </div>
+              </TableCell>
             </TableRow>
           ))}
-          {withBalance.length === 0 && <EmptyRow span={7} />}
+          {withBalance.length === 0 && <EmptyRow span={8} />}
         </TableBody>
       </Table>
     </div>
@@ -147,6 +164,7 @@ export function VendorLedgerTable({
     billAmount: number;
     payment: number;
     edit: React.ReactNode;
+    del: React.ReactNode;
   };
 
   const rows: Row[] = [
@@ -159,6 +177,7 @@ export function VendorLedgerTable({
       billAmount: Number(b.amount),
       payment: 0,
       edit: <EditVendorBillDialog bill={b} vendorId={vendorId} projects={projects} />,
+      del: <DeleteRowButton what="bill" action={deleteVendorBill.bind(null, b.id, vendorId)} />,
     })),
     ...payments.map((p) => ({
       date: p.payment_date,
@@ -169,6 +188,7 @@ export function VendorLedgerTable({
       billAmount: 0,
       payment: Number(p.amount),
       edit: <EditVendorPaymentDialog payment={p} vendorId={vendorId} />,
+      del: <DeleteRowButton what="payment" action={deleteVendorPayment.bind(null, p.id, vendorId)} />,
     })),
   ].sort((a, b) => a.sortKey.localeCompare(b.sortKey));
 
@@ -190,7 +210,7 @@ export function VendorLedgerTable({
             <TableHead className="text-right">Payment</TableHead>
             <TableHead>Payment Mode</TableHead>
             <TableHead className="text-right">Balance</TableHead>
-            <TableHead className="w-9" />
+            <TableHead className="w-16" />
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -203,7 +223,12 @@ export function VendorLedgerTable({
               <TableCell className="text-right text-emerald-600">{r.payment ? formatMoney(r.payment) : ""}</TableCell>
               <TableCell className="text-[var(--text-muted)]">{r.paymentMode ?? "—"}</TableCell>
               <BalanceCell value={r.balance} />
-              <TableCell>{r.edit}</TableCell>
+              <TableCell>
+                <div className="flex items-center gap-0.5">
+                  {r.edit}
+                  {r.del}
+                </div>
+              </TableCell>
             </TableRow>
           ))}
           {withBalance.length === 0 && <EmptyRow span={8} />}
@@ -237,6 +262,7 @@ export function LabourLedgerTable({
     entryType: string | null;
     paymentMode: string | null;
     edit: React.ReactNode;
+    del: React.ReactNode;
   };
 
   const rows: Row[] = [
@@ -253,6 +279,7 @@ export function LabourLedgerTable({
       entryType: null,
       paymentMode: null,
       edit: <EditLabourWorkDialog work={w} labourerId={labourerId} projects={projects} />,
+      del: <DeleteRowButton what="work entry" action={deleteLabourWork.bind(null, w.id, labourerId)} />,
     })),
     ...payments.map((p) => ({
       date: p.payment_date,
@@ -267,6 +294,7 @@ export function LabourLedgerTable({
       entryType: p.entry_type ?? "Payment",
       paymentMode: p.payment_mode ?? null,
       edit: <EditLabourPaymentDialog payment={p} labourerId={labourerId} />,
+      del: <DeleteRowButton what="payment" action={deleteLabourPayment.bind(null, p.id, labourerId)} />,
     })),
   ].sort((a, b) => a.sortKey.localeCompare(b.sortKey));
 
@@ -292,7 +320,7 @@ export function LabourLedgerTable({
             <TableHead>Entry Type</TableHead>
             <TableHead>Payment Mode</TableHead>
             <TableHead className="text-right">Balance</TableHead>
-            <TableHead className="w-9" />
+            <TableHead className="w-16" />
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -311,7 +339,12 @@ export function LabourLedgerTable({
               <TableCell className="text-[var(--text-muted)]">{r.entryType ?? "—"}</TableCell>
               <TableCell className="text-[var(--text-muted)]">{r.paymentMode ?? "—"}</TableCell>
               <BalanceCell value={r.balance} />
-              <TableCell>{r.edit}</TableCell>
+              <TableCell>
+                <div className="flex items-center gap-0.5">
+                  {r.edit}
+                  {r.del}
+                </div>
+              </TableCell>
             </TableRow>
           ))}
           {withBalance.length === 0 && <EmptyRow span={12} />}

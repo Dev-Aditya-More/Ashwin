@@ -139,7 +139,8 @@ export async function addLabourWork(
   const site_location = String(formData.get("site_location") ?? "").trim() || null;
   const client_name = String(formData.get("client_name") ?? "").trim() || null;
   const confirmed = formData.get("confirm") === "1";
-  const amount = quantity * rate;
+  const amountOverride = Number(formData.get("amount") ?? 0);
+  const amount = amountOverride > 0 ? amountOverride : quantity * rate;
   if (!description || !amount) return;
   if (isAfterCurrentMonth(work_date)) return { warning: FUTURE_MONTH_WARNING };
 
@@ -191,7 +192,8 @@ export async function updateLabourWork(id: string, labourerId: string, formData:
   const project_id = String(formData.get("project_id") ?? "") || null;
   const site_location = String(formData.get("site_location") ?? "").trim() || null;
   const client_name = String(formData.get("client_name") ?? "").trim() || null;
-  const amount = quantity * rate;
+  const amountOverride = Number(formData.get("amount") ?? 0);
+  const amount = amountOverride > 0 ? amountOverride : quantity * rate;
   if (!description || !amount) return;
 
   const supabase = await createClient();

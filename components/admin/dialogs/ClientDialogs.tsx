@@ -45,7 +45,7 @@ export function AddClientDialog() {
         <Input id="address" name="address" />
       </div>
       <div className="space-y-1.5">
-        <Label htmlFor="opening_balance">Opening Balance (₹, optional)</Label>
+        <Label htmlFor="opening_balance">Opening Balance (₹)</Label>
         <Input id="opening_balance" name="opening_balance" type="number" step="0.01" placeholder="e.g. 15000" />
         <p className="text-xs text-[var(--text-muted)]">
           What they already owe you, if carrying over from before.
@@ -108,6 +108,10 @@ export function AddClientWorkDialog({
         <Label htmlFor="description">Description</Label>
         <Input id="description" name="description" placeholder="e.g. Window glass fitting" required />
       </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="bill_no">Bill No.</Label>
+        <Input id="bill_no" name="bill_no" placeholder="e.g. INV-2381" />
+      </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="space-y-1.5">
           <Label htmlFor="amount">Amount (₹)</Label>
@@ -145,6 +149,10 @@ export function EditClientWorkDialog({
       <div className="space-y-1.5">
         <Label htmlFor="description">Description</Label>
         <Input id="description" name="description" defaultValue={work.description} required />
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="bill_no">Bill No.</Label>
+        <Input id="bill_no" name="bill_no" defaultValue={work.bill_no ?? ""} placeholder="e.g. INV-2381" />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="space-y-1.5">
@@ -200,7 +208,7 @@ export function AddClientPaymentDialog({
       <ProjectSelect projects={projects} />
       <PaymentModeSelect />
       <div className="space-y-1.5">
-        <Label htmlFor="note">Note (optional)</Label>
+        <Label htmlFor="note">Note</Label>
         <Input id="note" name="note" placeholder="e.g. Cheque no., UTR ref." />
       </div>
     </FormDialog>
@@ -247,7 +255,7 @@ export function EditClientPaymentDialog({
       <ProjectSelect projects={projects} defaultValue={payment.project_id ?? ""} />
       <PaymentModeSelect defaultValue={payment.payment_mode ?? ""} />
       <div className="space-y-1.5">
-        <Label htmlFor="note">Note (optional)</Label>
+        <Label htmlFor="note">Note</Label>
         <Input id="note" name="note" defaultValue={payment.note ?? ""} placeholder="e.g. Cheque no., UTR ref." />
       </div>
     </FormDialog>

@@ -106,13 +106,12 @@ export async function addVendorBill(
   vendorId: string,
   formData: FormData
 ): Promise<{ warning?: string; id?: string } | void> {
-  const description = String(formData.get("description") ?? "").trim();
+  const description = String(formData.get("description") ?? "").trim() || "Bill";
   const amount = Number(formData.get("amount") ?? 0);
   const bill_date = String(formData.get("bill_date") ?? "") || new Date().toISOString().slice(0, 10);
   const bill_no = String(formData.get("bill_no") ?? "").trim() || null;
   const project_id = String(formData.get("project_id") ?? "") || null;
   const confirmed = formData.get("confirm") === "1";
-  if (!description || !amount) return;
   if (isAfterCurrentMonth(bill_date)) return { warning: FUTURE_MONTH_WARNING };
 
   const supabase = await createClient();
@@ -154,12 +153,11 @@ export async function addVendorBill(
 }
 
 export async function updateVendorBill(id: string, vendorId: string, formData: FormData) {
-  const description = String(formData.get("description") ?? "").trim();
+  const description = String(formData.get("description") ?? "").trim() || "Bill";
   const amount = Number(formData.get("amount") ?? 0);
   const bill_date = String(formData.get("bill_date") ?? "") || new Date().toISOString().slice(0, 10);
   const bill_no = String(formData.get("bill_no") ?? "").trim() || null;
   const project_id = String(formData.get("project_id") ?? "") || null;
-  if (!description || !amount) return;
 
   const supabase = await createClient();
   await updateSafely(
