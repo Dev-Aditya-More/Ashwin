@@ -34,7 +34,7 @@ export default function Home() {
       {/* Background */}
       <Image
         src="/project/6.jpeg"
-        alt="Modern bedroom interior design in Sambhajinagar"
+        alt="Modern bedroom interior designed by Ashwin in Chhatrapati Sambhajinagar (Aurangabad)"
         fill
         priority
         className="object-cover z-0"
@@ -46,7 +46,10 @@ export default function Home() {
       <div className="relative z-10 flex justify-center px-4 sm:px-6 md:px-10">
         <div className="text-center px-6 py-8 rounded-xl bg-white max-w-3xl w-full">
           {/* ✅ SEO Heading (invisible visually if needed) */}
-          <h1 className="sr-only">Interior & Architectural Design Services in Maharashtra</h1>
+          <h1 className="sr-only">
+            Ashwin — Interior Designer, Architect &amp; Glass Work in
+            Chhatrapati Sambhajinagar (Aurangabad)
+          </h1>
 
           {/* Logo */}
           <motion.div
@@ -67,6 +70,7 @@ export default function Home() {
           >
             <button
               onClick={handleCallClick}
+              data-lead="call_click"
               className="relative overflow-hidden text-xs sm:text-sm px-5 sm:px-6 py-2.5 sm:py-3 text-white border bg-[var(--accent-blue)] group text-center w-full sm:w-auto"
             >
               <span className="absolute inset-0 w-0 bg-[var(--accent-blue)] transition-all duration-300 group-hover:w-full"></span>

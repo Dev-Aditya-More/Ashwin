@@ -112,7 +112,7 @@ export default function Footer() {
 
       <div className="max-w-7xl mx-auto mt-10 pt-6 border-t border-[#E5E5E5] flex flex-wrap items-center justify-between gap-4">
         <p className="text-[#111111] text-xs">
-          &copy; {new Date().getFullYear()} Ashwin Interiors. All rights
+          &copy; {new Date().getFullYear()} Ashwin. All rights
           reserved.
         </p>
         <Logo marathi className="w-[110px] h-auto opacity-80" />

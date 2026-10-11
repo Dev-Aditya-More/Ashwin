@@ -29,7 +29,7 @@ export default function About() {
             >
               <Image
                 src="/project/3.jpeg"
-                alt="Luxury living room interior design in Sambhajinagar"
+                alt="Living room interior designed by Ashwin in Chhatrapati Sambhajinagar (Aurangabad)"
                 fill
                 className="object-cover grayscale-[20%] brightness-90 group-hover:scale-105 transition duration-700"
               />
@@ -55,11 +55,6 @@ export default function About() {
             <span className="w-5 sm:w-6 h-[1px] bg-[var(--accent-gold)]" />
             About Us
           </motion.p>
-
-          <h2 className="sr-only">
-            About Ashwin – Interior and Architectural Design in
-            Sambhajinagar
-          </h2>
 
           {/* Heading */}
           <motion.h2

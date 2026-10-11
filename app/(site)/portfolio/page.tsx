@@ -2,27 +2,22 @@ import Link from "next/link";
 import Projects from "@/components/projects/Projects";
 import { services } from "@/lib/services-data";
 import type { Metadata } from "next";
+import JsonLd from "@/components/seo/JsonLd";
+import { SITE_URL, BUSINESS, BUSINESS_ID, OG_IMAGE } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "Portfolio",
+  title: "Interior & Architecture Projects in Sambhajinagar (Aurangabad)",
   description:
-    "Explore interior and architectural projects by Ashwin Interiors — residential and commercial design work based in Chhatrapati Sambhajinagar, serving clients across India.",
+    "Photos of completed interior and architectural projects by Ashwin in Chhatrapati Sambhajinagar (Aurangabad) — homes, flats, offices and commercial spaces since 2016.",
   alternates: {
-    canonical: "https://ashwin.world/portfolio",
+    canonical: `${SITE_URL}/portfolio`,
   },
   openGraph: {
-    title: "Portfolio | Ashwin Interiors",
+    title: `Portfolio | ${BUSINESS.name}`,
     description:
-      "Explore interior and architectural projects by Ashwin Interiors, serving clients across India.",
-    url: "https://ashwin.world/portfolio",
-    images: [
-      {
-        url: "/ashwinLogo.png",
-        width: 1200,
-        height: 630,
-        alt: "Ashwin Interiors Portfolio",
-      },
-    ],
+      "Completed interior and architectural projects by Ashwin in Chhatrapati Sambhajinagar (Aurangabad).",
+    url: `${SITE_URL}/portfolio`,
+    images: [OG_IMAGE],
   },
   robots: {
     index: true,
@@ -33,45 +28,30 @@ export const metadata: Metadata = {
 export default function PortfolioPage() {
   return (
     <main className="pt-24 pb-16 px-4 sm:px-6 md:px-10">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "BreadcrumbList",
-            itemListElement: [
-              {
-                "@type": "ListItem",
-                position: 1,
-                name: "Home",
-                item: "https://ashwin.world",
-              },
-              {
-                "@type": "ListItem",
-                position: 2,
-                name: "Portfolio",
-                item: "https://ashwin.world/portfolio",
-              },
-            ],
-          }),
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: "Portfolio",
+              item: `${SITE_URL}/portfolio`,
+            },
+          ],
         }}
       />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "CollectionPage",
-            name: "Portfolio | Ashwin Interiors",
-            description:
-              "Interior and architectural design projects by Ashwin Interiors.",
-            url: "https://ashwin.world/portfolio",
-            about: {
-              "@type": "LocalBusiness",
-              name: "Ashwin Interiors",
-              url: "https://ashwin.world",
-            },
-          }),
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "CollectionPage",
+          name: `Portfolio | ${BUSINESS.name}`,
+          description:
+            "Interior and architectural projects by Ashwin in Chhatrapati Sambhajinagar (Aurangabad).",
+          url: `${SITE_URL}/portfolio`,
+          about: { "@id": BUSINESS_ID, name: BUSINESS.name },
         }}
       />
 

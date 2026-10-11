@@ -1,6 +1,8 @@
 export type Service = {
   slug: string;
   title: string;
+  /** Search-facing <title>, phrased the way local customers search. */
+  seoTitle: string;
   shortDescription: string;
   metaDescription: string;
   keywords: string[];
@@ -12,15 +14,17 @@ export const services: Service[] = [
   {
     slug: "interior-design",
     title: "Interior Design",
+    seoTitle: "Interior Designer in Sambhajinagar (Aurangabad)",
     shortDescription:
       "End-to-end interior solutions focused on comfort, material harmony, and refined visual appeal.",
     metaDescription:
-      "Interior design services by Ashwin Interiors — residential and commercial interiors planned end-to-end, from concept to execution, for clients across India.",
+      "Interior designer in Chhatrapati Sambhajinagar (Aurangabad) — homes, flats, offices and shops designed and executed end-to-end by Ashwin since 2016. Call +91 98229 90577.",
     keywords: [
-      "interior design services India",
-      "residential interior designer",
-      "commercial interior design",
-      "home interior design",
+      "interior designer in Sambhajinagar",
+      "interior designer in Aurangabad",
+      "home interior design Aurangabad",
+      "flat interior design Sambhajinagar",
+      "office interior designer Aurangabad",
     ],
     intro: [
       "Our interior design service covers everything from initial layout and material selection to lighting, furniture, and finishing details. Whether it's a home, office, or retail space, the goal is a space that feels considered — functional first, and visually refined as a result.",
@@ -37,15 +41,17 @@ export const services: Service[] = [
   {
     slug: "architectural-design",
     title: "Architectural Design",
+    seoTitle: "Architect in Sambhajinagar (Aurangabad)",
     shortDescription:
       "Creative architectural solutions that blend form and function, creating visually striking and livable spaces.",
     metaDescription:
-      "Architectural design services by Ashwin Interiors — residential and commercial building design that balances structure, function, and aesthetics, for clients across India.",
+      "Architect in Chhatrapati Sambhajinagar (Aurangabad) — bungalow, house and commercial building design, elevations and approval drawings by Ashwin. Call +91 98229 90577.",
     keywords: [
-      "architectural design services India",
-      "architect for home design",
-      "commercial building design",
-      "residential architecture",
+      "architect in Sambhajinagar",
+      "architect in Aurangabad",
+      "house design Aurangabad",
+      "bungalow elevation design Sambhajinagar",
+      "commercial building architect Aurangabad",
     ],
     intro: [
       "Architectural design is where a project's structure and its aesthetic intent come together. We work through massing, elevation, and layout to arrive at a building design that holds up structurally and reads well visually — for both new builds and renovations.",
@@ -62,15 +68,16 @@ export const services: Service[] = [
   {
     slug: "civil-planning",
     title: "Civil Planning",
+    seoTitle: "Civil Planning & House Plans in Sambhajinagar (Aurangabad)",
     shortDescription:
       "Thoughtful planning and design that balances structure, aesthetics, and functionality for modern living spaces.",
     metaDescription:
-      "Civil planning services by Ashwin Interiors — structural and layout planning for residential and commercial construction projects across India.",
+      "Civil planning in Chhatrapati Sambhajinagar (Aurangabad) — house plans, site layout, structural coordination and approval drawings by Ashwin. Call +91 98229 90577.",
     keywords: [
-      "civil planning services",
-      "civil engineering design India",
-      "construction planning",
-      "site layout planning",
+      "civil planning Aurangabad",
+      "house plan Sambhajinagar",
+      "construction planning Aurangabad",
+      "site layout planning Sambhajinagar",
     ],
     intro: [
       "Civil planning covers the structural and technical groundwork a project needs before construction begins — site layout, load planning, and coordination between architectural intent and what's actually buildable.",
@@ -87,15 +94,16 @@ export const services: Service[] = [
   {
     slug: "landscape-design",
     title: "Landscape Design",
+    seoTitle: "Landscape & Garden Design in Sambhajinagar (Aurangabad)",
     shortDescription:
       "Creating harmonious outdoor spaces that blend nature, functionality, and aesthetics for a serene living experience.",
     metaDescription:
-      "Landscape design services by Ashwin Interiors — outdoor and garden spaces planned for residential and commercial properties across India.",
+      "Landscape and garden design in Chhatrapati Sambhajinagar (Aurangabad) — terraces, gardens, bungalow lawns and commercial outdoor spaces by Ashwin. Call +91 98229 90577.",
     keywords: [
-      "landscape design services",
-      "garden design India",
-      "outdoor space design",
-      "landscaping for homes",
+      "landscape designer Aurangabad",
+      "garden design Sambhajinagar",
+      "terrace garden Aurangabad",
+      "landscaping Sambhajinagar",
     ],
     intro: [
       "Outdoor spaces are planned with the same care as interiors — balancing greenery, hardscaping, seating, and lighting so the space is usable year-round, not just decorative.",
@@ -112,15 +120,16 @@ export const services: Service[] = [
   {
     slug: "space-planning",
     title: "Space Planning",
+    seoTitle: "Space Planning & Home Layout Design in Sambhajinagar (Aurangabad)",
     shortDescription:
       "Efficient layouts that maximize usability while maintaining openness, flow, and elegance.",
     metaDescription:
-      "Space planning services by Ashwin Interiors — efficient, well-flowing layouts for homes and commercial spaces of any size, for clients across India.",
+      "Space planning in Chhatrapati Sambhajinagar (Aurangabad) — furniture layouts and floor plans that make 1BHK–4BHK homes and offices work better. By Ashwin. Call +91 98229 90577.",
     keywords: [
-      "space planning services",
-      "home layout design",
-      "office space planning",
-      "furniture layout design",
+      "space planning Aurangabad",
+      "home layout design Sambhajinagar",
+      "office space planning Aurangabad",
+      "furniture layout Sambhajinagar",
     ],
     intro: [
       "Space planning is about making a floor plan work as hard as possible — getting circulation, furniture placement, and room proportions right before any material or design decisions are made.",
@@ -137,15 +146,16 @@ export const services: Service[] = [
   {
     slug: "site-execution",
     title: "Site Execution & Supervision",
+    seoTitle: "Interior & Construction Site Execution in Sambhajinagar (Aurangabad)",
     shortDescription:
       "Careful on-site coordination to ensure quality, timelines, and design accuracy are maintained.",
     metaDescription:
-      "Site execution and supervision services by Ashwin Interiors — on-ground project management ensuring design plans are built accurately, on time, and to quality.",
+      "Site execution and supervision in Chhatrapati Sambhajinagar (Aurangabad) — Ashwin manages contractors, quality and timelines so your project is built as designed. Call +91 98229 90577.",
     keywords: [
-      "site execution services",
-      "construction supervision",
-      "interior fit-out execution",
-      "project management interior design",
+      "interior contractor Aurangabad",
+      "turnkey interior Sambhajinagar",
+      "construction supervision Aurangabad",
+      "site execution Sambhajinagar",
     ],
     intro: [
       "A design is only as good as its execution. This service covers on-site coordination between contractors, vendors, and the design team — checking work against the approved plan at each stage rather than only at the end.",
@@ -157,6 +167,33 @@ export const services: Service[] = [
       "Timeline tracking and progress updates",
       "Snag identification and resolution before handover",
       "Final handover walkthrough",
+    ],
+  },
+  {
+    slug: "glass-work",
+    title: "Glass Work",
+    seoTitle: "Glass Work & Glass Partitions in Sambhajinagar (Aurangabad)",
+    shortDescription:
+      "Toughened glass partitions, doors, railings, mirrors and decorative glass — supplied, fitted and finished for homes and offices.",
+    metaDescription:
+      "Glass work in Chhatrapati Sambhajinagar (Aurangabad) — toughened glass partitions, glass doors, railings, mirrors and decorative glass for homes, offices and shops by Ashwin. Call +91 98229 90577.",
+    keywords: [
+      "glass work in Aurangabad",
+      "glass partition Sambhajinagar",
+      "toughened glass Aurangabad",
+      "glass railing Sambhajinagar",
+      "glass door installation Aurangabad",
+    ],
+    intro: [
+      "Glass is one of the quickest ways to make a space feel larger and brighter — an office cabin that doesn't block light, a staircase railing that doesn't feel heavy, a shower area that's easy to keep clean. We handle glass work as part of our interior projects and as a standalone service for homes, offices and shops in Chhatrapati Sambhajinagar.",
+      "Because the same team designs the interiors and does the glass work, measurements, fittings and finishes are planned together — so the glass fits the design instead of being added on at the end.",
+    ],
+    included: [
+      "Toughened glass partitions for offices and cabins",
+      "Glass doors and sliding systems",
+      "Glass railings for staircases and balconies",
+      "Mirrors, back-painted and decorative glass",
+      "On-site measurement, fitting and finishing",
     ],
   },
 ];

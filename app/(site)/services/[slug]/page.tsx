@@ -2,6 +2,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { services, getServiceBySlug } from "@/lib/services-data";
+import JsonLd from "@/components/seo/JsonLd";
+import {
+  SITE_URL,
+  BUSINESS,
+  BUSINESS_ID,
+  OG_IMAGE,
+  AREA_SERVED,
+} from "@/lib/seo";
 
 export function generateStaticParams() {
   return services.map((s) => ({ slug: s.slug }));
@@ -16,27 +24,20 @@ export async function generateMetadata({
   const service = getServiceBySlug(slug);
   if (!service) return {};
 
-  const url = `https://ashwin.world/services/${service.slug}`;
+  const url = `${SITE_URL}/services/${service.slug}`;
 
   return {
-    title: service.title,
+    title: service.seoTitle,
     description: service.metaDescription,
     keywords: service.keywords,
     alternates: {
       canonical: url,
     },
     openGraph: {
-      title: `${service.title} | Ashwin Interiors`,
+      title: `${service.seoTitle} | ${BUSINESS.name}`,
       description: service.metaDescription,
       url,
-      images: [
-        {
-          url: "/ashwinLogo.png",
-          width: 1200,
-          height: 630,
-          alt: `${service.title} | Ashwin Interiors`,
-        },
-      ],
+      images: [OG_IMAGE],
     },
     robots: {
       index: true,
@@ -54,60 +55,37 @@ export default async function ServiceDetailPage({
   const service = getServiceBySlug(slug);
   if (!service) notFound();
 
-  const url = `https://ashwin.world/services/${service.slug}`;
+  const url = `${SITE_URL}/services/${service.slug}`;
   const otherServices = services.filter((s) => s.slug !== service.slug);
 
   return (
     <main className="pt-24 pb-16 px-4 sm:px-6 md:px-10">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Service",
-            name: service.title,
-            description: service.metaDescription,
-            provider: {
-              "@type": "LocalBusiness",
-              name: "Ashwin Interiors",
-              url: "https://ashwin.world",
-              telephone: "+919822990577",
-            },
-            areaServed: {
-              "@type": "Country",
-              name: "India",
-            },
-            url,
-          }),
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "Service",
+          name: service.title,
+          serviceType: service.title,
+          description: service.metaDescription,
+          provider: { "@id": BUSINESS_ID, name: BUSINESS.name },
+          areaServed: AREA_SERVED,
+          url,
         }}
       />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "BreadcrumbList",
-            itemListElement: [
-              {
-                "@type": "ListItem",
-                position: 1,
-                name: "Home",
-                item: "https://ashwin.world",
-              },
-              {
-                "@type": "ListItem",
-                position: 2,
-                name: "Services",
-                item: "https://ashwin.world/services",
-              },
-              {
-                "@type": "ListItem",
-                position: 3,
-                name: service.title,
-                item: url,
-              },
-            ],
-          }),
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: "Services",
+              item: `${SITE_URL}/services`,
+            },
+            { "@type": "ListItem", position: 3, name: service.title, item: url },
+          ],
         }}
       />
 

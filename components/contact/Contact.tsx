@@ -290,6 +290,7 @@ export default function Contact() {
                     <option>Architectural Design</option>
                     <option>Interior Design</option>
                     <option>Site Execution</option>
+                    <option>Glass Work</option>
                     <option>Complete Project</option>
                   </select>
                 </div>

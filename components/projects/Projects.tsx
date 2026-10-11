@@ -15,7 +15,7 @@ export default function Projects({ isFullPage = false }: Props) {
 
   const projects = Array.from({ length: 74 }, (_, i) => ({
     title: `Project ${i + 1}`,
-    alt: `Interior and architectural design project by Ashwin Interiors, Chhatrapati Sambhajinagar`,
+    alt: `Ashwin project ${i + 1} — interior and architectural work in Chhatrapati Sambhajinagar (Aurangabad)`,
     image: `/project/${i + 1}.jpeg`,
   }));
 

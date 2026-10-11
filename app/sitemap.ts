@@ -3,7 +3,7 @@ import { services } from "@/lib/services-data";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = "https://ashwin.world";
-  const lastModified = new Date("2026-07-04");
+  const lastModified = new Date("2026-10-11");
 
   return [
     {

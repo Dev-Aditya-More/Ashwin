@@ -1,27 +1,22 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import JsonLd from "@/components/seo/JsonLd";
+import { SITE_URL, BUSINESS, OG_IMAGE } from "@/lib/seo";
 import { services } from "@/lib/services-data";
 
 export const metadata: Metadata = {
-  title: "Services",
+  title: "Interior, Architecture & Glass Services in Sambhajinagar (Aurangabad)",
   description:
-    "Civil planning, architectural design, interior design, landscape design, space planning, and site execution — services offered by Ashwin Interiors across India.",
+    "Interior design, architecture, civil planning, landscape, space planning, glass work and site execution in Chhatrapati Sambhajinagar (Aurangabad) — all under one roof at Ashwin.",
   alternates: {
-    canonical: "https://ashwin.world/services",
+    canonical: `${SITE_URL}/services`,
   },
   openGraph: {
-    title: "Services | Ashwin Interiors",
+    title: `Services in Sambhajinagar (Aurangabad) | ${BUSINESS.name}`,
     description:
-      "Civil planning, architectural design, interior design, landscape design, space planning, and site execution services by Ashwin Interiors.",
-    url: "https://ashwin.world/services",
-    images: [
-      {
-        url: "/ashwinLogo.png",
-        width: 1200,
-        height: 630,
-        alt: "Ashwin Interiors Services",
-      },
-    ],
+      "Interior design, architecture, civil planning, glass work and site execution in Chhatrapati Sambhajinagar (Aurangabad).",
+    url: `${SITE_URL}/services`,
+    images: [OG_IMAGE],
   },
   robots: {
     index: true,
@@ -32,42 +27,31 @@ export const metadata: Metadata = {
 export default function ServicesPage() {
   return (
     <main className="pt-24 pb-16 px-4 sm:px-6 md:px-10">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "BreadcrumbList",
-            itemListElement: [
-              {
-                "@type": "ListItem",
-                position: 1,
-                name: "Home",
-                item: "https://ashwin.world",
-              },
-              {
-                "@type": "ListItem",
-                position: 2,
-                name: "Services",
-                item: "https://ashwin.world/services",
-              },
-            ],
-          }),
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: "Services",
+              item: `${SITE_URL}/services`,
+            },
+          ],
         }}
       />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "ItemList",
-            itemListElement: services.map((s, i) => ({
-              "@type": "ListItem",
-              position: i + 1,
-              url: `https://ashwin.world/services/${s.slug}`,
-              name: s.title,
-            })),
-          }),
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "ItemList",
+          itemListElement: services.map((s, i) => ({
+            "@type": "ListItem",
+            position: i + 1,
+            url: `${SITE_URL}/services/${s.slug}`,
+            name: s.title,
+          })),
         }}
       />
 

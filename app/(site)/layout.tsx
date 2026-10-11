@@ -5,6 +5,15 @@ import Navbar from "@/components/navbar/Navbar";
 import Footer from "@/components/footer/Footer";
 import WhatsAppFloat from "@/components/ui/WhatsappFloat";
 import SmoothScroll from "@/components/ui/SmoothScroll";
+import JsonLd from "@/components/seo/JsonLd";
+import LeadClickTracker from "@/components/seo/LeadClickTracker";
+import {
+  SITE_URL,
+  BUSINESS,
+  OG_IMAGE,
+  businessJsonLd,
+  websiteJsonLd,
+} from "@/lib/seo";
 import type { Metadata, Viewport } from "next";
 
 const serif = Playfair_Display({
@@ -16,7 +25,12 @@ const sans = Inter({
   variable: "--font-sans",
 });
 
-const BASE_URL = "https://ashwin.world";
+const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
+
+const DEFAULT_TITLE =
+  "Interior Designer & Architect in Sambhajinagar (Aurangabad) | Ashwin";
+const DEFAULT_DESCRIPTION =
+  "Ashwin — interior design, architecture, civil planning, glass work and site execution in Chhatrapati Sambhajinagar (Aurangabad) since 2016. Call +91 98229 90577.";
 
 /* ✅ VIEWPORT — must be separate from metadata in Next.js 14+ */
 export const viewport: Viewport = {
@@ -27,27 +41,18 @@ export const viewport: Viewport = {
 
 /* ✅ PRODUCTION-READY SEO METADATA */
 export const metadata: Metadata = {
-  metadataBase: new URL(BASE_URL),
+  metadataBase: new URL(SITE_URL),
 
   title: {
-    default: "Ashwin | Interior & Architectural Design – Sambhajinagar",
-    template: "%s | Ashwin Interiors",
+    default: DEFAULT_TITLE,
+    template: `%s | ${BUSINESS.name}`,
   },
-  description:
-    "Ashwin Interiors offers civil planning, architectural design, interior design, and site execution services in Chhatrapati Sambhajinagar, Maharashtra, India.",
-  keywords: [
-    "interior designer Sambhajinagar",
-    "architect Sambhajinagar",
-    "civil planning Maharashtra",
-    "home interior design India",
-    "Ashwin Interiors",
-    "interior design Aurangabad",
-    "architectural design Maharashtra",
-  ],
+  description: DEFAULT_DESCRIPTION,
+  applicationName: BUSINESS.name,
 
   /* ✅ CANONICAL */
   alternates: {
-    canonical: BASE_URL,
+    canonical: SITE_URL,
   },
 
   /* ✅ ROBOTS — explicitly tell Google to index */
@@ -65,20 +70,11 @@ export const metadata: Metadata = {
 
   /* ✅ OPEN GRAPH — absolute URLs via metadataBase */
   openGraph: {
-    title: "Ashwin | Interior & Architectural Design",
-    description:
-      "Interior, architectural, and civil design solutions in Chhatrapati Sambhajinagar, Maharashtra.",
-    url: BASE_URL,
-    siteName: "Ashwin Interiors",
-    images: [
-      {
-        url: "/ashwinLogo.png", // resolved to https://ashwin.world/ashwinLogo.png via metadataBase
-        width: 1200,
-        height: 630,
-        alt: "Ashwin Interiors – Interior & Architectural Design",
-        type: "image/png",
-      },
-    ],
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
+    url: SITE_URL,
+    siteName: BUSINESS.name,
+    images: [{ ...OG_IMAGE, type: "image/jpeg" }],
     locale: "en_IN",
     type: "website",
   },
@@ -86,16 +82,10 @@ export const metadata: Metadata = {
   /* ✅ TWITTER CARD */
   twitter: {
     card: "summary_large_image",
-    title: "Ashwin | Interior & Architectural Design",
-    description:
-      "Interior & architectural design services in Chhatrapati Sambhajinagar, Maharashtra.",
-    images: ["/ashwinLogo.png"],
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
+    images: [OG_IMAGE.url],
   },
-
-  /* ✅ VERIFICATION — add your Search Console verification token here */
-  // verification: {
-  //   google: "YOUR_GOOGLE_VERIFICATION_TOKEN",
-  // },
 };
 
 export default function RootLayout({
@@ -104,58 +94,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en-IN">
       <body className={`${serif.variable} ${sans.variable} font-sans`}>
 
-        {/* ✅ LOCAL BUSINESS STRUCTURED DATA */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "LocalBusiness",
-              name: "Ashwin Interiors",
-              url: "https://ashwin.world",
-              telephone: "+919822990577",
-              image: "https://ashwin.world/ashwinLogo.png",
-              priceRange: "₹₹₹",
-              description:
-                "Civil planning, architectural design, interior design, and site execution services in Chhatrapati Sambhajinagar, Maharashtra.",
-              address: {
-                "@type": "PostalAddress",
-                addressLocality: "Chhatrapati Sambhajinagar",
-                addressRegion: "Maharashtra",
-                postalCode: "431001",
-                addressCountry: "IN",
-              },
-              geo: {
-                "@type": "GeoCoordinates",
-                latitude: 19.8762,
-                longitude: 75.3433,
-              },
-              openingHoursSpecification: [
-                {
-                  "@type": "OpeningHoursSpecification",
-                  dayOfWeek: [
-                    "Monday",
-                    "Tuesday",
-                    "Wednesday",
-                    "Thursday",
-                    "Friday",
-                    "Saturday",
-                  ],
-                  opens: "09:00",
-                  closes: "18:00",
-                },
-              ],
-              sameAs: [
-                "https://instagram.com/ashwin_design",
-                "https://www.facebook.com/share/1BFHGWXmxF/",
-              ],
-              hasMap: `https://www.google.com/maps/search/Chhatrapati+Sambhajinagar+interior+designer`,
-            }),
-          }}
-        />
+        {/* ✅ LOCAL BUSINESS + WEBSITE STRUCTURED DATA */}
+        <JsonLd data={businessJsonLd} />
+        <JsonLd data={websiteJsonLd} />
 
         {/* Microsoft Clarity */}
         <Script id="clarity-init" strategy="afterInteractive">
@@ -166,6 +110,23 @@ export default function RootLayout({
           })(window,document,"clarity","script","wyog74qx74");`}
         </Script>
 
+        {/* Google Analytics 4 — only loads once NEXT_PUBLIC_GA_ID is set */}
+        {GA_ID && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
+              strategy="afterInteractive"
+            />
+            <Script id="ga-init" strategy="afterInteractive">
+              {`window.dataLayer=window.dataLayer||[];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js',new Date());
+              gtag('config','${GA_ID}');`}
+            </Script>
+          </>
+        )}
+
+        <LeadClickTracker />
         <Navbar />
         <SmoothScroll />
         {children}
