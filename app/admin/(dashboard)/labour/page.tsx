@@ -4,6 +4,8 @@ import { listLabourers } from "@/lib/actions/labour";
 import { AddLabourerDialog } from "@/components/admin/dialogs/LabourDialogs";
 import { formatMoney } from "@/lib/format";
 import { QuickContactActions } from "@/components/admin/QuickContactActions";
+import { PartySearch } from "@/components/admin/PartySearch";
+import { getContactContext } from "@/lib/actions/whatsapp";
 import {
   Table,
   TableBody,
@@ -16,8 +18,17 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
-export default async function LabourPage() {
-  const labourers = await listLabourers();
+export default async function LabourPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
+  const { q = "" } = await searchParams;
+  const term = q.trim().toLowerCase();
+  const [allLabourers, ctx] = await Promise.all([listLabourers(), getContactContext()]);
+  const labourers = term
+    ? allLabourers.filter((l) => `${l.name} ${l.phone ?? ""}`.toLowerCase().includes(term))
+    : allLabourers;
   const totals = labourers.reduce(
     (acc, l) => ({
       totalWork: acc.totalWork + l.totalWork,
@@ -45,6 +56,8 @@ export default async function LabourPage() {
           <AddLabourerDialog />
         </div>
       </div>
+
+      <PartySearch initial={q} placeholder="Search by name or mobile number" />
 
       <div className="rounded-xl border border-[var(--border)] bg-white overflow-x-auto">
         <Table>
@@ -97,6 +110,7 @@ export default async function LabourPage() {
                     phone={l.phone}
                     balance={l.balance}
                     category="Labour"
+                    lastTxn={ctx.last[l.id]}
                   />
                 </TableCell>
               </TableRow>

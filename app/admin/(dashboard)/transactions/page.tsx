@@ -98,7 +98,7 @@ export default async function TransactionsPage({
                   <Badge className={CATEGORY_TONE[t.category]}>{t.category}</Badge>
                 </TableCell>
                 <TableCell className="font-medium">{t.name}</TableCell>
-                <TableCell className="text-[var(--text-muted)]">{KIND_LABEL[t.kind]}</TableCell>
+                <TableCell className="text-[var(--text-muted)]">{t.isRefund ? "Refund" : KIND_LABEL[t.kind]}</TableCell>
                 <TableCell className="text-[var(--text-muted)] max-w-[280px] truncate">
                   {t.description}
                 </TableCell>

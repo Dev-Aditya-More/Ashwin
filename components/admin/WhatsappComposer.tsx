@@ -23,6 +23,7 @@ export function WhatsappComposer({
 }) {
   const [selectedId, setSelectedId] = useState<string>("");
   const [message, setMessage] = useState<string>("");
+  const [noMessage, setNoMessage] = useState(false);
 
   const contact = useMemo(
     () => contacts.find((c) => c.id === selectedId) ?? null,
@@ -32,7 +33,11 @@ export function WhatsappComposer({
   function handleSelect(id: string) {
     setSelectedId(id);
     const c = contacts.find((c) => c.id === id);
-    if (c) setMessage(buildWhatsappMessage(c));
+    if (c) {
+      const msg = buildWhatsappMessage(c);
+      setMessage(msg ?? "");
+      setNoMessage(!msg);
+    }
   }
 
   const canSend = Boolean(contact?.phone && message.trim());
@@ -59,6 +64,12 @@ export function WhatsappComposer({
           ))}
         </SelectContent>
       </Select>
+
+      {noMessage && (
+        <p className="text-xs text-amber-700">
+          No outstanding balance or relevant payment/refund transaction for this person — nothing to send.
+        </p>
+      )}
 
       <Textarea
         value={message}

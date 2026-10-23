@@ -37,6 +37,8 @@ const ENTITY_FIELDS: Record<ImportEntity, { key: string; label: string }[]> = {
     { key: "name", label: "Name" },
     { key: "phone", label: "Phone" },
     { key: "address", label: "Address / Site" },
+    { key: "gstin", label: "GSTIN" },
+    { key: "work_status", label: "Status / Work" },
     { key: "opening_balance", label: "Opening Balance (₹, they owe us)" },
   ],
   vendors: [

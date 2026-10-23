@@ -14,6 +14,9 @@ import {
   Settings,
   Sparkles,
   Upload,
+  FileText,
+  Calculator,
+  Receipt,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/brand/Logo";
@@ -24,10 +27,13 @@ export const NAV = [
   { label: "Clients", href: "/admin/clients", icon: Users },
   { label: "Labour", href: "/admin/labour", icon: HardHat },
   { label: "Vendors", href: "/admin/vendors", icon: Truck },
+  { label: "Quotation", href: "/admin/quotations", icon: FileText },
+  { label: "Estimate", href: "/admin/estimates", icon: Calculator },
+  { label: "GST & Invoices", href: "/admin/invoices", icon: Receipt },
   { label: "Projects / Sites", href: "/admin/projects", icon: Building2 },
   { label: "Transactions", href: "/admin/transactions", icon: ArrowLeftRight },
   { label: "Reports", href: "/admin/reports", icon: BarChart3 },
-  { label: "Import", href: "/admin/import", icon: Upload },
+  { label: "Import & Backup", href: "/admin/import", icon: Upload },
   { label: "WhatsApp", href: "/admin/whatsapp", icon: MessageCircle },
 ];
 

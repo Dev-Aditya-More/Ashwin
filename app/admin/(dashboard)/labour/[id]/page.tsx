@@ -10,6 +10,9 @@ import {
   EditLabourPaymentDialog,
 } from "@/components/admin/dialogs/LabourDialogs";
 import { DeleteRowButton } from "@/components/admin/dialogs/DeleteRowButton";
+import { AddRefundDialog } from "@/components/admin/dialogs/RefundDialog";
+import { PrintLedgerButton } from "@/components/admin/PrintLedgerButton";
+import { labourLedgerRows } from "@/lib/ledger-rows";
 import { TrackVisit } from "@/components/admin/TrackVisit";
 import { BackButton } from "@/components/admin/BackButton";
 import { LabourLedgerTable } from "@/components/admin/EntityLedger";
@@ -47,6 +50,7 @@ export default async function LabourDetailPage({
       <div className="flex items-center gap-2">
         <BackButton fallbackHref="/admin/labour" />
         <h1 className="text-xl font-semibold flex-1 min-w-0 truncate">{labourer.name}</h1>
+        <PrintLedgerButton party={{ name: labourer.name, phone: labourer.phone }} rows={labourLedgerRows(work, payments)} />
         <EditLabourerDialog labourer={labourer} />
         <DeleteRowButton
           what="labourer — this also removes all their work entries and payments"
@@ -120,7 +124,12 @@ export default async function LabourDetailPage({
               </Table>
             </Section>
 
-            <Section title="Payments Made" action={<AddLabourPaymentDialog labourerId={id} />}>
+            <Section title="Payments Made" action={
+                <div className="flex gap-1.5">
+                  <AddRefundDialog kind="labour" id={id} />
+                  <AddLabourPaymentDialog labourerId={id} />
+                </div>
+              }>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -133,10 +142,10 @@ export default async function LabourDetailPage({
                 <TableBody>
                   {payments.map((p) => (
                     <TableRow key={p.id}>
-                      <TableCell>{p.note ?? "—"}</TableCell>
+                      <TableCell>{p.is_refund ? `Refund${p.note ? ` — ${p.note}` : ""}` : (p.note ?? "—")}</TableCell>
                       <TableCell className="text-[var(--text-muted)]">{formatDate(p.payment_date)}</TableCell>
-                      <TableCell className="text-right font-medium text-rose-600">
-                        - {formatMoney(p.amount)}
+                      <TableCell className={`text-right font-medium ${p.is_refund ? "text-emerald-600" : "text-rose-600"}`}>
+                        {p.is_refund ? "+" : "-"} {formatMoney(p.amount)}
                       </TableCell>
                       <TableCell>
                         <EditLabourPaymentDialog payment={p} labourerId={id} />

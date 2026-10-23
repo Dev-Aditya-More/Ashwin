@@ -1,10 +1,11 @@
 import { ImportWizard } from "@/components/admin/ImportWizard";
+import { SnapshotAndBackup } from "@/components/admin/SnapshotAndBackup";
 
 export default function ImportPage() {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-xl font-semibold">Import</h1>
+        <h1 className="text-xl font-semibold">Import &amp; Backup</h1>
         <p className="text-sm text-[var(--text-muted)]">
           Bring in clients, vendors, or labour from a CSV or Excel file. One workbook with a
           sheet per type, or a single sheet mixing all three with a Type column — both work.
@@ -13,6 +14,8 @@ export default function ImportPage() {
       </div>
 
       <ImportWizard />
+
+      <SnapshotAndBackup />
     </div>
   );
 }

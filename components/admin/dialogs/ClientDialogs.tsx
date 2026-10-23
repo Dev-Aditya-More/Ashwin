@@ -44,6 +44,16 @@ export function AddClientDialog() {
         <Label htmlFor="address">Address / Site</Label>
         <Input id="address" name="address" />
       </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <Label htmlFor="gstin">GSTIN</Label>
+          <Input id="gstin" name="gstin" maxLength={15} placeholder="15-character GSTIN" className="uppercase" />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="work_status">Status / Work</Label>
+          <Input id="work_status" name="work_status" placeholder="e.g. Work in Progress" />
+        </div>
+      </div>
       <div className="space-y-1.5">
         <Label htmlFor="opening_balance">Opening Balance (₹)</Label>
         <Input id="opening_balance" name="opening_balance" type="number" step="0.01" placeholder="e.g. 15000" />
@@ -77,6 +87,16 @@ export function EditClientDialog({ client }: { client: Client }) {
       <div className="space-y-1.5">
         <Label htmlFor="address">Address / Site</Label>
         <Input id="address" name="address" defaultValue={client.address ?? ""} />
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <Label htmlFor="gstin">GSTIN</Label>
+          <Input id="gstin" name="gstin" maxLength={15} placeholder="15-character GSTIN" className="uppercase" defaultValue={client.gstin ?? ""} />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="work_status">Status / Work</Label>
+          <Input id="work_status" name="work_status" defaultValue={client.work_status ?? ""} placeholder="e.g. Work in Progress" />
+        </div>
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="notes">Notes</Label>

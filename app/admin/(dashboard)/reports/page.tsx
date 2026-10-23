@@ -3,6 +3,7 @@ import { listClients } from "@/lib/actions/clients";
 import { listLabourers } from "@/lib/actions/labour";
 import { listVendors } from "@/lib/actions/vendors";
 import { getMonthlyPerformance } from "@/lib/actions/dashboard";
+import { DocumentRegister } from "@/components/admin/DocumentRegister";
 import { SummaryTile, QuickAccess, MonthlyPerformance, LedgerTable } from "@/components/admin/LedgerBlocks";
 
 // recharts is one of the heaviest client bundles in the app — split it
@@ -57,6 +58,8 @@ export default async function ReportsPage() {
       </div>
 
       <MonthlyPerformance rows={monthly} />
+
+      <DocumentRegister />
 
       <LedgerTable
         title="Client Ledger"

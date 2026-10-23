@@ -5,12 +5,19 @@ import {
   Wallet,
   TrendingUp,
   UserSquare2,
+  FileText,
 } from "lucide-react";
 import Link from "next/link";
 import { getDashboardData, getMonthlyPerformance, getDailyPerformance } from "@/lib/actions/dashboard";
-// import { listClients } from "@/lib/actions/clients";
-// import { listLabourers } from "@/lib/actions/labour";
-// import { listVendors } from "@/lib/actions/vendors";
+import { listClients } from "@/lib/actions/clients";
+import { listLabourers } from "@/lib/actions/labour";
+import { listVendors } from "@/lib/actions/vendors";
+import { listTransactions } from "@/lib/actions/transactions";
+import { countQuotations } from "@/lib/actions/documents";
+import { QuickAddTransaction } from "@/components/admin/QuickAddTransaction";
+import { MonthView } from "@/components/admin/MonthView";
+import { formatDate, formatMoney } from "@/lib/format";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { StatCard } from "@/components/admin/StatCard";
 // LedgerTable is unused now that the three ledgers below are commented out.
 import { QuickAccess, MonthlyPerformance /*, LedgerTable */ } from "@/components/admin/LedgerBlocks";
@@ -27,11 +34,13 @@ export default async function DashboardPage({
   const validRange =
     from && to && /^\d{4}-\d{2}-\d{2}$/.test(from) && /^\d{4}-\d{2}-\d{2}$/.test(to) && from <= to;
 
-  const [data, monthly, dailyRows] = await Promise.all([
+  const [data, clients, labourers, vendors, recent, quotationCount, monthly, dailyRows] = await Promise.all([
     getDashboardData(),
-    // listClients(),
-    // listLabourers(),
-    // listVendors(),
+    listClients(),
+    listLabourers(),
+    listVendors(),
+    listTransactions(12),
+    countQuotations(),
     getMonthlyPerformance(),
     validRange ? getDailyPerformance(from, to) : Promise.resolve(undefined),
   ]);
@@ -115,6 +124,68 @@ export default async function DashboardPage({
       </div>
 
       <QuickAccess />
+
+      <QuickAddTransaction
+        clients={clients.map((c) => ({ id: c.id, name: c.name, gstin: c.gstin }))}
+        labourers={labourers.map((l) => ({ id: l.id, name: l.name }))}
+        vendors={vendors.map((v) => ({ id: v.id, name: v.name }))}
+      />
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <StatCard icon={Users} label="Clients" value={clients.length} isMoney={false} />
+        <StatCard icon={Truck} label="Vendors" value={vendors.length} isMoney={false} />
+        <StatCard icon={HardHat} label="Labour" value={labourers.length} isMoney={false} />
+        <StatCard icon={FileText} label="Quotations" value={quotationCount} isMoney={false} />
+      </div>
+
+      <MonthView />
+
+      <div className="rounded-xl border border-[var(--border)] bg-white overflow-hidden">
+        <div className="px-4 py-3 border-b border-[var(--border)] bg-[var(--bg-2)]">
+          <p className="font-semibold text-sm">Recent Transactions</p>
+        </div>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Date</TableHead>
+                <TableHead>Party</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Transaction</TableHead>
+                <TableHead className="text-right">Amount</TableHead>
+                <TableHead>Mode</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {recent.map((t) => (
+                <TableRow key={t.id}>
+                  <TableCell>{formatDate(t.date)}</TableCell>
+                  <TableCell className="font-medium">{t.name}</TableCell>
+                  <TableCell className="text-[var(--text-muted)]">{t.category}</TableCell>
+                  <TableCell className="text-[var(--text-muted)]">
+                    {t.isRefund
+                      ? "Refund"
+                      : t.kind === "client_payment"
+                      ? "Payment Received"
+                      : t.kind.endsWith("_payment")
+                      ? "Payment Paid"
+                      : "Due / Payable Added"}
+                  </TableCell>
+                  <TableCell className="text-right">{formatMoney(t.amount)}</TableCell>
+                  <TableCell className="text-[var(--text-muted)]">{t.mode ?? ""}</TableCell>
+                </TableRow>
+              ))}
+              {recent.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center text-[var(--text-muted)] py-8">
+                    No transactions saved yet.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
 
       <MonthlyPerformance rows={monthly} dailyRows={dailyRows} from={from} to={to} />
 

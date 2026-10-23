@@ -13,6 +13,9 @@ export type TransactionRow = {
   direction: "in" | "out" | "neutral";
   date: string;
   addedBy: string | null;
+  isRefund: boolean;
+  mode: string | null;
+  note: string | null;
 };
 
 const CATEGORY_BY_KIND: Record<TransactionKind, "Client" | "Labour" | "Vendor"> = {
@@ -77,6 +80,14 @@ export async function listTransactions(
         ? labourNames.get(t.entity_id)
         : vendorNames.get(t.entity_id);
 
+    const isRefund = Boolean(t.is_refund);
+    // A refund flows the opposite way to an ordinary payment of the same kind.
+    const direction = isRefund
+      ? DIRECTION_BY_KIND[t.kind] === "in"
+        ? "out"
+        : "in"
+      : DIRECTION_BY_KIND[t.kind];
+
     return {
       id: t.id,
       kind: t.kind,
@@ -84,9 +95,12 @@ export async function listTransactions(
       name: name ?? "Unknown",
       description: t.description,
       amount: Number(t.amount),
-      direction: DIRECTION_BY_KIND[t.kind],
+      direction,
       date: t.txn_date,
       addedBy: t.created_by ?? null,
+      isRefund,
+      mode: t.payment_mode ?? null,
+      note: t.note ?? null,
     };
   });
 }

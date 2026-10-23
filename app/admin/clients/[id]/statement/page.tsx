@@ -38,9 +38,9 @@ export default async function ClientStatementPage({
     })),
     ...payments.map((p) => ({
       date: p.payment_date,
-      description: p.note ?? "Payment received",
-      debit: 0,
-      credit: Number(p.amount),
+      description: p.note ?? (p.is_refund ? "Refund" : "Payment received"),
+      debit: p.is_refund ? Number(p.amount) : 0,
+      credit: p.is_refund ? 0 : Number(p.amount),
       sortKey: `${p.payment_date}-${p.created_at}`,
     })),
   ].sort((a, b) => a.sortKey.localeCompare(b.sortKey));

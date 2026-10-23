@@ -2,7 +2,7 @@
 
 import { Label } from "@/components/ui/label";
 
-const MODES = ["Cash", "UPI", "Bank Transfer", "Cheque", "Other"];
+const MODES = ["Cash", "PhonePe", "GPay", "UPI", "NEFT", "RTGS", "Bank Transfer", "Cheque", "Other"];
 
 export function PaymentModeSelect({ defaultValue = "" }: { defaultValue?: string }) {
   return (

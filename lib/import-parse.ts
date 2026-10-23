@@ -72,6 +72,8 @@ const FIELD_ALIASES: Record<keyof Omit<ImportRow, "name">, string[]> & { name: s
   name: ["name", "clientname", "vendorname", "labourname", "workername", "fullname", "labourer"],
   phone: ["phone", "mobile", "contact", "phonenumber", "mobileno", "contactnumber", "whatsapp"],
   address: ["address", "site", "location", "siteaddress"],
+  gstin: ["gstin", "gst", "gstno", "gstnumber"],
+  work_status: ["status", "workstatus", "work"],
   category: ["category", "vendorcategory", "trade"],
   default_rate: ["rate", "defaultrate", "dailyrate", "wage", "wageperday"],
   opening_balance: [
@@ -93,7 +95,7 @@ function normalize(header: string) {
 export function detectColumnMap(headers: string[], entity: ImportEntity) {
   const relevant: (keyof typeof FIELD_ALIASES)[] =
     entity === "clients"
-      ? ["name", "phone", "address", "opening_balance"]
+      ? ["name", "phone", "address", "gstin", "work_status", "opening_balance"]
       : entity === "vendors"
       ? ["name", "phone", "category", "opening_balance"]
       : ["name", "phone", "default_rate", "opening_balance"];
@@ -115,6 +117,8 @@ export function rowsToImportRows(
     name: map.name ? r[map.name] ?? "" : "",
     phone: map.phone ? r[map.phone] : undefined,
     address: map.address ? r[map.address] : undefined,
+    gstin: map.gstin ? r[map.gstin] : undefined,
+    work_status: map.work_status ? r[map.work_status] : undefined,
     category: map.category ? r[map.category] : undefined,
     default_rate: map.default_rate && r[map.default_rate] ? Number(r[map.default_rate]) : undefined,
     opening_balance:

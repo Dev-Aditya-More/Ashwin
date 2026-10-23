@@ -21,7 +21,7 @@ export function StatCard({
   icon: LucideIcon;
   label: string;
   value: number | string;
-  sublabel: string;
+  sublabel?: string;
   tone?: keyof typeof TONES;
   isMoney?: boolean;
 }) {

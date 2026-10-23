@@ -1,5 +1,19 @@
 import Link from "next/link";
-import { Phone, MessageCircle, Users, Truck, HardHat, ArrowRight, X } from "lucide-react";
+import {
+  Phone,
+  MessageCircle,
+  Users,
+  Truck,
+  HardHat,
+  ArrowRight,
+  X,
+  FileText,
+  Calculator,
+  Receipt,
+  BarChart3,
+  Upload,
+  ArrowLeftRight,
+} from "lucide-react";
 import { formatMoney } from "@/lib/format";
 import { buildWhatsappLink, buildWhatsappMessage } from "@/lib/whatsapp";
 import type { WhatsappContact } from "@/lib/actions/whatsapp";
@@ -44,6 +58,12 @@ export function QuickAccess() {
     { label: "Client Ledger", href: "/admin/clients", icon: Users, tone: "text-emerald-600" },
     { label: "Vendor Ledger", href: "/admin/vendors", icon: Truck, tone: "text-rose-600" },
     { label: "Labour Ledger", href: "/admin/labour", icon: HardHat, tone: "text-amber-600" },
+    { label: "Quotation", href: "/admin/quotations", icon: FileText, tone: "text-[var(--accent-blue)]" },
+    { label: "Estimate", href: "/admin/estimates", icon: Calculator, tone: "text-[var(--accent-blue)]" },
+    { label: "GST & Invoices", href: "/admin/invoices", icon: Receipt, tone: "text-[var(--accent-blue)]" },
+    { label: "Transactions", href: "/admin/transactions", icon: ArrowLeftRight, tone: "text-[var(--text-secondary)]" },
+    { label: "Reports & Registers", href: "/admin/reports", icon: BarChart3, tone: "text-[var(--text-secondary)]" },
+    { label: "Import & Backup", href: "/admin/import", icon: Upload, tone: "text-[var(--text-secondary)]" },
   ];
 
   return (
@@ -51,7 +71,7 @@ export function QuickAccess() {
       <div className="px-4 py-3 border-b border-[var(--border)] bg-[var(--bg-2)]">
         <p className="font-semibold text-sm">Quick Access</p>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-[var(--border)]">
+      <div className="grid grid-cols-1 sm:grid-cols-3 [&>*]:border-b [&>*]:border-r [&>*]:border-[var(--border)]">
         {links.map((l) => {
           const Icon = l.icon;
           return (
@@ -270,7 +290,7 @@ export function LedgerTable({
               balance: r.balance,
               category,
             };
-            const message = buildWhatsappMessage(contact);
+            const message = buildWhatsappMessage(contact) ?? "";
             return (
               <TableRow key={r.id}>
                 <TableCell className="font-medium">{r.name}</TableCell>

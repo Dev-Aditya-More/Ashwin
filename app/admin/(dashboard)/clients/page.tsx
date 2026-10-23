@@ -3,6 +3,8 @@ import { listClients } from "@/lib/actions/clients";
 import { AddClientDialog } from "@/components/admin/dialogs/ClientDialogs";
 import { formatMoney } from "@/lib/format";
 import { QuickContactActions } from "@/components/admin/QuickContactActions";
+import { PartySearch } from "@/components/admin/PartySearch";
+import { getContactContext } from "@/lib/actions/whatsapp";
 import {
   Table,
   TableBody,
@@ -14,8 +16,19 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 
-export default async function ClientsPage() {
-  const clients = await listClients();
+export default async function ClientsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
+  const { q = "" } = await searchParams;
+  const term = q.trim().toLowerCase();
+  const [allClients, ctx] = await Promise.all([listClients(), getContactContext()]);
+  const clients = term
+    ? allClients.filter((c) =>
+        `${c.name} ${c.phone ?? ""} ${c.gstin ?? ""}`.toLowerCase().includes(term)
+      )
+    : allClients;
   const totals = clients.reduce(
     (acc, c) => ({
       totalWork: acc.totalWork + c.totalWork,
@@ -37,13 +50,17 @@ export default async function ClientsPage() {
         <AddClientDialog />
       </div>
 
+      <PartySearch initial={q} placeholder="Search by name, mobile number or GSTIN" />
+
       <div className="rounded-xl border border-[var(--border)] bg-white overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead>Phone</TableHead>
+              <TableHead>GSTIN</TableHead>
               <TableHead>Address</TableHead>
+              <TableHead>Status / Work</TableHead>
               <TableHead className="text-right">Total Billed</TableHead>
               <TableHead className="text-right">Total Received</TableHead>
               <TableHead className="text-right">Balance</TableHead>
@@ -59,9 +76,11 @@ export default async function ClientsPage() {
                   </Link>
                 </TableCell>
                 <TableCell className="text-[var(--text-muted)]">{c.phone ?? "—"}</TableCell>
+                <TableCell className="text-[var(--text-muted)] font-mono text-xs">{c.gstin ?? "—"}</TableCell>
                 <TableCell className="text-[var(--text-muted)] max-w-[200px] truncate">
                   {c.address ?? "—"}
                 </TableCell>
+                <TableCell className="text-[var(--text-muted)]">{c.work_status ?? "—"}</TableCell>
                 <TableCell className="text-right text-[var(--text-muted)]">
                   {c.totalWork ? formatMoney(c.totalWork) : "—"}
                 </TableCell>
@@ -88,14 +107,16 @@ export default async function ClientsPage() {
                     phone={c.phone}
                     balance={c.balance}
                     category="Client"
+                    lastTxn={ctx.last[c.id]}
+                    brand={ctx.brand[c.id]}
                   />
                 </TableCell>
               </TableRow>
             ))}
             {clients.length === 0 && (
               <TableRow>
-                <TableCell colSpan={7} className="text-center text-[var(--text-muted)] py-10">
-                  No clients yet. Use the Add button above to get started.
+                <TableCell colSpan={9} className="text-center text-[var(--text-muted)] py-10">
+                  {term ? "No matching party records." : "No clients yet. Use the Add button above to get started."}
                 </TableCell>
               </TableRow>
             )}
@@ -103,7 +124,7 @@ export default async function ClientsPage() {
           {clients.length > 0 && (
             <TableFooter>
               <TableRow>
-                <TableCell colSpan={3}>Total</TableCell>
+                <TableCell colSpan={5}>Total</TableCell>
                 <TableCell className="text-right">{formatMoney(totals.totalWork)}</TableCell>
                 <TableCell className="text-right">{formatMoney(totals.totalPaid)}</TableCell>
                 <TableCell className="text-right">

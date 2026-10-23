@@ -200,6 +200,7 @@ export async function addVendorPayment(
     String(formData.get("payment_date") ?? "") || new Date().toISOString().slice(0, 10);
   const note = String(formData.get("note") ?? "").trim() || null;
   const payment_mode = String(formData.get("payment_mode") ?? "").trim() || null;
+  const is_refund = formData.get("is_refund") === "1";
   const confirmed = formData.get("confirm") === "1";
   if (!amount) return;
   if (isAfterCurrentMonth(payment_date)) return { warning: FUTURE_MONTH_WARNING };
@@ -234,7 +235,7 @@ export async function addVendorPayment(
       financial_year_id: fy.data?.id ?? null,
     },
     actorEmail,
-    { payment_mode }
+    { payment_mode, ...(is_refund ? { is_refund: true } : {}) }
   );
   revalidatePath(`/admin/vendors/${vendorId}`);
   revalidatePath("/admin");

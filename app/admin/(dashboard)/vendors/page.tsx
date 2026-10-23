@@ -3,6 +3,8 @@ import { listVendors } from "@/lib/actions/vendors";
 import { AddVendorDialog } from "@/components/admin/dialogs/VendorDialogs";
 import { formatMoney } from "@/lib/format";
 import { QuickContactActions } from "@/components/admin/QuickContactActions";
+import { PartySearch } from "@/components/admin/PartySearch";
+import { getContactContext } from "@/lib/actions/whatsapp";
 import {
   Table,
   TableBody,
@@ -14,8 +16,17 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 
-export default async function VendorsPage() {
-  const vendors = await listVendors();
+export default async function VendorsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
+  const { q = "" } = await searchParams;
+  const term = q.trim().toLowerCase();
+  const [allVendors, ctx] = await Promise.all([listVendors(), getContactContext()]);
+  const vendors = term
+    ? allVendors.filter((v) => `${v.name} ${v.phone ?? ""}`.toLowerCase().includes(term))
+    : allVendors;
   const totals = vendors.reduce(
     (acc, v) => ({
       totalBilled: acc.totalBilled + v.totalBilled,
@@ -36,6 +47,8 @@ export default async function VendorsPage() {
         </div>
         <AddVendorDialog />
       </div>
+
+      <PartySearch initial={q} placeholder="Search by name or mobile number" />
 
       <div className="rounded-xl border border-[var(--border)] bg-white overflow-x-auto">
         <Table>
@@ -86,6 +99,7 @@ export default async function VendorsPage() {
                     phone={v.phone}
                     balance={v.balance}
                     category="Vendor"
+                    lastTxn={ctx.last[v.id]}
                   />
                 </TableCell>
               </TableRow>

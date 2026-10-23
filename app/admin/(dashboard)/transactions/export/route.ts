@@ -27,7 +27,7 @@ export async function GET(request: Request) {
     t.date,
     t.category,
     t.name,
-    KIND_LABEL[t.kind],
+    t.isRefund ? "Refund" : KIND_LABEL[t.kind],
     t.description,
     t.amount.toFixed(2),
     t.direction === "in" ? "Received" : t.direction === "out" ? "Paid" : "",

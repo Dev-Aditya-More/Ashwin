@@ -9,6 +9,13 @@ import { applyOpeningBalance } from "@/lib/actions/import";
 import { isAfterCurrentMonth, FUTURE_MONTH_WARNING } from "@/lib/date-limits";
 import type { Client, ClientBalance, ClientWork, ClientPayment } from "@/lib/types";
 
+/** Trimmed, upper-cased GSTIN; null when blank; false when malformed (must be 15 letters/digits). */
+function normaliseGstin(raw: FormDataEntryValue | null): string | null | false {
+  const v = String(raw ?? "").trim().toUpperCase();
+  if (!v) return null;
+  return /^[0-9A-Z]{15}$/.test(v) ? v : false;
+}
+
 export type ClientWithTotals = Client & { balance: number; totalWork: number; totalPaid: number };
 
 export async function listClients(): Promise<ClientWithTotals[]> {
@@ -68,13 +75,20 @@ export async function createClientRecord(formData: FormData): Promise<{ id?: str
   const phone = String(formData.get("phone") ?? "").trim() || null;
   const address = String(formData.get("address") ?? "").trim() || null;
   const opening_balance = Number(formData.get("opening_balance") ?? 0) || 0;
+  const gstin = normaliseGstin(formData.get("gstin"));
+  const work_status = String(formData.get("work_status") ?? "").trim() || null;
+  if (gstin === false) return {};
 
   const supabase = await createClient();
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from("clients")
-    .insert({ name, phone, address })
+    .insert({ name, phone, address, gstin, work_status })
     .select("id")
     .single();
+  if (error || !data) {
+    // gstin/work_status columns missing (migration 0007 pending) — save the base row.
+    ({ data, error } = await supabase.from("clients").insert({ name, phone, address }).select("id").single());
+  }
   if (error || !data) return {};
 
   if (opening_balance) {
@@ -95,9 +109,12 @@ export async function updateClientRecord(id: string, formData: FormData) {
   const phone = String(formData.get("phone") ?? "").trim() || null;
   const address = String(formData.get("address") ?? "").trim() || null;
   const notes = String(formData.get("notes") ?? "").trim() || null;
+  const gstin = normaliseGstin(formData.get("gstin"));
+  const work_status = String(formData.get("work_status") ?? "").trim() || null;
+  if (gstin === false) return;
 
   const supabase = await createClient();
-  await supabase.from("clients").update({ name, phone, address, notes }).eq("id", id);
+  await updateSafely(supabase, "clients", id, { name, phone, address, notes }, { gstin, work_status });
   revalidatePath(`/admin/clients/${id}`);
   revalidatePath("/admin/clients");
 }
@@ -211,6 +228,7 @@ export async function addClientPayment(
   const note = String(formData.get("note") ?? "").trim() || null;
   const payment_mode = String(formData.get("payment_mode") ?? "").trim() || null;
   const project_id = String(formData.get("project_id") ?? "") || null;
+  const is_refund = formData.get("is_refund") === "1";
   const confirmed = formData.get("confirm") === "1";
   if (!amount) return;
   if (isAfterCurrentMonth(payment_date)) return { warning: FUTURE_MONTH_WARNING };
@@ -246,7 +264,7 @@ export async function addClientPayment(
       financial_year_id: fy.data?.id ?? null,
     },
     actorEmail,
-    { payment_mode }
+    { payment_mode, ...(is_refund ? { is_refund: true } : {}) }
   );
   revalidatePath(`/admin/clients/${clientId}`);
   revalidatePath("/admin");

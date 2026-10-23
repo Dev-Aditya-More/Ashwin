@@ -10,6 +10,11 @@ import {
   EditClientPaymentDialog,
 } from "@/components/admin/dialogs/ClientDialogs";
 import { DeleteRowButton } from "@/components/admin/dialogs/DeleteRowButton";
+import { AddRefundDialog } from "@/components/admin/dialogs/RefundDialog";
+import { PrintLedgerButton } from "@/components/admin/PrintLedgerButton";
+import { DetailSheets } from "@/components/admin/DetailSheets";
+import { listEstimates } from "@/lib/actions/documents";
+import { clientLedgerRows } from "@/lib/ledger-rows";
 import { TrackVisit } from "@/components/admin/TrackVisit";
 import { BackButton } from "@/components/admin/BackButton";
 import { ClientLedgerTable } from "@/components/admin/EntityLedger";
@@ -39,6 +44,7 @@ export default async function ClientDetailPage({
   }
   const { client, balance, work, payments, projects } = data;
   if (!client) notFound();
+  const { rows: detailSheets } = await listEstimates(true, id);
 
   return (
     <div className="space-y-6">
@@ -49,6 +55,10 @@ export default async function ClientDetailPage({
         <Button asChild variant="outline" size="sm">
           <Link href={`/admin/clients/${id}/statement`}>Statement</Link>
         </Button>
+        <PrintLedgerButton
+          party={{ name: client.name, phone: client.phone, address: client.address }}
+          rows={clientLedgerRows(work, payments)}
+        />
         <EditClientDialog client={client} />
         <DeleteRowButton
           what="client — this also removes all their work entries and payments"
@@ -74,6 +84,8 @@ export default async function ClientDetailPage({
       <div className="text-sm text-[var(--text-muted)] flex flex-wrap gap-4">
         {client.phone && <span>📞 {client.phone}</span>}
         {client.address && <span>📍 {client.address}</span>}
+        {client.gstin && <span>GSTIN: <span className="font-mono">{client.gstin}</span></span>}
+        {client.work_status && <span>Status: {client.work_status}</span>}
       </div>
 
       <Tabs defaultValue="overview">
@@ -121,7 +133,12 @@ export default async function ClientDetailPage({
 
             <Section
               title="Payments Received"
-              action={<AddClientPaymentDialog clientId={id} projects={projects} />}
+              action={
+                <div className="flex gap-1.5">
+                  <AddRefundDialog kind="client" id={id} />
+                  <AddClientPaymentDialog clientId={id} projects={projects} />
+                </div>
+              }
             >
               <Table>
                 <TableHeader>
@@ -135,10 +152,10 @@ export default async function ClientDetailPage({
                 <TableBody>
                   {payments.map((p) => (
                     <TableRow key={p.id}>
-                      <TableCell>{p.note ?? "—"}</TableCell>
+                      <TableCell>{p.is_refund ? `Refund${p.note ? ` — ${p.note}` : ""}` : (p.note ?? "—")}</TableCell>
                       <TableCell className="text-[var(--text-muted)]">{formatDate(p.payment_date)}</TableCell>
-                      <TableCell className="text-right font-medium text-emerald-600">
-                        + {formatMoney(p.amount)}
+                      <TableCell className={`text-right font-medium ${p.is_refund ? "text-rose-600" : "text-emerald-600"}`}>
+                        {p.is_refund ? "−" : "+"} {formatMoney(p.amount)}
                       </TableCell>
                       <TableCell>
                         <EditClientPaymentDialog payment={p} clientId={id} projects={projects} />
@@ -159,7 +176,10 @@ export default async function ClientDetailPage({
         </TabsContent>
 
         <TabsContent value="ledger">
-          <ClientLedgerTable work={work} payments={payments} clientId={id} projects={projects} />
+          <div className="space-y-4">
+            <ClientLedgerTable work={work} payments={payments} clientId={id} projects={projects} />
+            <DetailSheets sheets={detailSheets} />
+          </div>
         </TabsContent>
       </Tabs>
     </div>

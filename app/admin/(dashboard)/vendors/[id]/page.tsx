@@ -10,6 +10,9 @@ import {
   EditVendorPaymentDialog,
 } from "@/components/admin/dialogs/VendorDialogs";
 import { DeleteRowButton } from "@/components/admin/dialogs/DeleteRowButton";
+import { AddRefundDialog } from "@/components/admin/dialogs/RefundDialog";
+import { PrintLedgerButton } from "@/components/admin/PrintLedgerButton";
+import { vendorLedgerRows } from "@/lib/ledger-rows";
 import { TrackVisit } from "@/components/admin/TrackVisit";
 import { BackButton } from "@/components/admin/BackButton";
 import { VendorLedgerTable } from "@/components/admin/EntityLedger";
@@ -47,6 +50,7 @@ export default async function VendorDetailPage({
       <div className="flex items-center gap-2">
         <BackButton fallbackHref="/admin/vendors" />
         <h1 className="text-xl font-semibold flex-1 min-w-0 truncate">{vendor.name}</h1>
+        <PrintLedgerButton party={{ name: vendor.name, phone: vendor.phone }} rows={vendorLedgerRows(bills, payments)} />
         <EditVendorDialog vendor={vendor} />
         <DeleteRowButton
           what="vendor — this also removes all their bills and payments"
@@ -110,7 +114,12 @@ export default async function VendorDetailPage({
               </Table>
             </Section>
 
-            <Section title="Payments Made" action={<AddVendorPaymentDialog vendorId={id} />}>
+            <Section title="Payments Made" action={
+                <div className="flex gap-1.5">
+                  <AddRefundDialog kind="vendor" id={id} />
+                  <AddVendorPaymentDialog vendorId={id} />
+                </div>
+              }>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -123,10 +132,10 @@ export default async function VendorDetailPage({
                 <TableBody>
                   {payments.map((p) => (
                     <TableRow key={p.id}>
-                      <TableCell>{p.note ?? "—"}</TableCell>
+                      <TableCell>{p.is_refund ? `Refund${p.note ? ` — ${p.note}` : ""}` : (p.note ?? "—")}</TableCell>
                       <TableCell className="text-[var(--text-muted)]">{formatDate(p.payment_date)}</TableCell>
-                      <TableCell className="text-right font-medium text-rose-600">
-                        - {formatMoney(p.amount)}
+                      <TableCell className={`text-right font-medium ${p.is_refund ? "text-emerald-600" : "text-rose-600"}`}>
+                        {p.is_refund ? "+" : "-"} {formatMoney(p.amount)}
                       </TableCell>
                       <TableCell>
                         <EditVendorPaymentDialog payment={p} vendorId={id} />

@@ -13,6 +13,8 @@ export type Client = {
   phone: string | null;
   address: string | null;
   notes: string | null;
+  gstin?: string | null;
+  work_status?: string | null;
   created_at: string;
 };
 
@@ -58,7 +60,16 @@ export type ClientWork = {
   created_at: string;
 };
 
-export type PaymentMode = "Cash" | "UPI" | "Bank Transfer" | "Cheque" | "Other";
+export type PaymentMode =
+  | "Cash"
+  | "PhonePe"
+  | "GPay"
+  | "UPI"
+  | "NEFT"
+  | "RTGS"
+  | "Bank Transfer"
+  | "Cheque"
+  | "Other";
 
 export type ClientPayment = {
   id: string;
@@ -69,6 +80,7 @@ export type ClientPayment = {
   payment_date: string;
   note: string | null;
   payment_mode?: PaymentMode | null;
+  is_refund?: boolean;
   created_at: string;
 };
 
@@ -98,6 +110,7 @@ export type LabourPayment = {
   note: string | null;
   payment_mode?: PaymentMode | null;
   entry_type?: LabourEntryType;
+  is_refund?: boolean;
   created_at: string;
 };
 
@@ -121,6 +134,7 @@ export type VendorPayment = {
   payment_date: string;
   note: string | null;
   payment_mode?: PaymentMode | null;
+  is_refund?: boolean;
   created_at: string;
 };
 
@@ -167,4 +181,7 @@ export type Transaction = {
   txn_date: string;
   created_at: string;
   created_by?: string | null;
+  is_refund?: boolean;
+  payment_mode?: string | null;
+  note?: string | null;
 };

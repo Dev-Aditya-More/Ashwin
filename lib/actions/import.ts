@@ -11,6 +11,8 @@ export type ImportRow = {
   name: string;
   phone?: string;
   address?: string; // clients only
+  gstin?: string; // clients only
+  work_status?: string; // clients only
   category?: string; // vendors only
   default_rate?: number; // labour only
   opening_balance?: number; // positive = they owe us / we owe them (per entity); negative = the reverse
@@ -157,15 +159,22 @@ export async function bulkImport(entity: ImportEntity, rows: ImportRow[]): Promi
 
     try {
       if (entity === "clients") {
-        const { data, error } = await supabase
+        const base = {
+          name,
+          phone: row.phone?.trim() || null,
+          address: row.address?.trim() || null,
+        };
+        let { data, error } = await supabase
           .from("clients")
           .insert({
-            name,
-            phone: row.phone?.trim() || null,
-            address: row.address?.trim() || null,
+            ...base,
+            gstin: row.gstin?.trim().toUpperCase() || null,
+            work_status: row.work_status?.trim() || null,
           })
           .select("id")
           .single();
+        // gstin/work_status columns missing (migration 0007 pending) — import the base row.
+        if (error) ({ data, error } = await supabase.from("clients").insert(base).select("id").single());
         if (error || !data) throw error ?? new Error("insert failed");
         await applyOpeningBalance(
           supabase,

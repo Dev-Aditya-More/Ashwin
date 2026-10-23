@@ -120,12 +120,20 @@ export async function getDashboardData(): Promise<DashboardData> {
       id: t.id,
       name: names.get(t.entity_id) ?? "Unknown",
       label: t.kind.endsWith("payment")
-        ? paymentDirection === "in"
+        ? t.is_refund
+          ? "Refund"
+          : paymentDirection === "in"
           ? "Payment received"
           : "Payment made"
         : workLabel,
       amount: Number(t.amount),
-      direction: t.kind.endsWith("payment") ? paymentDirection : "neutral",
+      direction: t.kind.endsWith("payment")
+        ? t.is_refund
+          ? paymentDirection === "in"
+            ? "out"
+            : "in"
+          : paymentDirection
+        : "neutral",
       date: t.txn_date,
     }));
 
