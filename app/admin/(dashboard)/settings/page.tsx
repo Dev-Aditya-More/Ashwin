@@ -2,6 +2,7 @@ import { listFinancialYears, createFinancialYear, setActiveFinancialYear } from 
 import { logout } from "@/lib/actions/auth";
 import { getPinLockStatus } from "@/lib/actions/pin-lock";
 import { formatDate } from "@/lib/format";
+import { ResetDataSettings } from "@/components/admin/ResetDataSettings";
 import { PinLockSettings } from "@/components/admin/PinLockSettings";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -70,6 +71,8 @@ export default async function SettingsPage() {
       </div>
 
       <PinLockSettings enabled={pinLock.enabled} secretConfigured={pinLock.secretConfigured} />
+
+      <ResetDataSettings />
 
       <div className="rounded-xl border border-[var(--border)] bg-white p-4">
         <p className="font-semibold text-sm mb-3">Session</p>
