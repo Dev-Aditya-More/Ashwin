@@ -340,7 +340,7 @@ export function EstimateManager({
                       </select>
                     </TableCell>
                     <TableCell className="min-w-28">
-                      <Input type="number" min="0" step="0.01" value={l.rate} onChange={(e) => patch(i, { rate: Number(e.target.value) })} />
+                      <Input type="number" min="0" step="0.01" placeholder="0" value={l.rate || ""} onChange={(e) => patch(i, { rate: Number(e.target.value) })} />
                     </TableCell>
                     <TableCell className="font-medium whitespace-nowrap">{fmt(c.amount)}</TableCell>
                     <TableCell>
@@ -372,13 +372,13 @@ export function EstimateManager({
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-3xl">
           <Field label="Discount (%)">
-            <Input type="number" min="0" max="100" step="0.01" value={discountPct} onChange={(e) => setDiscountPct(Number(e.target.value))} />
+            <Input type="number" min="0" max="100" step="0.01" placeholder="0" value={discountPct || ""} onChange={(e) => setDiscountPct(Number(e.target.value))} />
           </Field>
           <Field label="Transport ₹">
-            <Input type="number" min="0" step="0.01" value={transport} onChange={(e) => setTransport(Number(e.target.value))} />
+            <Input type="number" min="0" step="0.01" placeholder="0" value={transport || ""} onChange={(e) => setTransport(Number(e.target.value))} />
           </Field>
           <Field label="Hamali ₹">
-            <Input type="number" min="0" step="0.01" value={hamali} onChange={(e) => setHamali(Number(e.target.value))} />
+            <Input type="number" min="0" step="0.01" placeholder="0" value={hamali || ""} onChange={(e) => setHamali(Number(e.target.value))} />
           </Field>
         </div>
 

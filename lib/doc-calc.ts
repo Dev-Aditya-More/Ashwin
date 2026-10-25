@@ -35,6 +35,9 @@ export type EstimateLine = {
   rate: number;
   amount: number;
   hsn?: string;
+  /** Measurement exactly as typed (e.g. "45 3/8") — what every document prints. */
+  heightText?: string;
+  lengthText?: string;
 };
 
 /** Raw line as typed in the form (dimensions are free text such as "45 1/8"). */
@@ -109,6 +112,8 @@ export function calcEstimateLine(l: EstimateLineInput): EstimateLine {
     floorType: l.floorType ?? "",
     heightIn: parseInches(l.height),
     lengthIn: parseInches(l.length),
+    heightText: String(l.height ?? "").trim(),
+    lengthText: String(l.length ?? "").trim(),
     heightFt: h,
     lengthFt: len,
     qty,
@@ -200,5 +205,36 @@ export function describeInches(value: unknown): string {
   if (!raw) return "";
   const n = parseInches(raw);
   if (!n) return "Not understood — use e.g. 45 3/8";
-  return `${Number(n.toFixed(3))}″ → ${halfFoot(raw)} ft`;
+  return `${inchesToFraction(n)}″ → ${halfFoot(raw)} ft`;
+}
+
+/** 45.375 → "45 3/8", 0.5 → "1/2", 45 → "45" (nearest 1/16 inch). */
+export function inchesToFraction(n: number): string {
+  if (!Number.isFinite(n)) return "";
+  const sixteenths = Math.round(Math.abs(n) * 16);
+  const whole = Math.floor(sixteenths / 16);
+  let num = sixteenths % 16;
+  let den = 16;
+  while (num && num % 2 === 0) {
+    num /= 2;
+    den /= 2;
+  }
+  const sign = n < 0 ? "-" : "";
+  if (!num) return `${sign}${whole}`;
+  return whole ? `${sign}${whole} ${num}/${den}` : `${sign}${num}/${den}`;
+}
+
+/** One dimension as the user wrote it; older saved lines (numbers only) are shown as fractions, never decimals. */
+function dimAsWritten(text: string | undefined, inches: number | undefined): string {
+  const t = String(text ?? "").trim().replace(/[″"]+$/, "");
+  if (t) return t;
+  return inches != null && Number(inches) ? inchesToFraction(Number(inches)) : "";
+}
+
+/** Size column for documents: `45 3/8″ × 62½″` exactly as typed — no conversion to decimals or feet. */
+export function sizeAsWritten(l: Pick<EstimateLine, "heightText" | "lengthText" | "heightIn" | "lengthIn">): string {
+  const h = dimAsWritten(l.heightText, l.heightIn);
+  const w = dimAsWritten(l.lengthText, l.lengthIn);
+  if (!h && !w) return "";
+  return `${h || "—"}″ × ${w || "—"}″`;
 }

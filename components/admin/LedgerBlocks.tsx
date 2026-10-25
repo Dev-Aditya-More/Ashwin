@@ -19,6 +19,15 @@ import { buildWhatsappLink, buildWhatsappMessage } from "@/lib/whatsapp";
 import type { WhatsappContact } from "@/lib/actions/whatsapp";
 import type { MonthlyRow, DailyRow } from "@/lib/actions/dashboard";
 import { endOfCurrentMonth } from "@/lib/date-limits";
+import { BreakdownCell } from "@/components/admin/BreakdownCell";
+import { formatDate } from "@/lib/format";
+
+/** First and last day of a "YYYY-MM" month. */
+function monthRange(key: string) {
+  const [y, m] = key.split("-").map(Number);
+  const last = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  return { from: `${key}-01`, to: `${key}-${String(last).padStart(2, "0")}` };
+}
 import {
   Table,
   TableBody,
@@ -175,28 +184,41 @@ export function MonthlyPerformance({
                       <TableCell className={hasActivity ? "font-medium" : "font-medium text-[var(--text-muted)]"}>
                         {d.label}
                       </TableCell>
-                      <TableCell className="text-right">{d.revenue ? formatMoney(d.revenue) : "—"}</TableCell>
-                      <TableCell className="text-right">{d.labour ? formatMoney(d.labour) : "—"}</TableCell>
-                      <TableCell className="text-right">{d.vendor ? formatMoney(d.vendor) : "—"}</TableCell>
+                      {(["revenue", "labour", "vendor"] as const).map((c) => (
+                        <TableCell key={c} className="text-right">
+                          {d[c] ? (
+                            <BreakdownCell category={c} value={d[c]} from={d.key} to={d.key} label={formatDate(d.key)} fyOnly={false} />
+                          ) : (
+                            "—"
+                          )}
+                        </TableCell>
+                      ))}
                       <TableCell
                         className={`text-right font-medium ${
                           !hasActivity ? "text-[var(--text-muted)]" : d.net < 0 ? "text-rose-600" : "text-emerald-600"
                         }`}
                       >
-                        {hasActivity ? formatMoney(d.net) : "—"}
+                        {hasActivity ? (
+                          <BreakdownCell category="net" value={d.net} from={d.key} to={d.key} label={formatDate(d.key)} fyOnly={false} />
+                        ) : (
+                          "—"
+                        )}
                       </TableCell>
                     </TableRow>
                   );
                 })
               : rows.map((m) => {
                   const hasActivity = m.revenue > 0 || m.labour > 0 || m.vendor > 0;
+                  const range = monthRange(m.key);
+                  const label = `${m.month} ${m.year}`;
                   return (
                     <TableRow key={m.key}>
                       <TableCell className="font-medium">
                         {hasActivity ? (
                           <Link
-                            href={`/admin/transactions?month=${m.key}`}
+                            href={`/admin?from=${range.from}&to=${range.to}`}
                             className="text-[var(--accent-blue)] hover:underline"
+                            title="Open this month day-wise"
                           >
                             {m.month}
                           </Link>
@@ -204,15 +226,25 @@ export function MonthlyPerformance({
                           <span className="text-[var(--text-muted)]">{m.month}</span>
                         )}
                       </TableCell>
-                      <TableCell className="text-right">{m.revenue ? formatMoney(m.revenue) : "—"}</TableCell>
-                      <TableCell className="text-right">{m.labour ? formatMoney(m.labour) : "—"}</TableCell>
-                      <TableCell className="text-right">{m.vendor ? formatMoney(m.vendor) : "—"}</TableCell>
+                      {(["revenue", "labour", "vendor"] as const).map((c) => (
+                        <TableCell key={c} className="text-right">
+                          {m[c] ? (
+                            <BreakdownCell category={c} value={m[c]} from={range.from} to={range.to} label={label} fyOnly />
+                          ) : (
+                            "—"
+                          )}
+                        </TableCell>
+                      ))}
                       <TableCell
                         className={`text-right font-medium ${
                           !hasActivity ? "text-[var(--text-muted)]" : m.net < 0 ? "text-rose-600" : "text-emerald-600"
                         }`}
                       >
-                        {hasActivity ? formatMoney(m.net) : "—"}
+                        {hasActivity ? (
+                          <BreakdownCell category="net" value={m.net} from={range.from} to={range.to} label={label} fyOnly />
+                        ) : (
+                          "—"
+                        )}
                       </TableCell>
                     </TableRow>
                   );

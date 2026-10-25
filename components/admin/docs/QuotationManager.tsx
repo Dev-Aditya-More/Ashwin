@@ -137,7 +137,7 @@ export function QuotationManager({
                     </select>
                   </TableCell>
                   <TableCell>
-                    <Input type="number" min="0" step="0.01" value={l.rate} onChange={(e) => patch(i, { rate: Number(e.target.value) })} />
+                    <Input type="number" min="0" step="0.01" placeholder="0" value={l.rate || ""} onChange={(e) => patch(i, { rate: Number(e.target.value) })} />
                   </TableCell>
                   <TableCell>
                     <Button

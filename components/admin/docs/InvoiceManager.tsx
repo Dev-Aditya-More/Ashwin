@@ -142,7 +142,7 @@ export function InvoiceManager({
             </select>
           </Field>
           <Field label="Advance / Received (₹)">
-            <Input type="number" min="0" step="0.01" value={received} onChange={(e) => setReceived(Number(e.target.value))} />
+            <Input type="number" min="0" step="0.01" placeholder="0" value={received || ""} onChange={(e) => setReceived(Number(e.target.value))} />
           </Field>
         </div>
 
