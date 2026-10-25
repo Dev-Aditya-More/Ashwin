@@ -1,3 +1,4 @@
+import { todayIST } from "@/lib/today";
 import { createClient } from "@/lib/supabase/server";
 
 const TABLES = [
@@ -34,7 +35,7 @@ export async function GET() {
     backup[table] = error ? [] : data;
   }
 
-  const filename = `ASHWIN_Backup_${new Date().toISOString().slice(0, 10)}.json`;
+  const filename = `ASHWIN_Backup_${todayIST()}.json`;
   return new Response(JSON.stringify(backup, null, 2), {
     headers: {
       "Content-Type": "application/json; charset=utf-8",

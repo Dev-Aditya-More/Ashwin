@@ -1,3 +1,4 @@
+import { todayIST } from "@/lib/today";
 import { listTransactions } from "@/lib/actions/transactions";
 import type { TransactionKind } from "@/lib/types";
 
@@ -35,7 +36,7 @@ export async function GET(request: Request) {
   ]);
 
   const csv = [header, ...rows].map((row) => row.map(csvEscape).join(",")).join("\r\n");
-  const filename = `ashwin-transactions-${new Date().toISOString().slice(0, 10)}.csv`;
+  const filename = `ashwin-transactions-${todayIST()}.csv`;
 
   return new Response(csv, {
     headers: {

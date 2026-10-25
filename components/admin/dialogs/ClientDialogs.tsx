@@ -1,5 +1,7 @@
 "use client";
 
+import { todayIST } from "@/lib/today";
+
 import { Plus, Pencil } from "lucide-react";
 import { FormDialog } from "@/components/admin/FormDialog";
 import { Input } from "@/components/ui/input";
@@ -283,5 +285,5 @@ export function EditClientPaymentDialog({
 }
 
 function today() {
-  return new Date().toISOString().slice(0, 10);
+  return todayIST();
 }

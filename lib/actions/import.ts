@@ -1,5 +1,7 @@
 "use server";
 
+import { todayIST } from "@/lib/today";
+
 import { revalidatePath } from "next/cache";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
@@ -25,7 +27,7 @@ export type ImportResult = {
 };
 
 function today() {
-  return new Date().toISOString().slice(0, 10);
+  return todayIST();
 }
 
 /**

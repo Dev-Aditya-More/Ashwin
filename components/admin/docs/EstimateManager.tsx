@@ -1,5 +1,7 @@
 "use client";
 
+import { todayIST } from "@/lib/today";
+
 import { useMemo, useState, useTransition } from "react";
 import { Loader2, Plus, Printer, Settings2, X } from "lucide-react";
 import { toast } from "sonner";
@@ -38,7 +40,7 @@ import { printDetailSheet, printQuotationOrEstimate, type PrintDoc } from "@/lib
 import { fmt, money } from "@/lib/print/frame";
 import { formatDate } from "@/lib/format";
 
-const today = () => new Date().toISOString().slice(0, 10);
+const today = () => todayIST();
 const CUSTOM = "__custom__";
 
 const FIELD_OF: Record<CatalogKey, keyof EstimateLineInput> = {

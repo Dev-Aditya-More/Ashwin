@@ -1,5 +1,7 @@
 "use client";
 
+import { todayIST } from "@/lib/today";
+
 import { useRef, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -21,7 +23,7 @@ import {
 type Labourer = { id: string; name: string; balance: number; default_rate: number | null };
 
 function today() {
-  return new Date().toISOString().slice(0, 10);
+  return todayIST();
 }
 
 export function BulkPayForm({ labourers }: { labourers: Labourer[] }) {

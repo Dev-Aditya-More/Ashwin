@@ -1,5 +1,7 @@
 "use client";
 
+import { thisMonthIST } from "@/lib/today";
+
 import { useEffect, useState } from "react";
 import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,7 +18,7 @@ const csvCell = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
 
 /** Month-wise register of quotations, estimates, invoices and purchases, with CSV export. */
 export function DocumentRegister() {
-  const [month, setMonth] = useState(() => new Date().toISOString().slice(0, 7));
+  const [month, setMonth] = useState(() => thisMonthIST());
   const [type, setType] = useState<RegType>("all");
   const [rows, setRows] = useState<RegisterRow[]>([]);
   const [invoiceGst, setInvoiceGst] = useState(0);

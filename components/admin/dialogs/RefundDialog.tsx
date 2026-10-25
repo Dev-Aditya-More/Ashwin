@@ -1,5 +1,7 @@
 "use client";
 
+import { todayIST } from "@/lib/today";
+
 import { Undo2 } from "lucide-react";
 import { FormDialog } from "@/components/admin/FormDialog";
 import { Input } from "@/components/ui/input";
@@ -34,7 +36,7 @@ export function AddRefundDialog({ kind, id }: { kind: Kind; id: string }) {
     fd.set("is_refund", "1");
     return kind === "client" ? addClientPayment(id, fd) : kind === "vendor" ? addVendorPayment(id, fd) : addLabourPayment(id, fd);
   };
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayIST();
 
   return (
     <FormDialog

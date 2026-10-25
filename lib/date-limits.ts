@@ -1,17 +1,17 @@
-/** Last day of the current calendar month, as YYYY-MM-DD — the furthest a date picker should allow. */
+import { todayIST } from "@/lib/today";
+
+/** Last day of the current (Indian) calendar month, as YYYY-MM-DD — the furthest a date picker should allow. */
 export function endOfCurrentMonth(): string {
-  const now = new Date();
-  const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-  return end.toISOString().slice(0, 10);
+  const [y, m] = todayIST().split("-").map(Number);
+  // Day 0 of next month = last day of this month; computed in UTC so no timezone can shift it.
+  const last = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  return `${y}-${String(m).padStart(2, "0")}-${String(last).padStart(2, "0")}`;
 }
 
-/** True if the given YYYY-MM-DD falls in a calendar month after the current one. */
+/** True if the given YYYY-MM-DD falls in a calendar month after the current (Indian) one. */
 export function isAfterCurrentMonth(dateStr: string): boolean {
-  const d = new Date(dateStr);
-  if (Number.isNaN(d.getTime())) return false;
-  const now = new Date();
-  const key = (x: Date) => x.getFullYear() * 12 + x.getMonth();
-  return key(d) > key(now);
+  if (!/^\d{4}-\d{2}/.test(dateStr)) return false;
+  return dateStr.slice(0, 7) > todayIST().slice(0, 7);
 }
 
 export const FUTURE_MONTH_WARNING =

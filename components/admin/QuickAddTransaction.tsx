@@ -1,5 +1,7 @@
 "use client";
 
+import { todayIST } from "@/lib/today";
+
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { Download, Loader2 } from "lucide-react";
@@ -20,7 +22,7 @@ export type QuickParty = { id: string; name: string; gstin?: string | null };
 
 const MODES = ["Cash", "PhonePe", "GPay", "NEFT", "RTGS", "Cheque", "Other"];
 const selectCls = "h-9 w-full rounded-md border border-[var(--border)] bg-background px-2 text-sm";
-const today = () => new Date().toISOString().slice(0, 10);
+const today = () => todayIST();
 
 const KINDS: Record<PartyType, { value: Kind; label: string }[]> = {
   Client: [
@@ -122,6 +124,10 @@ export function QuickAddTransaction({
       if (res && "warning" in res && res.warning) {
         if (!window.confirm(`${res.warning}\n\nAdd anyway?`)) return;
         res = await send(true);
+        if (res && "warning" in res && res.warning) {
+          toast.error(res.warning);
+          return;
+        }
       }
       if (type === "Client" && g && g !== (party?.gstin ?? "")) await updateClientGstin(partyId, g);
       toast.success("Transaction saved. Please verify the party balance.");

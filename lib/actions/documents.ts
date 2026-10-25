@@ -128,7 +128,8 @@ export async function createDocClient(input: {
     return { ok: false, error: "GSTIN must contain exactly 15 letters/numbers." };
   }
   const supabase = await createClient();
-  const { data: dup } = await supabase.from("clients").select("id").ilike("name", name).limit(1);
+  // Case-insensitive exact match: escape LIKE wildcards so "A_B" or "50% Glass" aren't treated as patterns.
+  const { data: dup } = await supabase.from("clients").select("id").ilike("name", escapeLike(name)).limit(1);
   if (dup && dup.length) return { ok: false, error: "This client already exists." };
 
   const row = {
@@ -549,6 +550,10 @@ export async function getDocumentRegister(
 }
 
 // ---------------------------------------------------------------- internals
+function escapeLike(s: string) {
+  return s.replace(/[\\%_]/g, (c) => "\\" + c);
+}
+
 function fail(e: unknown): ActionResult {
   const err = e as { code?: string; message?: string };
   if (isMissing(err)) return { ok: false, error: SETUP_MESSAGE };

@@ -50,6 +50,11 @@ export function NavProgress() {
       setWidth(8);
       // Creep towards ~90% and wait there until the page really arrives.
       timer.current = setInterval(() => setWidth((w) => (w < 90 ? w + (90 - w) * 0.12 : w)), 120);
+      hideTimer.current = setTimeout(() => {
+        stop();
+        setVisible(false);
+        setWidth(0);
+      }, 15000);
     }
     document.addEventListener("click", onClick, true);
     return () => {

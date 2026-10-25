@@ -13,8 +13,8 @@ export default async function SettingsPage() {
   const [years, pinLock] = await Promise.all([listFinancialYears(), getPinLockStatus()]);
 
   return (
-    <div className="space-y-6 max-w-2xl">
-      <div>
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start max-w-6xl">
+      <div className="lg:col-span-2">
         <h1 className="text-xl font-semibold">Settings</h1>
         <p className="text-sm text-[var(--text-muted)]">
           Manage financial years and your session.

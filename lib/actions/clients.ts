@@ -1,5 +1,7 @@
 "use server";
 
+import { todayIST } from "@/lib/today";
+
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -132,7 +134,7 @@ export async function addClientWork(
 ): Promise<{ warning?: string; id?: string } | void> {
   const description = String(formData.get("description") ?? "").trim();
   const amount = Number(formData.get("amount") ?? 0);
-  const work_date = String(formData.get("work_date") ?? "") || new Date().toISOString().slice(0, 10);
+  const work_date = String(formData.get("work_date") ?? "") || todayIST();
   const project_id = String(formData.get("project_id") ?? "") || null;
   const bill_no = String(formData.get("bill_no") ?? "").trim() || null;
   const confirmed = formData.get("confirm") === "1";
@@ -180,7 +182,7 @@ export async function addClientWork(
 export async function updateClientWork(id: string, clientId: string, formData: FormData) {
   const description = String(formData.get("description") ?? "").trim();
   const amount = Number(formData.get("amount") ?? 0);
-  const work_date = String(formData.get("work_date") ?? "") || new Date().toISOString().slice(0, 10);
+  const work_date = String(formData.get("work_date") ?? "") || todayIST();
   const project_id = String(formData.get("project_id") ?? "") || null;
   const bill_no = String(formData.get("bill_no") ?? "").trim() || null;
   if (!description || !amount) return;
@@ -200,7 +202,7 @@ export async function updateClientWork(id: string, clientId: string, formData: F
 export async function updateClientPayment(id: string, clientId: string, formData: FormData) {
   const amount = Number(formData.get("amount") ?? 0);
   const payment_date =
-    String(formData.get("payment_date") ?? "") || new Date().toISOString().slice(0, 10);
+    String(formData.get("payment_date") ?? "") || todayIST();
   const note = String(formData.get("note") ?? "").trim() || null;
   const payment_mode = String(formData.get("payment_mode") ?? "").trim() || null;
   const project_id = String(formData.get("project_id") ?? "") || null;
@@ -224,7 +226,7 @@ export async function addClientPayment(
 ): Promise<{ warning?: string; id?: string } | void> {
   const amount = Number(formData.get("amount") ?? 0);
   const payment_date =
-    String(formData.get("payment_date") ?? "") || new Date().toISOString().slice(0, 10);
+    String(formData.get("payment_date") ?? "") || todayIST();
   const note = String(formData.get("note") ?? "").trim() || null;
   const payment_mode = String(formData.get("payment_mode") ?? "").trim() || null;
   const project_id = String(formData.get("project_id") ?? "") || null;
@@ -273,7 +275,11 @@ export async function addClientPayment(
 
 export async function deleteClientWork(id: string, clientId: string) {
   const supabase = await createClient();
+  // If this was an Estimate's Detail Sheet due, put the estimate back to unconfirmed so it can be
+  // converted again (ignored if the estimates table doesn't exist yet).
+  await supabase.from("estimates").update({ confirmed_at: null, client_work_id: null }).eq("client_work_id", id);
   await supabase.from("client_work").delete().eq("id", id);
+  revalidatePath("/admin/estimates");
   revalidatePath(`/admin/clients/${clientId}`);
   revalidatePath("/admin");
 }

@@ -15,7 +15,8 @@ export async function searchAll(rawQuery: string): Promise<SearchResult[]> {
   if (query.length < 2) return [];
 
   const supabase = await createClient();
-  const like = `%${query}%`;
+  // Escape LIKE wildcards so typing % or _ searches for that character.
+  const like = `%${query.replace(/[\\%_]/g, (c) => "\\" + c)}%`;
 
   const [clients, labourers, vendors, projects] = await Promise.all([
     supabase.from("clients").select("id, name, phone").ilike("name", like).limit(5),

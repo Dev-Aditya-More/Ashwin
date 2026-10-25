@@ -1,5 +1,7 @@
 "use client";
 
+import { thisMonthIST } from "@/lib/today";
+
 import { useEffect, useState } from "react";
 import { CalendarDays } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -21,7 +23,7 @@ import { formatDate, formatMoney } from "@/lib/format";
 
 /** Dashboard "Month View": totals for a chosen month, per-party-type split, and a day-wise drill-down. */
 export function MonthView() {
-  const [month, setMonth] = useState(() => new Date().toISOString().slice(0, 7));
+  const [month, setMonth] = useState(() => thisMonthIST());
   const [data, setData] = useState<MonthSummary | null>(null);
   const [open, setOpen] = useState(false);
   const [days, setDays] = useState<DaywiseRow[] | null>(null);

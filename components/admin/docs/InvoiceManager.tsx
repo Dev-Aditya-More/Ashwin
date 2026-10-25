@@ -1,5 +1,7 @@
 "use client";
 
+import { todayIST } from "@/lib/today";
+
 import { useState, useTransition } from "react";
 import { Loader2, Printer } from "lucide-react";
 import { toast } from "sonner";
@@ -14,7 +16,7 @@ import { printInvoiceDocument } from "@/lib/print/documents";
 import { money } from "@/lib/print/frame";
 import { formatDate } from "@/lib/format";
 
-const today = () => new Date().toISOString().slice(0, 10);
+const today = () => todayIST();
 
 /** AE/2026/27-003 ⇄ AGS/2026/27-003: GST bills are ASHWIN ENTERPRISES (AE), Non-GST are ARNAV GLASS SERVICES (AGS). */
 function withPrefix(no: string, type: "GST" | "Non-GST") {
@@ -102,8 +104,12 @@ export function InvoiceManager({
   }
 
   return (
-    <div className="space-y-6">
-      {setup && <SetupNotice />}
+    <div className="grid grid-cols-1 2xl:grid-cols-2 gap-6 items-start">
+      {setup && (
+        <div className="2xl:col-span-2">
+          <SetupNotice />
+        </div>
+      )}
 
       <div className="rounded-xl border border-[var(--border)] bg-white p-4 space-y-4">
         <h2 className="font-semibold text-sm">Create Invoice from Estimate</h2>

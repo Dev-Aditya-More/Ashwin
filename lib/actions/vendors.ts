@@ -1,5 +1,7 @@
 "use server";
 
+import { todayIST } from "@/lib/today";
+
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -108,7 +110,7 @@ export async function addVendorBill(
 ): Promise<{ warning?: string; id?: string } | void> {
   const description = String(formData.get("description") ?? "").trim() || "Bill";
   const amount = Number(formData.get("amount") ?? 0);
-  const bill_date = String(formData.get("bill_date") ?? "") || new Date().toISOString().slice(0, 10);
+  const bill_date = String(formData.get("bill_date") ?? "") || todayIST();
   const bill_no = String(formData.get("bill_no") ?? "").trim() || null;
   const project_id = String(formData.get("project_id") ?? "") || null;
   const confirmed = formData.get("confirm") === "1";
@@ -155,7 +157,7 @@ export async function addVendorBill(
 export async function updateVendorBill(id: string, vendorId: string, formData: FormData) {
   const description = String(formData.get("description") ?? "").trim() || "Bill";
   const amount = Number(formData.get("amount") ?? 0);
-  const bill_date = String(formData.get("bill_date") ?? "") || new Date().toISOString().slice(0, 10);
+  const bill_date = String(formData.get("bill_date") ?? "") || todayIST();
   const bill_no = String(formData.get("bill_no") ?? "").trim() || null;
   const project_id = String(formData.get("project_id") ?? "") || null;
 
@@ -174,7 +176,7 @@ export async function updateVendorBill(id: string, vendorId: string, formData: F
 export async function updateVendorPayment(id: string, vendorId: string, formData: FormData) {
   const amount = Number(formData.get("amount") ?? 0);
   const payment_date =
-    String(formData.get("payment_date") ?? "") || new Date().toISOString().slice(0, 10);
+    String(formData.get("payment_date") ?? "") || todayIST();
   const note = String(formData.get("note") ?? "").trim() || null;
   const payment_mode = String(formData.get("payment_mode") ?? "").trim() || null;
   if (!amount) return;
@@ -197,7 +199,7 @@ export async function addVendorPayment(
 ): Promise<{ warning?: string; id?: string } | void> {
   const amount = Number(formData.get("amount") ?? 0);
   const payment_date =
-    String(formData.get("payment_date") ?? "") || new Date().toISOString().slice(0, 10);
+    String(formData.get("payment_date") ?? "") || todayIST();
   const note = String(formData.get("note") ?? "").trim() || null;
   const payment_mode = String(formData.get("payment_mode") ?? "").trim() || null;
   const is_refund = formData.get("is_refund") === "1";

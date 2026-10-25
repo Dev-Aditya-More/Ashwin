@@ -180,8 +180,10 @@ export default async function ClientDetailPage({
         <TabsContent value="ledger">
           <div className="space-y-4">
             <ClientLedgerTable work={work} payments={payments} clientId={id} projects={projects} />
-            <DetailSheets sheets={detailSheets} />
-            <ClientBills bills={bills} />
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 items-start">
+              <DetailSheets sheets={detailSheets} />
+              <ClientBills bills={bills} />
+            </div>
           </div>
         </TabsContent>
       </Tabs>

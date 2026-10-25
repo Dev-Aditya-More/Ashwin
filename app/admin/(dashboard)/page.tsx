@@ -69,9 +69,15 @@ export default async function DashboardPage({
         <Operations />
       </Suspense>
 
-      <Suspense fallback={<div className="animate-pulse"><TableSkeleton columns={5} rows={6} /></div>}>
-        <Monthly from={validRange ? from : undefined} to={validRange ? to : undefined} />
-      </Suspense>
+      {/* Two columns on wide screens instead of one long stack. */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
+        <Suspense fallback={<div className="animate-pulse"><TableSkeleton columns={6} rows={8} /></div>}>
+          <RecentTransactions />
+        </Suspense>
+        <Suspense fallback={<div className="animate-pulse"><TableSkeleton columns={5} rows={8} /></div>}>
+          <Monthly from={validRange ? from : undefined} to={validRange ? to : undefined} />
+        </Suspense>
+      </div>
     </div>
   );
 }
@@ -106,11 +112,7 @@ async function Stats() {
 }
 
 async function Operations() {
-  const [parties, recent, quotationCount] = await Promise.all([
-    listPartyOptions(),
-    listTransactions(12),
-    countQuotations(),
-  ]);
+  const [parties, quotationCount] = await Promise.all([listPartyOptions(), countQuotations()]);
 
   return (
     <div className="space-y-6">
@@ -122,52 +124,57 @@ async function Operations() {
         <StatCard icon={HardHat} label="Labour" value={parties.labourers.length} isMoney={false} />
         <StatCard icon={FileText} label="Quotations" value={quotationCount} isMoney={false} />
       </div>
+    </div>
+  );
+}
 
-      <div className="rounded-xl border border-[var(--border)] bg-white overflow-hidden">
-        <div className="px-4 py-3 border-b border-[var(--border)] bg-[var(--bg-2)]">
-          <p className="font-semibold text-sm">Recent Transactions</p>
-        </div>
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Party</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Transaction</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
-                <TableHead>Mode</TableHead>
+async function RecentTransactions() {
+  const recent = await listTransactions(12);
+  return (
+    <div className="rounded-xl border border-[var(--border)] bg-white overflow-hidden">
+      <div className="px-4 py-3 border-b border-[var(--border)] bg-[var(--bg-2)]">
+        <p className="font-semibold text-sm">Recent Transactions</p>
+      </div>
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Date</TableHead>
+              <TableHead>Party</TableHead>
+              <TableHead>Type</TableHead>
+              <TableHead>Transaction</TableHead>
+              <TableHead className="text-right">Amount</TableHead>
+              <TableHead>Mode</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {recent.map((t) => (
+              <TableRow key={t.id}>
+                <TableCell className="whitespace-nowrap">{formatDate(t.date)}</TableCell>
+                <TableCell className="font-medium">{t.name}</TableCell>
+                <TableCell className="text-[var(--text-muted)]">{t.category}</TableCell>
+                <TableCell className="text-[var(--text-muted)]">
+                  {t.isRefund
+                    ? "Refund"
+                    : t.kind === "client_payment"
+                    ? "Payment Received"
+                    : t.kind.endsWith("_payment")
+                    ? "Payment Paid"
+                    : "Due / Payable Added"}
+                </TableCell>
+                <TableCell className="text-right">{formatMoney(t.amount)}</TableCell>
+                <TableCell className="text-[var(--text-muted)]">{t.mode ?? ""}</TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {recent.map((t) => (
-                <TableRow key={t.id}>
-                  <TableCell className="whitespace-nowrap">{formatDate(t.date)}</TableCell>
-                  <TableCell className="font-medium">{t.name}</TableCell>
-                  <TableCell className="text-[var(--text-muted)]">{t.category}</TableCell>
-                  <TableCell className="text-[var(--text-muted)]">
-                    {t.isRefund
-                      ? "Refund"
-                      : t.kind === "client_payment"
-                      ? "Payment Received"
-                      : t.kind.endsWith("_payment")
-                      ? "Payment Paid"
-                      : "Due / Payable Added"}
-                  </TableCell>
-                  <TableCell className="text-right">{formatMoney(t.amount)}</TableCell>
-                  <TableCell className="text-[var(--text-muted)]">{t.mode ?? ""}</TableCell>
-                </TableRow>
-              ))}
-              {recent.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center text-[var(--text-muted)] py-8">
-                    No transactions saved yet.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
+            ))}
+            {recent.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center text-[var(--text-muted)] py-8">
+                  No transactions saved yet.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
       </div>
     </div>
   );

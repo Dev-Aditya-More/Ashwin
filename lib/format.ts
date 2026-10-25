@@ -1,9 +1,15 @@
+const rupees = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 });
+const rupeesPaise = new Intl.NumberFormat("en-IN", {
+  style: "currency",
+  currency: "INR",
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+/** ₹1,500 for whole rupees, ₹5.40 when there are paise — so small amounts are never shown rounded away. */
 export function formatMoney(amount: number): string {
-  return new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    maximumFractionDigits: 0,
-  }).format(amount);
+  const n = Number(amount) || 0;
+  return Math.abs(n - Math.round(n)) < 0.005 ? rupees.format(n) : rupeesPaise.format(n);
 }
 
 export function formatDate(date: string | Date): string {

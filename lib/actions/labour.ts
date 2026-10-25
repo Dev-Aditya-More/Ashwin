@@ -1,5 +1,7 @@
 "use server";
 
+import { todayIST } from "@/lib/today";
+
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -134,7 +136,7 @@ export async function addLabourWork(
   const description = String(formData.get("description") ?? "").trim();
   const quantity = Number(formData.get("quantity") ?? 1);
   const rate = Number(formData.get("rate") ?? 0);
-  const work_date = String(formData.get("work_date") ?? "") || new Date().toISOString().slice(0, 10);
+  const work_date = String(formData.get("work_date") ?? "") || todayIST();
   const project_id = String(formData.get("project_id") ?? "") || null;
   const site_location = String(formData.get("site_location") ?? "").trim() || null;
   const client_name = String(formData.get("client_name") ?? "").trim() || null;
@@ -188,7 +190,7 @@ export async function updateLabourWork(id: string, labourerId: string, formData:
   const description = String(formData.get("description") ?? "").trim();
   const quantity = Number(formData.get("quantity") ?? 1);
   const rate = Number(formData.get("rate") ?? 0);
-  const work_date = String(formData.get("work_date") ?? "") || new Date().toISOString().slice(0, 10);
+  const work_date = String(formData.get("work_date") ?? "") || todayIST();
   const project_id = String(formData.get("project_id") ?? "") || null;
   const site_location = String(formData.get("site_location") ?? "").trim() || null;
   const client_name = String(formData.get("client_name") ?? "").trim() || null;
@@ -211,7 +213,7 @@ export async function updateLabourWork(id: string, labourerId: string, formData:
 export async function updateLabourPayment(id: string, labourerId: string, formData: FormData) {
   const amount = Number(formData.get("amount") ?? 0);
   const payment_date =
-    String(formData.get("payment_date") ?? "") || new Date().toISOString().slice(0, 10);
+    String(formData.get("payment_date") ?? "") || todayIST();
   const note = String(formData.get("note") ?? "").trim() || null;
   const payment_mode = String(formData.get("payment_mode") ?? "").trim() || null;
   const entry_type = String(formData.get("entry_type") ?? "Payment").trim() || "Payment";
@@ -284,7 +286,7 @@ export async function addLabourPayment(
 ): Promise<{ warning?: string; id?: string } | void> {
   const amount = Number(formData.get("amount") ?? 0);
   const payment_date =
-    String(formData.get("payment_date") ?? "") || new Date().toISOString().slice(0, 10);
+    String(formData.get("payment_date") ?? "") || todayIST();
   const note = String(formData.get("note") ?? "").trim() || null;
   const payment_mode = String(formData.get("payment_mode") ?? "").trim() || null;
   const entry_type = String(formData.get("entry_type") ?? "Payment").trim() || "Payment";

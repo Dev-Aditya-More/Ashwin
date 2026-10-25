@@ -41,7 +41,7 @@ export function SnapshotAndBackup() {
     r ? `${label}: ${r.imported} imported${r.errors.length ? `, ${r.errors.length} failed` : ""}` : "";
 
   return (
-    <div className="space-y-4">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
       <div className="rounded-xl border border-[var(--border)] bg-white p-4 space-y-3">
         <p className="font-semibold text-sm flex items-center gap-2">
           <FileJson className="size-4" /> Import ASHWIN snapshot JSON

@@ -1,5 +1,7 @@
 "use client";
 
+import { todayIST } from "@/lib/today";
+
 import { useState, useTransition } from "react";
 import { Loader2, Plus, Printer, X } from "lucide-react";
 import { toast } from "sonner";
@@ -15,7 +17,7 @@ import { printQuotationOrEstimate } from "@/lib/print/documents";
 import { formatDate } from "@/lib/format";
 
 const blank = (): QuoteLine => ({ name: "", unit: "Sq.Ft.", rate: 0 });
-const today = () => new Date().toISOString().slice(0, 10);
+const today = () => todayIST();
 
 export function printQuotation(q: Quotation) {
   printQuotationOrEstimate(
@@ -73,8 +75,12 @@ export function QuotationManager({
   }
 
   return (
-    <div className="space-y-6">
-      {setup && <SetupNotice />}
+    <div className="grid grid-cols-1 2xl:grid-cols-2 gap-6 items-start">
+      {setup && (
+        <div className="2xl:col-span-2">
+          <SetupNotice />
+        </div>
+      )}
 
       <div className="rounded-xl border border-[var(--border)] bg-white p-4 space-y-4">
         <h2 className="font-semibold text-sm">Create Quotation</h2>
