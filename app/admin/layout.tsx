@@ -9,6 +9,8 @@ const sans = Inter({ subsets: ["latin"], variable: "--font-sans" });
 export const metadata: Metadata = {
   title: "Admin | Ashwin Enterprises",
   robots: { index: false, follow: false },
+  // Numbers are plain text; the Call buttons are the only tappable phone links.
+  formatDetection: { telephone: false, email: false, address: false, date: false },
   appleWebApp: { capable: true, title: "ASHWIN", statusBarStyle: "black-translucent" },
 };
 

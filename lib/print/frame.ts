@@ -23,6 +23,8 @@ export type FitOptions = {
   usableMm: number;
   /** Element repeated at the top of every continuation page (e.g. a table header); its height is reserved per extra page. */
   repeat?: string;
+  /** Page width the document is laid out for; fitting is skipped if the frame is not actually that wide. */
+  widthMm?: number;
 };
 
 /**
@@ -35,16 +37,48 @@ export function fitPages(d: Document, o: FitOptions) {
   const content = d.querySelector(o.content) as HTMLElement | null;
   const spacer = d.querySelector(o.spacer) as HTMLElement | null;
   if (!content || !spacer) return;
+  // Phones/tablets can lay the frame out at a different width than the printed page; measuring
+  // then would give a wrong answer (and push the footer onto a second page), so leave the
+  // layout-independent CSS fallback in charge.
+  if (o.widthMm) {
+    const wantPx = (o.widthMm * 96) / 25.4;
+    // innerWidth includes any scrollbar; phones lay out at ~400px, far from a 794px page.
+    const have = d.defaultView?.innerWidth ?? d.documentElement.clientWidth;
+    if (Math.abs(have - wantPx) > 30) return;
+  }
+  // Measure the content at its natural size (drop the CSS one-page minimum used as the fallback).
+  content.style.minHeight = "0px";
+  spacer.style.flex = "0 0 auto";
   spacer.style.height = "0px";
   const usable = (o.usableMm * 96) / 25.4;
   const natural = content.getBoundingClientRect().height;
   // The small allowance covers rows that jump to the next page instead of splitting.
   const rep = o.repeat ? (d.querySelector(o.repeat) as HTMLElement | null)?.getBoundingClientRect().height ?? 0 : 0;
   // Row heights are snapped differently when printing, so the error grows with the document: keep ~1.2% slack.
-  const slack = 6 + natural * 0.012;
+  const slack = 14 + natural * 0.012;
   let pages = Math.max(1, Math.ceil((natural + slack + 6) / usable));
   while (natural + (pages - 1) * rep + slack + 6 > pages * usable) pages++;
   spacer.style.height = Math.max(0, pages * usable - natural - (pages - 1) * rep - slack) + "px";
+}
+
+const ZWSP = "\u200B";
+
+/**
+ * Viewers recognise phone numbers / e-mail addresses in a PDF's text and make them tappable.
+ * An invisible zero-width space inside long digit runs and after "@" stops that without
+ * changing how anything looks on paper.
+ */
+function neutraliseLinks(d: Document) {
+  const walker = d.createTreeWalker(d.body, NodeFilter.SHOW_TEXT);
+  const nodes: Text[] = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode as Text);
+  for (const n of nodes) {
+    const v = n.nodeValue ?? "";
+    const next = v
+      .replace(/\d{6,}/g, (m) => m.slice(0, 5) + ZWSP + m.slice(5))
+      .replace(/@/g, "@" + ZWSP);
+    if (next !== v) n.nodeValue = next;
+  }
 }
 
 export type PrintOptions = { title?: string; widthMm?: number; fit?: FitOptions };
@@ -52,14 +86,20 @@ export type PrintOptions = { title?: string; widthMm?: number; fit?: FitOptions 
 export function printHtmlInFrame(rawHtml: string, titleOrOpts?: string | PrintOptions) {
   const opts: PrintOptions = typeof titleOrOpts === "string" ? { title: titleOrOpts } : titleOrOpts ?? {};
   const title = opts.title;
-  const html = String(rawHtml).replace(/<script[\s\S]*?<\/script>/gi, "");
+  // Stop phones/PDF viewers turning phone numbers, e-mails and dates into tappable links.
+  const html = String(rawHtml)
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(
+      /<head>/i,
+      '<head><meta name="format-detection" content="telephone=no,date=no,address=no,email=no">'
+    );
   document.getElementById("printFrame")?.remove();
 
   const f = document.createElement("iframe");
   f.id = "printFrame";
   f.setAttribute("aria-hidden", "true");
   f.style.cssText =
-    `position:fixed;left:-12000px;top:0;width:${opts.widthMm ? `${opts.widthMm}mm` : "1123px"};height:1123px;border:0;opacity:0;pointer-events:none`;
+    `position:fixed;left:-12000px;top:0;width:${opts.widthMm ?? 210}mm;height:1123px;border:0;opacity:0;pointer-events:none`;
   document.body.appendChild(f);
 
   const prevTitle = document.title;
@@ -77,6 +117,7 @@ export function printHtmlInFrame(rawHtml: string, titleOrOpts?: string | PrintOp
     d.open();
     d.write(html);
     d.close();
+    neutraliseLinks(d);
     document.title = title || prevTitle;
     win.addEventListener("afterprint", restore);
     window.addEventListener("afterprint", restore, { once: true });
