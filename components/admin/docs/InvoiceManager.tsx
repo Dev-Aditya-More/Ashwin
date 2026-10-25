@@ -16,6 +16,12 @@ import { formatDate } from "@/lib/format";
 
 const today = () => new Date().toISOString().slice(0, 10);
 
+/** AE/2026/27-003 ⇄ AGS/2026/27-003: GST bills are ASHWIN ENTERPRISES (AE), Non-GST are ARNAV GLASS SERVICES (AGS). */
+function withPrefix(no: string, type: "GST" | "Non-GST") {
+  const prefix = type === "GST" ? "AE/" : "AGS/";
+  return /^(AE|AGS)\//i.test(no) ? no.replace(/^(AE|AGS)\//i, prefix) : no;
+}
+
 export function printInvoice(inv: GstInvoice) {
   printInvoiceDocument(
     {
@@ -67,11 +73,15 @@ export function InvoiceManager({
   const tax = (taxable * rate) / 100;
   const invoiceTotal = type === "GST" ? Math.round(taxable + tax) : Math.round(taxable * 100) / 100;
 
-  // Each type has its own number series (AE/… for GST, AGS/… for Non-GST).
-  async function changeType(next: "GST" | "Non-GST") {
+  // GST bills are AE/…, Non-GST bills AGS/…, sharing one running serial. Switching the type only swaps
+  // the prefix (no server round trip), so the number on screen can never lag behind the chosen type.
+  function changeType(next: "GST" | "Non-GST") {
     setType(next);
-    setNo(await getNextDocNo(next === "GST" ? "invoice" : "invoice-nongst"));
+    setNo((cur) => withPrefix(cur, next));
   }
+
+  // An estimate can be billed once — as GST or Non-GST, not both.
+  const invoicedBy = new Map(rows.filter((r) => r.estimate_id).map((r) => [r.estimate_id!, r.no]));
 
   function save() {
     startTransition(async () => {
@@ -87,7 +97,7 @@ export function InvoiceManager({
       );
       setEstimateId("");
       setReceived(0);
-      setNo(await getNextDocNo(type === "GST" ? "invoice" : "invoice-nongst"));
+      setNo(withPrefix(await getNextDocNo("invoice"), type));
     });
   }
 
@@ -101,11 +111,15 @@ export function InvoiceManager({
           <Field label="Estimate">
             <select className={selectCls} value={estimateId} onChange={(e) => setEstimateId(e.target.value)}>
               <option value="">Select saved estimate</option>
-              {estimates.map((e) => (
-                <option key={e.id} value={e.id}>
-                  {e.no} — {e.client?.name} — {money(e.total)}
-                </option>
-              ))}
+              {estimates.map((e) => {
+                const billed = invoicedBy.get(e.id);
+                return (
+                  <option key={e.id} value={e.id} disabled={!!billed}>
+                    {e.no} — {e.client?.name} — {money(e.total)}
+                    {billed ? ` (already billed: ${billed})` : ""}
+                  </option>
+                );
+              })}
             </select>
           </Field>
           <Field label="Invoice Number">

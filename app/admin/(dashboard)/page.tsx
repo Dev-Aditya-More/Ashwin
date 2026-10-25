@@ -6,7 +6,6 @@ import { listPartyOptions } from "@/lib/actions/month-view";
 import { listTransactions } from "@/lib/actions/transactions";
 import { countQuotations } from "@/lib/actions/documents";
 import { QuickAddTransaction } from "@/components/admin/QuickAddTransaction";
-import { MonthView } from "@/components/admin/MonthView";
 import { formatDate, formatMoney } from "@/lib/format";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { StatCard } from "@/components/admin/StatCard";
@@ -123,8 +122,6 @@ async function Operations() {
         <StatCard icon={HardHat} label="Labour" value={parties.labourers.length} isMoney={false} />
         <StatCard icon={FileText} label="Quotations" value={quotationCount} isMoney={false} />
       </div>
-
-      <MonthView />
 
       <div className="rounded-xl border border-[var(--border)] bg-white overflow-hidden">
         <div className="px-4 py-3 border-b border-[var(--border)] bg-[var(--bg-2)]">

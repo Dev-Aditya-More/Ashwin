@@ -36,8 +36,8 @@ export function DocumentRegister() {
   }, [month, type]);
 
   function exportCsv() {
-    const header = ["Date", "Type", "No", "Party", "Taxable", "GST", "Total"];
-    const body = rows.map((r) => [r.date, r.kind, r.no, r.party, r.taxable, r.gst, r.total]);
+    const header = ["Date", "Type", "No", "Party", "Taxable", "GST", "Total", "Counts in Sales"];
+    const body = rows.map((r) => [r.date, r.kind, r.no, r.party, r.taxable, r.gst, r.total, r.inSales ? "Yes" : "No"]);
     const csv = "﻿" + [header, ...body].map((r) => r.map(csvCell).join(",")).join("\r\n");
     const a = document.createElement("a");
     a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8;" }));
@@ -46,7 +46,12 @@ export function DocumentRegister() {
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   }
 
-  const total = rows.reduce((a, r) => a + r.total, 0);
+  // Quotations and estimates are paperwork, not income: an estimate that later becomes an invoice
+  // must not be counted twice. Only invoices (GST and Non-GST) make up the sales figure.
+  const documents = rows.filter((r) => r.group === "document");
+  const sales = rows.filter((r) => r.inSales).reduce((a, r) => a + r.total, 0);
+  const salesCount = rows.filter((r) => r.inSales).length;
+  const purchases = rows.filter((r) => r.group === "purchase").reduce((a, r) => a + r.total, 0);
 
   return (
     <div className="rounded-xl border border-[var(--border)] bg-white overflow-hidden">
@@ -76,17 +81,23 @@ export function DocumentRegister() {
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {[
-            ["Records", String(rows.length)],
-            ["Document Total", formatMoney(total)],
-            ["Invoice GST", formatMoney(invoiceGst)],
-            ["Purchase GST", formatMoney(0)],
-          ].map(([label, value]) => (
+            ["Documents Issued", String(documents.length), "Quotations, estimates & invoices"],
+            ["Sales (Invoices)", formatMoney(sales), `${salesCount} GST / Non-GST invoice${salesCount === 1 ? "" : "s"}`],
+            ["Invoice GST", formatMoney(invoiceGst), "Tax on GST invoices"],
+            ["Purchases", formatMoney(purchases), "Vendor bills received"],
+          ].map(([label, value, hint]) => (
             <div key={label} className="rounded-lg border border-[var(--border)] p-3">
               <p className="text-xs text-[var(--text-muted)]">{label}</p>
               <p className="text-lg font-semibold mt-1">{value}</p>
+              <p className="text-[11px] text-[var(--text-muted)] mt-0.5">{hint}</p>
             </div>
           ))}
         </div>
+
+        <p className="text-xs text-[var(--text-muted)]">
+          Quotations and estimates are counted as documents but not as sales — an estimate that is later invoiced is
+          only earned once, through its invoice.
+        </p>
 
         <div className="overflow-x-auto">
           <Table>
@@ -99,11 +110,12 @@ export function DocumentRegister() {
                 <TableHead className="text-right">Taxable</TableHead>
                 <TableHead className="text-right">GST</TableHead>
                 <TableHead className="text-right">Total</TableHead>
+                <TableHead>In Sales?</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {rows.map((r, i) => (
-                <TableRow key={i}>
+                <TableRow key={i} className={r.inSales ? "" : "text-[var(--text-muted)]"}>
                   <TableCell className="whitespace-nowrap">{formatDate(r.date)}</TableCell>
                   <TableCell>{r.kind}</TableCell>
                   <TableCell className="font-medium">{r.no}</TableCell>
@@ -111,11 +123,20 @@ export function DocumentRegister() {
                   <TableCell className="text-right">{formatMoney(r.taxable)}</TableCell>
                   <TableCell className="text-right">{formatMoney(r.gst)}</TableCell>
                   <TableCell className="text-right">{formatMoney(r.total)}</TableCell>
+                  <TableCell>
+                    {r.inSales ? (
+                      <span className="text-emerald-700 font-medium">Yes</span>
+                    ) : r.group === "purchase" ? (
+                      "Purchase"
+                    ) : (
+                      "No — document only"
+                    )}
+                  </TableCell>
                 </TableRow>
               ))}
               {!rows.length && (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center text-[var(--text-muted)] py-8">
+                  <TableCell colSpan={8} className="text-center text-[var(--text-muted)] py-8">
                     {loadedKey !== `${month}|${type}` ? "Loading…" : "No records for this month."}
                   </TableCell>
                 </TableRow>

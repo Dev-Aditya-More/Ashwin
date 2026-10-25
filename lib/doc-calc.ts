@@ -53,11 +53,18 @@ export type EstimateLineInput = {
 };
 
 /**
- * "45.375", "45 3/8", "3/8", "45 1" (= 45 + 1/8, i.e. eighths), "45 1 soot".
+ * "45.375", "45 3/8", "45-3/8", "45+3/8", "45½", "3/8", "45 1" (= 45 + 1/8, i.e. eighths), "45 1 soot".
  * Returns 0 when it can't be understood.
  */
+const UNICODE_FRACTIONS: Record<string, string> = {
+  "½": " 1/2", "⅓": " 1/3", "⅔": " 2/3", "¼": " 1/4", "¾": " 3/4", "⅛": " 1/8", "⅜": " 3/8", "⅝": " 5/8", "⅞": " 7/8",
+};
+
 export function parseInches(value: unknown): number {
   const s = String(value ?? "")
+    .replace(/[½⅓⅔¼¾⅛⅜⅝⅞]/g, (c) => UNICODE_FRACTIONS[c])
+    .replace(/⁄/g, "/")
+    .replace(/\+/g, " ")
     .trim()
     .toLowerCase()
     .replace(/″|"|inch|inches/g, "")
@@ -185,4 +192,13 @@ export function amountInWords(n: number): string {
   if (th) out.push(part(th) + " Thousand");
   if (x) out.push(part(x));
   return out.join(" ") + " Rupees only";
+}
+
+/** Short read-back of what a typed measurement was understood as, e.g. "45 3/8" → "45.375″ → 4 ft". */
+export function describeInches(value: unknown): string {
+  const raw = String(value ?? "").trim();
+  if (!raw) return "";
+  const n = parseInches(raw);
+  if (!n) return "Not understood — use e.g. 45 3/8";
+  return `${Number(n.toFixed(3))}″ → ${halfFoot(raw)} ft`;
 }

@@ -408,7 +408,20 @@ export async function saveInvoice(input: {
     .eq("id", input.estimateId)
     .maybeSingle();
   if (!est) return { ok: false, error: "Select an estimate." };
-  const no = input.no.trim();
+  // One bill per estimate: either the GST invoice or the Non-GST bill of supply, never both.
+  const { data: already } = await supabase
+    .from("gst_invoices")
+    .select("no")
+    .eq("estimate_id", est.id)
+    .limit(1);
+  if (already && already.length) {
+    return { ok: false, error: `This estimate is already billed (${already[0].no}). Delete that bill first to re-issue it.` };
+  }
+  // The prefix always follows the type: AE/… = GST (ASHWIN ENTERPRISES), AGS/… = Non-GST (ARNAV GLASS SERVICES).
+  const typedNo = input.no.trim();
+  const no = /^(AE|AGS)\//i.test(typedNo)
+    ? typedNo.replace(/^(AE|AGS)\//i, input.type === "GST" ? "AE/" : "AGS/")
+    : typedNo;
   if (!no) return { ok: false, error: "Invoice number missing." };
   const gst = input.type === "GST" ? Math.max(0, Number(input.gstRate) || 0) : 0;
   const taxable = Number(est.taxable ?? est.subtotal) || 0;
@@ -487,7 +500,7 @@ export async function getDocumentRegister(
       .gte("doc_date", from)
       .lt("doc_date", to);
     for (const r of (data ?? []) as unknown as { no: string; doc_date: string; clients: Named }[]) {
-      rows.push({ kind: "Quotation", no: r.no, date: r.doc_date, party: r.clients?.name ?? "", taxable: 0, gst: 0, total: 0 });
+      rows.push({ group: "document", inSales: false, kind: "Quotation", no: r.no, date: r.doc_date, party: r.clients?.name ?? "", taxable: 0, gst: 0, total: 0 });
     }
   }
   if (type === "all" || type === "estimate") {
@@ -499,7 +512,7 @@ export async function getDocumentRegister(
     for (const r of (data ?? []) as unknown as {
       no: string; doc_date: string; subtotal: number; tax: number; total: number; clients: Named;
     }[]) {
-      rows.push({ kind: "Estimate", no: r.no, date: r.doc_date, party: r.clients?.name ?? "", taxable: Number(r.subtotal), gst: Number(r.tax), total: Number(r.total) });
+      rows.push({ group: "document", inSales: false, kind: "Estimate", no: r.no, date: r.doc_date, party: r.clients?.name ?? "", taxable: Number(r.subtotal), gst: Number(r.tax), total: Number(r.total) });
     }
   }
   {
@@ -514,7 +527,7 @@ export async function getDocumentRegister(
     }[]) {
       invoiceGst += Number(r.tax);
       if (type === "all" || type === "invoice") {
-        rows.push({ kind: `${r.invoice_type} Invoice`, no: r.no, date: r.doc_date, party: r.clients?.name ?? "", taxable: Number(r.subtotal), gst: Number(r.tax), total: Number(r.total) });
+        rows.push({ group: "document", inSales: true, kind: `${r.invoice_type} Invoice`, no: r.no, date: r.doc_date, party: r.clients?.name ?? "", taxable: Number(r.subtotal), gst: Number(r.tax), total: Number(r.total) });
       }
     }
   }
@@ -528,7 +541,7 @@ export async function getDocumentRegister(
     for (const r of (data ?? []) as unknown as {
       bill_no: string | null; bill_date: string; amount: number; vendors: Named;
     }[]) {
-      rows.push({ kind: "Purchase", no: r.bill_no ?? "—", date: r.bill_date, party: r.vendors?.name ?? "", taxable: Number(r.amount), gst: 0, total: Number(r.amount) });
+      rows.push({ group: "purchase", inSales: false, kind: "Purchase", no: r.bill_no ?? "—", date: r.bill_date, party: r.vendors?.name ?? "", taxable: Number(r.amount), gst: 0, total: Number(r.amount) });
     }
   }
   rows.sort((a, b) => a.date.localeCompare(b.date));
@@ -539,6 +552,9 @@ export async function getDocumentRegister(
 function fail(e: unknown): ActionResult {
   const err = e as { code?: string; message?: string };
   if (isMissing(err)) return { ok: false, error: SETUP_MESSAGE };
+  if (err?.code === "23505" && /one_per_estimate/.test(err.message ?? "")) {
+    return { ok: false, error: "This estimate is already billed. Delete that bill first to re-issue it." };
+  }
   if (err?.code === "23505") return { ok: false, error: "This document number already exists." };
   return { ok: false, error: err?.message || "Something went wrong. Please try again." };
 }

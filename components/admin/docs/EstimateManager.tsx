@@ -29,6 +29,7 @@ import {
   UNITS,
   calcEstimate,
   calcEstimateLine,
+  describeInches,
   type CatalogKey,
   type EstimateLineInput,
 } from "@/lib/doc-calc";
@@ -56,8 +57,8 @@ const newLine = (cat: CatalogMap): EstimateLineInput => ({
   glassType: cat.glass?.[0] ?? "",
   shadeType: cat.shade?.[0] ?? "",
   floorType: cat.floor?.[0] ?? "",
-  height: "0",
-  length: "0",
+  height: "",
+  length: "",
   qty: 1,
   unit: "Sq.Ft.",
   rate: 0,
@@ -274,7 +275,7 @@ export function EstimateManager({
         </div>
 
         <p className="rounded-md border-l-4 border-amber-400 bg-amber-50 px-3 py-2 text-sm">
-          Measurement rules: enter inches as decimals (45.375) or fractions (45 3/8). &quot;45 1&quot; is read as 45 + 1/8
+          Measurement rules: type inches as fractions (45 3/8, 45-3/8, 45½) or decimals (45.375). &quot;45 1&quot; is read as 45 + 1/8
           inch. Each dimension is rounded up to the next half-foot — 62.25″ → 5.5 ft, 68.5″ → 6 ft. Sq.Ft. = Height(ft)
           × Length(ft) × Qty.
         </p>
@@ -304,10 +305,26 @@ export function EstimateManager({
                     <TableCell className="min-w-32">{catSelect(l, i, "shade")}</TableCell>
                     <TableCell className="min-w-32">{catSelect(l, i, "floor")}</TableCell>
                     <TableCell className="min-w-28">
-                      <Input inputMode="decimal" placeholder="e.g. 45 1/8" value={l.height} onChange={(e) => patch(i, { height: e.target.value })} />
+                      <Input
+                        type="text"
+                        inputMode="text"
+                        autoComplete="off"
+                        placeholder="e.g. 45 3/8"
+                        value={l.height}
+                        onChange={(e) => patch(i, { height: e.target.value })}
+                      />
+                      <p className="mt-1 text-[11px] text-[var(--text-muted)] whitespace-nowrap">{describeInches(l.height)}</p>
                     </TableCell>
                     <TableCell className="min-w-28">
-                      <Input inputMode="decimal" placeholder="e.g. 45 1/8" value={l.length} onChange={(e) => patch(i, { length: e.target.value })} />
+                      <Input
+                        type="text"
+                        inputMode="text"
+                        autoComplete="off"
+                        placeholder="e.g. 45 3/8"
+                        value={l.length}
+                        onChange={(e) => patch(i, { length: e.target.value })}
+                      />
+                      <p className="mt-1 text-[11px] text-[var(--text-muted)] whitespace-nowrap">{describeInches(l.length)}</p>
                     </TableCell>
                     <TableCell className="min-w-20">
                       <Input type="number" min="1" value={l.qty} onChange={(e) => patch(i, { qty: Number(e.target.value) })} />

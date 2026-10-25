@@ -87,6 +87,10 @@ export type ActionResult = { ok: true; id?: string; message?: string } | { ok: f
 
 export type RegisterRow = {
   kind: string;
+  /** document = paperwork issued (quotation/estimate/invoice); purchase = vendor bill received. */
+  group: "document" | "purchase";
+  /** Only invoices are sales. A quotation/estimate that later becomes an invoice is not earned twice. */
+  inSales: boolean;
   no: string;
   date: string;
   party: string;
