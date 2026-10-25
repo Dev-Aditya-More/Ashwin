@@ -36,12 +36,16 @@ export function DeleteRowButton({
   const [pending, startTransition] = useTransition();
 
   function handleDelete() {
+    // Close the dialog BEFORE the delete runs: the row (and this dialog with it) disappears when the
+    // page refreshes, and a Radix dialog unmounted while open can leave the page unclickable.
+    setOpen(false);
     startTransition(async () => {
+      const id = toast.loading("Deleting…");
       try {
         await action();
-        toast.success("Deleted");
-        setOpen(false);
+        toast.success("Deleted", { id });
       } catch (err) {
+        toast.dismiss(id);
         // A server action that redirects on success throws Next's internal
         // redirect signal — that's not a real failure, so let it propagate
         // and navigate instead of showing an error toast.

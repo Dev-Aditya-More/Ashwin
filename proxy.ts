@@ -1,6 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { PIN_COOKIE, verifyPinToken } from "@/lib/pin-lock";
+import { PIN_COOKIE, LOCK_OFF_COOKIE, verifyPinToken } from "@/lib/pin-lock";
 
 /**
  * Guards every /admin route. Renamed from `middleware` per Next.js 16
@@ -30,8 +30,9 @@ export async function proxy(request: NextRequest) {
     }
   );
 
-  const { data } = await supabase.auth.getUser();
-  const user = data.user;
+  // getClaims verifies the session JWT locally (and refreshes it when expired) — no Auth-server round trip.
+  const { data } = await supabase.auth.getClaims();
+  const user = data?.claims ?? null;
   const { pathname } = request.nextUrl;
   const isLoginPage = pathname === "/admin/login";
   const isUnlockPage = pathname === "/admin/unlock";
@@ -55,11 +56,18 @@ export async function proxy(request: NextRequest) {
   // redirecting those mid-flight would break the action instead of the
   // user ever seeing a lock screen.
   if (user && !isLoginPage && !isUnlockPage && request.method === "GET") {
-    const { data: lock } = await supabase
-      .from("app_lock")
-      .select("pin_hash")
-      .eq("id", "default")
-      .maybeSingle();
+    // "PIN lock is off" is remembered for a few minutes so ordinary navigation
+    // doesn't pay a database round trip just to learn that again.
+    const lockOffCached = request.cookies.get(LOCK_OFF_COOKIE)?.value === "1";
+    const lock = lockOffCached
+      ? null
+      : (
+          await supabase.from("app_lock").select("pin_hash").eq("id", "default").maybeSingle()
+        ).data;
+
+    if (!lockOffCached && !lock?.pin_hash) {
+      response.cookies.set(LOCK_OFF_COOKIE, "1", { maxAge: 300, httpOnly: true, sameSite: "lax", path: "/admin" });
+    }
 
     if (lock?.pin_hash) {
       // Fail-open if APP_PIN_SECRET isn't configured — a misconfigured env

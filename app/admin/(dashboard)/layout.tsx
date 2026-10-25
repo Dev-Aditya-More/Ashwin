@@ -1,4 +1,6 @@
+import { Suspense } from "react";
 import Sidebar from "@/components/admin/Sidebar";
+import { NavProgress } from "@/components/admin/NavProgress";
 import Topbar from "@/components/admin/Topbar";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveFinancialYear } from "@/lib/actions/financial-years";
@@ -21,6 +23,9 @@ export default async function DashboardLayout({
 
   return (
     <div className="flex min-h-screen">
+      <Suspense fallback={null}>
+        <NavProgress />
+      </Suspense>
       <Sidebar />
       <div className="flex-1 min-w-0 flex flex-col">
         <Topbar

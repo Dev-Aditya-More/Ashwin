@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { DeleteRowButton } from "@/components/admin/dialogs/DeleteRowButton";
 import { Field, SetupNotice, selectCls } from "@/components/admin/docs/shared";
 import { deleteDocument, getNextDocNo, saveInvoice } from "@/lib/actions/documents";
-import type { Estimate, GstInvoice } from "@/lib/doc-types";
+import type { EstimateOption, GstInvoice } from "@/lib/doc-types";
 import { printInvoiceDocument } from "@/lib/print/documents";
 import { money } from "@/lib/print/frame";
 import { formatDate } from "@/lib/format";
@@ -49,7 +49,7 @@ export function InvoiceManager({
   setup,
 }: {
   initialNo: string;
-  estimates: Estimate[];
+  estimates: EstimateOption[];
   rows: GstInvoice[];
   setup: boolean;
 }) {

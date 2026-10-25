@@ -121,6 +121,31 @@ export async function getDaywiseTransactions(month: string): Promise<DaywiseRow[
   }));
 }
 
+export type PartyOption = { id: string; name: string; gstin?: string | null };
+
+/** id + name (+ GSTIN) of every party — all the Quick Add form needs, in three small parallel queries. */
+export async function listPartyOptions(): Promise<{
+  clients: PartyOption[];
+  labourers: PartyOption[];
+  vendors: PartyOption[];
+}> {
+  const supabase = await createClient();
+  const [c, l, v] = await Promise.all([
+    supabase.from("clients").select("id, name, gstin").order("name"),
+    supabase.from("labourers").select("id, name").order("name"),
+    supabase.from("vendors").select("id, name").order("name"),
+  ]);
+  // gstin column missing (migration 0007 pending) — fall back to names only.
+  const clients = c.error
+    ? ((await supabase.from("clients").select("id, name").order("name")).data ?? [])
+    : c.data ?? [];
+  return {
+    clients: clients as PartyOption[],
+    labourers: (l.data ?? []) as PartyOption[],
+    vendors: (v.data ?? []) as PartyOption[],
+  };
+}
+
 /** Stores the client's GSTIN (used by Quick Add, which shows it auto-filled and editable). */
 export async function updateClientGstin(
   clientId: string,

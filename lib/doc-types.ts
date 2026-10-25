@@ -71,6 +71,16 @@ export type GstInvoice = {
   client: DocClient | null;
 };
 
+/** Just what the invoice picker needs (no line items) — keeps that page light. */
+export type EstimateOption = {
+  id: string;
+  no: string;
+  total: number;
+  taxable: number;
+  subtotal: number;
+  client: { name: string; gstin: string | null } | null;
+};
+
 export type CatalogMap = Record<string, string[]>;
 
 export type ActionResult = { ok: true; id?: string; message?: string } | { ok: false; error: string };

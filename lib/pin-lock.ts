@@ -60,3 +60,6 @@ export async function verifyPinToken(secret: string, token: string | undefined):
 
 /** How long an unlock lasts even if the browser tab is left open. */
 export const PIN_SESSION_MS = 6 * 60 * 60 * 1000; // 6 hours
+
+/** Short-lived cookie: "no PIN lock is set" — lets the proxy skip a database lookup on every page. */
+export const LOCK_OFF_COOKIE = "ashwin_lock_off";

@@ -16,6 +16,7 @@ import type {
   CatalogMap,
   DocClient,
   Estimate,
+  EstimateOption,
   GstInvoice,
   Quotation,
   RegisterRow,
@@ -76,11 +77,20 @@ export async function getNextDocNo(kind: DocKind | "invoice-nongst"): Promise<st
       : kind === "invoice-nongst"
       ? `AGS/${y}/${yy}-`
       : `AE/${y}/${yy}-`;
-  const table = kind === "invoice-nongst" ? TABLE.invoice : TABLE[kind];
-  const { data } = await supabase.from(table).select("no").like("no", `${prefix}%`);
+  const isInvoice = kind === "invoice" || kind === "invoice-nongst";
+  // GST (AE/…) and Non-GST (AGS/…) bills share ONE running count: after AE/2026/27-001,
+  // switching the type gives AGS/2026/27-002, so no two bills ever carry the same serial.
+  const prefixes = isInvoice ? [`AE/${y}/${yy}-`, `AGS/${y}/${yy}-`] : [prefix];
+  const table = isInvoice ? TABLE.invoice : TABLE[kind as DocKind];
+  const { data } = await supabase
+    .from(table)
+    .select("no")
+    .or(prefixes.map((p) => `no.like.${p}*`).join(","));
   let max = 0;
   for (const r of (data ?? []) as { no: string }[]) {
-    const n = Number(r.no.slice(prefix.length).match(/^\d+/)?.[0] ?? 0);
+    const p = prefixes.find((x) => r.no.startsWith(x));
+    if (!p) continue;
+    const n = Number(r.no.slice(p.length).match(/^\d+/)?.[0] ?? 0);
     if (n > max) max = n;
   }
   return `${prefix}${String(max + 1).padStart(3, "0")}`;
@@ -208,14 +218,16 @@ export async function listEstimates(
   };
 }
 
-/** Every estimate (confirmed or not) — the invoice picker accepts either. */
-export async function listAllEstimates(): Promise<Estimate[]> {
+/** Every estimate (confirmed or not) for the invoice picker — only the fields it shows, no line items. */
+export async function listEstimateOptions(): Promise<EstimateOption[]> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("estimates")
-    .select(`*, clients(${CLIENT_COLS})`)
+    .select("id, no, total, taxable, subtotal, clients(name, gstin)")
     .order("created_at", { ascending: false });
-  return ((data ?? []) as Joined<Omit<Estimate, "client">>[]).map(flat) as unknown as Estimate[];
+  return ((data ?? []) as unknown as (Omit<EstimateOption, "client"> & {
+    clients: { name: string; gstin: string | null } | null;
+  })[]).map(({ clients, ...r }) => ({ ...r, client: clients ?? null }));
 }
 
 export async function listInvoices(): Promise<{ rows: GstInvoice[]; setup: boolean }> {

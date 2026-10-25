@@ -1,17 +1,8 @@
-import {
-  Users,
-  Truck,
-  HardHat,
-  Wallet,
-  TrendingUp,
-  UserSquare2,
-  FileText,
-} from "lucide-react";
+import { Suspense, cache } from "react";
+import { Users, Truck, HardHat, Wallet, TrendingUp, UserSquare2, FileText } from "lucide-react";
 import Link from "next/link";
-import { getDashboardData, getMonthlyPerformance, getDailyPerformance } from "@/lib/actions/dashboard";
-import { listClients } from "@/lib/actions/clients";
-import { listLabourers } from "@/lib/actions/labour";
-import { listVendors } from "@/lib/actions/vendors";
+import { getDashboardData, getDailyPerformance } from "@/lib/actions/dashboard";
+import { listPartyOptions } from "@/lib/actions/month-view";
 import { listTransactions } from "@/lib/actions/transactions";
 import { countQuotations } from "@/lib/actions/documents";
 import { QuickAddTransaction } from "@/components/admin/QuickAddTransaction";
@@ -19,12 +10,21 @@ import { MonthView } from "@/components/admin/MonthView";
 import { formatDate, formatMoney } from "@/lib/format";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { StatCard } from "@/components/admin/StatCard";
-// LedgerTable is unused now that the three ledgers below are commented out.
+import { StatCardsSkeleton, TableSkeleton } from "@/components/admin/Skeleton";
+// LedgerTable is unused now that the three ledgers are commented out.
 import { /* QuickAccess, */ MonthlyPerformance /*, LedgerTable */ } from "@/components/admin/LedgerBlocks";
 import { AddEntityDropdown } from "@/components/admin/AddEntityDropdown";
 import { Button } from "@/components/ui/button";
 import { getGreeting } from "@/lib/format";
 
+// One query batch shared by every section below (React dedupes it within the request).
+const dashboardData = cache(getDashboardData);
+
+/**
+ * Each section streams in on its own: the greeting and skeletons appear immediately,
+ * and the numbers fill in as soon as their own data arrives instead of the whole
+ * page waiting for the slowest query.
+ */
 export default async function DashboardPage({
   searchParams,
 }: {
@@ -32,18 +32,7 @@ export default async function DashboardPage({
 }) {
   const { from, to } = await searchParams;
   const validRange =
-    from && to && /^\d{4}-\d{2}-\d{2}$/.test(from) && /^\d{4}-\d{2}-\d{2}$/.test(to) && from <= to;
-
-  const [data, clients, labourers, vendors, recent, quotationCount, monthly, dailyRows] = await Promise.all([
-    getDashboardData(),
-    listClients(),
-    listLabourers(),
-    listVendors(),
-    listTransactions(12),
-    countQuotations(),
-    getMonthlyPerformance(),
-    validRange ? getDailyPerformance(from, to) : Promise.resolve(undefined),
-  ]);
+    !!from && !!to && /^\d{4}-\d{2}-\d{2}$/.test(from) && /^\d{4}-\d{2}-\d{2}$/.test(to) && from <= to;
 
   return (
     <div className="space-y-6">
@@ -62,58 +51,49 @@ export default async function DashboardPage({
         </div>
       </div>
 
+      <Suspense
+        fallback={
+          <div className="space-y-3 animate-pulse">
+            <StatCardsSkeleton />
+            <StatCardsSkeleton />
+          </div>
+        }
+      >
+        <Stats />
+      </Suspense>
+
+      {/* Quick Access hidden for now — uncomment (and the import above) to bring it back.
+      <QuickAccess />
+      */}
+
+      <Suspense fallback={<div className="animate-pulse"><TableSkeleton columns={4} rows={5} /></div>}>
+        <Operations />
+      </Suspense>
+
+      <Suspense fallback={<div className="animate-pulse"><TableSkeleton columns={5} rows={6} /></div>}>
+        <Monthly from={validRange ? from : undefined} to={validRange ? to : undefined} />
+      </Suspense>
+    </div>
+  );
+}
+
+async function Stats() {
+  const data = await dashboardData();
+  return (
+    <>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatCard
-          icon={Users}
-          label="Client Receivable"
-          value={data.clientReceivable}
-          sublabel="From clients"
-          tone="green"
-        />
-        <StatCard
-          icon={Truck}
-          label="Vendor Payable"
-          value={data.vendorPayable}
-          sublabel="Materials & bills"
-          tone="red"
-        />
-        <StatCard
-          icon={HardHat}
-          label="Labour Due"
-          value={data.labourDue}
-          sublabel="Owed to workers"
-          tone="amber"
-        />
-        <StatCard
-          icon={Wallet}
-          label="Net Position"
-          value={data.netPosition}
-          sublabel="Overall balance"
-          tone="blue"
-        />
+        <StatCard icon={Users} label="Client Receivable" value={data.clientReceivable} sublabel="From clients" tone="green" />
+        <StatCard icon={Truck} label="Vendor Payable" value={data.vendorPayable} sublabel="Materials & bills" tone="red" />
+        <StatCard icon={HardHat} label="Labour Due" value={data.labourDue} sublabel="Owed to workers" tone="amber" />
+        <StatCard icon={Wallet} label="Net Position" value={data.netPosition} sublabel="Overall balance" tone="blue" />
       </div>
 
       {/* Second row lines up under the first: Vendor Cost under Vendor
           Payable, Labour Cost under Labour Due. */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatCard
-          icon={TrendingUp}
-          label="Total FY Revenue"
-          value={data.totalRevenue}
-          sublabel="From client work"
-        />
-        <StatCard
-          icon={Truck}
-          label="Total Vendor Cost"
-          value={data.totalVendorCost}
-          sublabel="Material purchases"
-        />
-        <StatCard
-          icon={HardHat}
-          label="Total Labour Cost"
-          value={data.totalLabourCost}
-          sublabel="Payments to workers"
-        />
+        <StatCard icon={TrendingUp} label="Total FY Revenue" value={data.totalRevenue} sublabel="From client work" />
+        <StatCard icon={Truck} label="Total Vendor Cost" value={data.totalVendorCost} sublabel="Material purchases" />
+        <StatCard icon={HardHat} label="Total Labour Cost" value={data.totalLabourCost} sublabel="Payments to workers" />
         <StatCard
           icon={UserSquare2}
           label="Active Accounts"
@@ -122,21 +102,25 @@ export default async function DashboardPage({
           isMoney={false}
         />
       </div>
+    </>
+  );
+}
 
-      {/* Quick Access hidden for now — uncomment (and the import above) to bring it back.
-      <QuickAccess />
-      */}
+async function Operations() {
+  const [parties, recent, quotationCount] = await Promise.all([
+    listPartyOptions(),
+    listTransactions(12),
+    countQuotations(),
+  ]);
 
-      <QuickAddTransaction
-        clients={clients.map((c) => ({ id: c.id, name: c.name, gstin: c.gstin }))}
-        labourers={labourers.map((l) => ({ id: l.id, name: l.name }))}
-        vendors={vendors.map((v) => ({ id: v.id, name: v.name }))}
-      />
+  return (
+    <div className="space-y-6">
+      <QuickAddTransaction clients={parties.clients} labourers={parties.labourers} vendors={parties.vendors} />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatCard icon={Users} label="Clients" value={clients.length} isMoney={false} />
-        <StatCard icon={Truck} label="Vendors" value={vendors.length} isMoney={false} />
-        <StatCard icon={HardHat} label="Labour" value={labourers.length} isMoney={false} />
+        <StatCard icon={Users} label="Clients" value={parties.clients.length} isMoney={false} />
+        <StatCard icon={Truck} label="Vendors" value={parties.vendors.length} isMoney={false} />
+        <StatCard icon={HardHat} label="Labour" value={parties.labourers.length} isMoney={false} />
         <StatCard icon={FileText} label="Quotations" value={quotationCount} isMoney={false} />
       </div>
 
@@ -161,7 +145,7 @@ export default async function DashboardPage({
             <TableBody>
               {recent.map((t) => (
                 <TableRow key={t.id}>
-                  <TableCell>{formatDate(t.date)}</TableCell>
+                  <TableCell className="whitespace-nowrap">{formatDate(t.date)}</TableCell>
                   <TableCell className="font-medium">{t.name}</TableCell>
                   <TableCell className="text-[var(--text-muted)]">{t.category}</TableCell>
                   <TableCell className="text-[var(--text-muted)]">
@@ -188,32 +172,14 @@ export default async function DashboardPage({
           </Table>
         </div>
       </div>
-
-      <MonthlyPerformance rows={monthly} dailyRows={dailyRows} from={from} to={to} />
-
-      {/* Ledger summaries removed from the dashboard per request — still
-          available in full on /admin/reports. Uncomment (and restore the
-          listClients/listLabourers/listVendors imports + Promise.all
-          entries above) if these should come back here later.
-      <LedgerTable
-        title="Client Ledger"
-        category="Client"
-        rows={clients.filter((c) => c.balance > 0)}
-        tone="emerald"
-      />
-      <LedgerTable
-        title="Labour Ledger"
-        category="Labour"
-        rows={labourers.filter((l) => l.balance > 0)}
-        tone="amber"
-      />
-      <LedgerTable
-        title="Vendor Ledger"
-        category="Vendor"
-        rows={vendors.filter((v) => v.balance > 0)}
-        tone="rose"
-      />
-      */}
     </div>
   );
+}
+
+async function Monthly({ from, to }: { from?: string; to?: string }) {
+  const [data, dailyRows] = await Promise.all([
+    dashboardData(),
+    from && to ? getDailyPerformance(from, to) : Promise.resolve(undefined),
+  ]);
+  return <MonthlyPerformance rows={data.monthly} dailyRows={dailyRows} from={from} to={to} />;
 }

@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { currentUserEmail } from "@/lib/actions/audit-helper";
-import { PIN_COOKIE, PIN_SESSION_MS, hashPin, randomSalt, signPinToken } from "@/lib/pin-lock";
+import { PIN_COOKIE, LOCK_OFF_COOKIE, PIN_SESSION_MS, hashPin, randomSalt, signPinToken } from "@/lib/pin-lock";
 
 const PIN_ROW_ID = "default";
 
@@ -68,6 +68,7 @@ export async function setPin(
 
   const jar = await cookies();
   jar.delete({ name: PIN_COOKIE, path: "/admin" });
+  jar.delete({ name: LOCK_OFF_COOKIE, path: "/admin" });
 
   return { error: null, success: true };
 }
@@ -77,6 +78,7 @@ export async function removePin(): Promise<void> {
   await supabase.from("app_lock").update({ pin_hash: null, salt: null }).eq("id", PIN_ROW_ID);
   const jar = await cookies();
   jar.delete({ name: PIN_COOKIE, path: "/admin" });
+  jar.delete({ name: LOCK_OFF_COOKIE, path: "/admin" });
 }
 
 export async function verifyPinAndUnlock(

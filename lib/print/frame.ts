@@ -59,7 +59,7 @@ export function printHtmlInFrame(rawHtml: string, titleOrOpts?: string | PrintOp
   f.id = "printFrame";
   f.setAttribute("aria-hidden", "true");
   f.style.cssText =
-    `position:fixed;left:-12000px;top:0;width:${opts.widthMm ? `${opts.widthMm}mm` : "1123px"};height:1123px;border:0;visibility:hidden;pointer-events:none`;
+    `position:fixed;left:-12000px;top:0;width:${opts.widthMm ? `${opts.widthMm}mm` : "1123px"};height:1123px;border:0;opacity:0;pointer-events:none`;
   document.body.appendChild(f);
 
   const prevTitle = document.title;

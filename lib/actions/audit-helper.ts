@@ -1,8 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 export async function currentUserEmail(supabase: SupabaseClient): Promise<string | null> {
-  const { data } = await supabase.auth.getUser();
-  return data.user?.email ?? null;
+  // getClaims verifies the JWT signature locally (no network round trip) when the project uses signing keys.
+  const { data } = await supabase.auth.getClaims();
+  const email = data?.claims?.email;
+  return typeof email === "string" ? email : null;
 }
 
 /**

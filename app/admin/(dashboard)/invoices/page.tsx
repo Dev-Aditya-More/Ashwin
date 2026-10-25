@@ -1,10 +1,10 @@
 import { InvoiceManager } from "@/components/admin/docs/InvoiceManager";
-import { getNextDocNo, listAllEstimates, listInvoices } from "@/lib/actions/documents";
+import { getNextDocNo, listEstimateOptions, listInvoices } from "@/lib/actions/documents";
 
 export default async function InvoicesPage() {
   const [nextNo, estimates, { rows, setup }] = await Promise.all([
     getNextDocNo("invoice"),
-    listAllEstimates(),
+    listEstimateOptions(),
     listInvoices(),
   ]);
 
