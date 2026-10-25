@@ -92,9 +92,9 @@ export default async function LabourDetailPage({
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>Date</TableHead>
                     <TableHead>Description</TableHead>
                     <TableHead>Qty × Rate</TableHead>
-                    <TableHead>Date</TableHead>
                     <TableHead className="text-right">Amount</TableHead>
                     <TableHead className="w-9" />
                   </TableRow>
@@ -102,11 +102,11 @@ export default async function LabourDetailPage({
                 <TableBody>
                   {work.map((w) => (
                     <TableRow key={w.id}>
+                      <TableCell className="text-[var(--text-muted)] whitespace-nowrap">{formatDate(w.work_date)}</TableCell>
                       <TableCell>{w.description}</TableCell>
                       <TableCell className="text-[var(--text-muted)]">
                         {w.quantity} × {formatMoney(w.rate)}
                       </TableCell>
-                      <TableCell className="text-[var(--text-muted)]">{formatDate(w.work_date)}</TableCell>
                       <TableCell className="text-right font-medium">{formatMoney(w.amount)}</TableCell>
                       <TableCell>
                         <EditLabourWorkDialog work={w} labourerId={id} projects={projects} />
@@ -133,8 +133,8 @@ export default async function LabourDetailPage({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Note</TableHead>
                     <TableHead>Date</TableHead>
+                    <TableHead>Note</TableHead>
                     <TableHead className="text-right">Amount</TableHead>
                     <TableHead className="w-9" />
                   </TableRow>
@@ -142,8 +142,8 @@ export default async function LabourDetailPage({
                 <TableBody>
                   {payments.map((p) => (
                     <TableRow key={p.id}>
+                      <TableCell className="text-[var(--text-muted)] whitespace-nowrap">{formatDate(p.payment_date)}</TableCell>
                       <TableCell>{p.is_refund ? `Refund${p.note ? ` — ${p.note}` : ""}` : (p.note ?? "—")}</TableCell>
-                      <TableCell className="text-[var(--text-muted)]">{formatDate(p.payment_date)}</TableCell>
                       <TableCell className={`text-right font-medium ${p.is_refund ? "text-emerald-600" : "text-rose-600"}`}>
                         {p.is_refund ? "+" : "-"} {formatMoney(p.amount)}
                       </TableCell>

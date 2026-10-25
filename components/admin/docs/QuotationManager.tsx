@@ -175,8 +175,8 @@ export function QuotationManager({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>No.</TableHead>
                 <TableHead>Date</TableHead>
+                <TableHead>No.</TableHead>
                 <TableHead>Client</TableHead>
                 <TableHead>Site</TableHead>
                 <TableHead className="text-right">Action</TableHead>
@@ -185,8 +185,8 @@ export function QuotationManager({
             <TableBody>
               {rows.map((q) => (
                 <TableRow key={q.id}>
+                  <TableCell className="text-[var(--text-muted)] whitespace-nowrap">{formatDate(q.doc_date)}</TableCell>
                   <TableCell className="font-medium">{q.no}</TableCell>
-                  <TableCell className="text-[var(--text-muted)]">{formatDate(q.doc_date)}</TableCell>
                   <TableCell>{q.client?.name}</TableCell>
                   <TableCell className="text-[var(--text-muted)]">{q.site_name ?? "—"}</TableCell>
                   <TableCell>

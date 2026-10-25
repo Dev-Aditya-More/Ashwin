@@ -396,8 +396,8 @@ export function EstimateManager({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>No.</TableHead>
                 <TableHead>Date</TableHead>
+                <TableHead>No.</TableHead>
                 <TableHead>Client</TableHead>
                 <TableHead className="text-right">Total</TableHead>
                 <TableHead className="text-right">Action</TableHead>
@@ -406,8 +406,8 @@ export function EstimateManager({
             <TableBody>
               {rows.map((e) => (
                 <TableRow key={e.id}>
+                  <TableCell className="text-[var(--text-muted)] whitespace-nowrap">{formatDate(e.doc_date)}</TableCell>
                   <TableCell className="font-medium">{e.no}</TableCell>
-                  <TableCell className="text-[var(--text-muted)]">{formatDate(e.doc_date)}</TableCell>
                   <TableCell>{e.client?.name}</TableCell>
                   <TableCell className="text-right">{money(e.total)}</TableCell>
                   <TableCell>

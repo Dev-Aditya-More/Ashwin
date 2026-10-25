@@ -86,8 +86,8 @@ export default async function VendorDetailPage({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Item / Material</TableHead>
                     <TableHead>Date</TableHead>
+                    <TableHead>Item / Material</TableHead>
                     <TableHead className="text-right">Amount</TableHead>
                     <TableHead className="w-9" />
                   </TableRow>
@@ -95,8 +95,8 @@ export default async function VendorDetailPage({
                 <TableBody>
                   {bills.map((b) => (
                     <TableRow key={b.id}>
+                      <TableCell className="text-[var(--text-muted)] whitespace-nowrap">{formatDate(b.bill_date)}</TableCell>
                       <TableCell>{b.description}</TableCell>
-                      <TableCell className="text-[var(--text-muted)]">{formatDate(b.bill_date)}</TableCell>
                       <TableCell className="text-right font-medium">{formatMoney(b.amount)}</TableCell>
                       <TableCell>
                         <EditVendorBillDialog bill={b} vendorId={id} projects={projects} />
@@ -123,8 +123,8 @@ export default async function VendorDetailPage({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Note</TableHead>
                     <TableHead>Date</TableHead>
+                    <TableHead>Note</TableHead>
                     <TableHead className="text-right">Amount</TableHead>
                     <TableHead className="w-9" />
                   </TableRow>
@@ -132,8 +132,8 @@ export default async function VendorDetailPage({
                 <TableBody>
                   {payments.map((p) => (
                     <TableRow key={p.id}>
+                      <TableCell className="text-[var(--text-muted)] whitespace-nowrap">{formatDate(p.payment_date)}</TableCell>
                       <TableCell>{p.is_refund ? `Refund${p.note ? ` — ${p.note}` : ""}` : (p.note ?? "—")}</TableCell>
-                      <TableCell className="text-[var(--text-muted)]">{formatDate(p.payment_date)}</TableCell>
                       <TableCell className={`text-right font-medium ${p.is_refund ? "text-emerald-600" : "text-rose-600"}`}>
                         {p.is_refund ? "+" : "-"} {formatMoney(p.amount)}
                       </TableCell>

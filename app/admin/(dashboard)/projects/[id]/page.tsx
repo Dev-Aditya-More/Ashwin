@@ -76,20 +76,20 @@ export default async function ProjectDetailPage({
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>Date</TableHead>
               <TableHead>Type</TableHead>
               <TableHead>Name</TableHead>
               <TableHead>Description</TableHead>
-              <TableHead>Date</TableHead>
               <TableHead className="text-right">Amount</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {transactions.map((t) => (
               <TableRow key={t.id}>
+                <TableCell className="text-[var(--text-muted)] whitespace-nowrap">{formatDate(t.date)}</TableCell>
                 <TableCell>{t.category}</TableCell>
                 <TableCell className="font-medium">{t.name}</TableCell>
                 <TableCell className="text-[var(--text-muted)]">{t.description}</TableCell>
-                <TableCell className="text-[var(--text-muted)]">{formatDate(t.date)}</TableCell>
                 <TableCell
                   className={
                     "text-right font-medium " +

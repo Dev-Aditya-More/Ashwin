@@ -10,16 +10,18 @@ import { DeleteRowButton } from "@/components/admin/dialogs/DeleteRowButton";
 import { Field, SetupNotice, selectCls } from "@/components/admin/docs/shared";
 import { deleteDocument, getNextDocNo, saveInvoice } from "@/lib/actions/documents";
 import type { Estimate, GstInvoice } from "@/lib/doc-types";
-import { printTaxInvoice } from "@/lib/print/documents";
+import { printInvoiceDocument } from "@/lib/print/documents";
 import { money } from "@/lib/print/frame";
 import { formatDate } from "@/lib/format";
 
 const today = () => new Date().toISOString().slice(0, 10);
 
 export function printInvoice(inv: GstInvoice) {
-  printTaxInvoice(
+  printInvoiceDocument(
     {
       no: inv.no,
+      type: inv.invoice_type,
+      siteName: inv.site_name,
       date: inv.doc_date,
       client: inv.client?.name ?? "",
       clientMobile: inv.client_mobile,
@@ -56,23 +58,36 @@ export function InvoiceManager({
   const [date, setDate] = useState(today());
   const [type, setType] = useState<"GST" | "Non-GST">("GST");
   const [gst, setGst] = useState(18);
+  const [received, setReceived] = useState(0);
   const [pending, startTransition] = useTransition();
 
   const est = estimates.find((e) => e.id === estimateId);
   const taxable = Number(est?.taxable ?? est?.subtotal ?? 0);
   const rate = type === "GST" ? gst : 0;
   const tax = (taxable * rate) / 100;
+  const invoiceTotal = type === "GST" ? Math.round(taxable + tax) : Math.round(taxable * 100) / 100;
+
+  // Each type has its own number series (AE/… for GST, AGS/… for Non-GST).
+  async function changeType(next: "GST" | "Non-GST") {
+    setType(next);
+    setNo(await getNextDocNo(next === "GST" ? "invoice" : "invoice-nongst"));
+  }
 
   function save() {
     startTransition(async () => {
-      const res = await saveInvoice({ estimateId, no, date, type, gstRate: gst });
+      const res = await saveInvoice({ estimateId, no, date, type, gstRate: gst, received });
       if (!res.ok) {
         toast.error(res.error);
         return;
       }
-      toast.success("Invoice saved. GST statutory reporting must be verified with your accountant.");
+      toast.success(
+        type === "GST"
+          ? "Invoice saved. GST statutory reporting must be verified with your accountant."
+          : "Bill of Supply saved."
+      );
       setEstimateId("");
-      setNo(await getNextDocNo("invoice"));
+      setReceived(0);
+      setNo(await getNextDocNo(type === "GST" ? "invoice" : "invoice-nongst"));
     });
   }
 
@@ -100,7 +115,7 @@ export function InvoiceManager({
             <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
           </Field>
           <Field label="Invoice Type">
-            <select className={selectCls} value={type} onChange={(e) => setType(e.target.value as "GST" | "Non-GST")}>
+            <select className={selectCls} value={type} onChange={(e) => changeType(e.target.value as "GST" | "Non-GST")}>
               <option>GST</option>
               <option>Non-GST</option>
             </select>
@@ -112,6 +127,9 @@ export function InvoiceManager({
               ))}
             </select>
           </Field>
+          <Field label="Advance / Received (₹)">
+            <Input type="number" min="0" step="0.01" value={received} onChange={(e) => setReceived(Number(e.target.value))} />
+          </Field>
         </div>
 
         <p className="rounded-md border-l-4 border-amber-400 bg-amber-50 px-3 py-2 text-sm">
@@ -120,9 +138,11 @@ export function InvoiceManager({
               Client: <b>{est.client?.name}</b> · GSTIN: {est.client?.gstin || "Not entered"} · Estimate: {est.no}
               <br />
               Taxable value: {money(taxable)} · GST {rate}%: {money(tax)} ·{" "}
-              <b>Invoice total: {money(Math.round(taxable + tax))}</b>
+              <b>{type === "GST" ? "Invoice total" : "Bill total (no GST)"}: {money(invoiceTotal)}</b>
               <br />
-              Payment QR will use UPI ID ashwinenterprises@icici and the invoice total.
+              {type === "GST"
+                ? "Issued by ASHWIN ENTERPRISES. Payment QR will use UPI ID ashwinenterprises@icici and the invoice total."
+                : "Bill of Supply issued by ARNAV GLASS SERVICES (no GST, no QR)."}
             </>
           ) : (
             "The bill amount will appear after you select an Estimate."
@@ -145,10 +165,10 @@ export function InvoiceManager({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>No.</TableHead>
                 <TableHead>Date</TableHead>
+                <TableHead>No.</TableHead>
                 <TableHead>Client</TableHead>
-                <TableHead>Type</TableHead>
+                <TableHead>Issued By</TableHead>
                 <TableHead className="text-right">Total</TableHead>
                 <TableHead className="text-right">Action</TableHead>
               </TableRow>
@@ -156,10 +176,12 @@ export function InvoiceManager({
             <TableBody>
               {rows.map((inv) => (
                 <TableRow key={inv.id}>
+                  <TableCell className="text-[var(--text-muted)] whitespace-nowrap">{formatDate(inv.doc_date)}</TableCell>
                   <TableCell className="font-medium">{inv.no}</TableCell>
-                  <TableCell className="text-[var(--text-muted)]">{formatDate(inv.doc_date)}</TableCell>
                   <TableCell>{inv.client?.name}</TableCell>
-                  <TableCell className="text-[var(--text-muted)]">{inv.invoice_type}</TableCell>
+                  <TableCell className="text-[var(--text-muted)]">
+                    {inv.invoice_type === "Non-GST" ? "ARNAV GLASS SERVICES (Non-GST)" : "ASHWIN ENTERPRISES (GST)"}
+                  </TableCell>
                   <TableCell className="text-right">{money(inv.total)}</TableCell>
                   <TableCell>
                     <div className="flex justify-end gap-1">

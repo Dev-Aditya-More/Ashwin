@@ -36,8 +36,8 @@ export function DocumentRegister() {
   }, [month, type]);
 
   function exportCsv() {
-    const header = ["Type", "No", "Date", "Party", "Taxable", "GST", "Total"];
-    const body = rows.map((r) => [r.kind, r.no, r.date, r.party, r.taxable, r.gst, r.total]);
+    const header = ["Date", "Type", "No", "Party", "Taxable", "GST", "Total"];
+    const body = rows.map((r) => [r.date, r.kind, r.no, r.party, r.taxable, r.gst, r.total]);
     const csv = "﻿" + [header, ...body].map((r) => r.map(csvCell).join(",")).join("\r\n");
     const a = document.createElement("a");
     a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8;" }));
@@ -92,9 +92,9 @@ export function DocumentRegister() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Date</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>No.</TableHead>
-                <TableHead>Date</TableHead>
                 <TableHead>Party</TableHead>
                 <TableHead className="text-right">Taxable</TableHead>
                 <TableHead className="text-right">GST</TableHead>
@@ -104,9 +104,9 @@ export function DocumentRegister() {
             <TableBody>
               {rows.map((r, i) => (
                 <TableRow key={i}>
+                  <TableCell className="whitespace-nowrap">{formatDate(r.date)}</TableCell>
                   <TableCell>{r.kind}</TableCell>
                   <TableCell className="font-medium">{r.no}</TableCell>
-                  <TableCell>{formatDate(r.date)}</TableCell>
                   <TableCell>{r.party}</TableCell>
                   <TableCell className="text-right">{formatMoney(r.taxable)}</TableCell>
                   <TableCell className="text-right">{formatMoney(r.gst)}</TableCell>

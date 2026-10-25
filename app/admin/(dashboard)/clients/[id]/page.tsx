@@ -13,7 +13,8 @@ import { DeleteRowButton } from "@/components/admin/dialogs/DeleteRowButton";
 import { AddRefundDialog } from "@/components/admin/dialogs/RefundDialog";
 import { PrintLedgerButton } from "@/components/admin/PrintLedgerButton";
 import { DetailSheets } from "@/components/admin/DetailSheets";
-import { listEstimates } from "@/lib/actions/documents";
+import { ClientBills } from "@/components/admin/ClientBills";
+import { listEstimates, listInvoices } from "@/lib/actions/documents";
 import { clientLedgerRows } from "@/lib/ledger-rows";
 import { TrackVisit } from "@/components/admin/TrackVisit";
 import { BackButton } from "@/components/admin/BackButton";
@@ -44,7 +45,8 @@ export default async function ClientDetailPage({
   }
   const { client, balance, work, payments, projects } = data;
   if (!client) notFound();
-  const { rows: detailSheets } = await listEstimates(true, id);
+  const [{ rows: detailSheets }, { rows: allBills }] = await Promise.all([listEstimates(true, id), listInvoices()]);
+  const bills = allBills.filter((b) => b.client_id === id);
 
   return (
     <div className="space-y-6">
@@ -103,8 +105,8 @@ export default async function ClientDetailPage({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Description</TableHead>
                     <TableHead>Date</TableHead>
+                    <TableHead>Description</TableHead>
                     <TableHead className="text-right">Amount</TableHead>
                     <TableHead className="w-9" />
                   </TableRow>
@@ -112,8 +114,8 @@ export default async function ClientDetailPage({
                 <TableBody>
                   {work.map((w) => (
                     <TableRow key={w.id}>
+                      <TableCell className="text-[var(--text-muted)] whitespace-nowrap">{formatDate(w.work_date)}</TableCell>
                       <TableCell>{w.description}</TableCell>
-                      <TableCell className="text-[var(--text-muted)]">{formatDate(w.work_date)}</TableCell>
                       <TableCell className="text-right font-medium">{formatMoney(w.amount)}</TableCell>
                       <TableCell>
                         <EditClientWorkDialog work={w} clientId={id} projects={projects} />
@@ -143,8 +145,8 @@ export default async function ClientDetailPage({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Note</TableHead>
                     <TableHead>Date</TableHead>
+                    <TableHead>Note</TableHead>
                     <TableHead className="text-right">Amount</TableHead>
                     <TableHead className="w-9" />
                   </TableRow>
@@ -152,8 +154,8 @@ export default async function ClientDetailPage({
                 <TableBody>
                   {payments.map((p) => (
                     <TableRow key={p.id}>
+                      <TableCell className="text-[var(--text-muted)] whitespace-nowrap">{formatDate(p.payment_date)}</TableCell>
                       <TableCell>{p.is_refund ? `Refund${p.note ? ` — ${p.note}` : ""}` : (p.note ?? "—")}</TableCell>
-                      <TableCell className="text-[var(--text-muted)]">{formatDate(p.payment_date)}</TableCell>
                       <TableCell className={`text-right font-medium ${p.is_refund ? "text-rose-600" : "text-emerald-600"}`}>
                         {p.is_refund ? "−" : "+"} {formatMoney(p.amount)}
                       </TableCell>
@@ -179,6 +181,7 @@ export default async function ClientDetailPage({
           <div className="space-y-4">
             <ClientLedgerTable work={work} payments={payments} clientId={id} projects={projects} />
             <DetailSheets sheets={detailSheets} />
+            <ClientBills bills={bills} />
           </div>
         </TabsContent>
       </Tabs>

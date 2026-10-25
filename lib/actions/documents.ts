@@ -63,14 +63,21 @@ const TABLE: Record<DocKind, string> = {
   invoice: "gst_invoices",
 };
 
-/** Next free number: Quotation 2026/27-001, Estimate 2026-27/001, Invoice AE/2026-27/001. */
-export async function getNextDocNo(kind: DocKind): Promise<string> {
+/** Next free number: Quotation 2026/27-001, Estimate 2026-27/001, GST invoice AE/2026/27-001, Non-GST bill AGS/2026/27-001. */
+export async function getNextDocNo(kind: DocKind | "invoice-nongst"): Promise<string> {
   const supabase = await createClient();
   const fy = await activeFy(supabase);
   const [y, yy] = fyParts(fy?.label, fy?.start_date);
   const prefix =
-    kind === "quotation" ? `${y}/${yy}-` : kind === "estimate" ? `${y}-${yy}/` : `AE/${y}-${yy}/`;
-  const { data } = await supabase.from(TABLE[kind]).select("no").like("no", `${prefix}%`);
+    kind === "quotation"
+      ? `${y}/${yy}-`
+      : kind === "estimate"
+      ? `${y}-${yy}/`
+      : kind === "invoice-nongst"
+      ? `AGS/${y}/${yy}-`
+      : `AE/${y}/${yy}-`;
+  const table = kind === "invoice-nongst" ? TABLE.invoice : TABLE[kind];
+  const { data } = await supabase.from(table).select("no").like("no", `${prefix}%`);
   let max = 0;
   for (const r of (data ?? []) as { no: string }[]) {
     const n = Number(r.no.slice(prefix.length).match(/^\d+/)?.[0] ?? 0);
@@ -380,6 +387,7 @@ export async function saveInvoice(input: {
   date: string;
   type: "GST" | "Non-GST";
   gstRate: number;
+  received: number;
 }): Promise<ActionResult> {
   const supabase = await createClient();
   const { data: est } = await supabase
@@ -393,6 +401,9 @@ export async function saveInvoice(input: {
   const gst = input.type === "GST" ? Math.max(0, Number(input.gstRate) || 0) : 0;
   const taxable = Number(est.taxable ?? est.subtotal) || 0;
   const tax = Math.round(taxable * gst) / 100;
+  // GST invoices round to the rupee; a Non-GST Bill of Supply keeps paise.
+  const total = input.type === "GST" ? Math.round(taxable + tax) : Math.round(taxable * 100) / 100;
+  const received = Math.max(0, Number(input.received) || 0);
   const c = (est.clients ?? {}) as Partial<DocClient>;
   const [fy, actor] = await Promise.all([activeFy(supabase), currentUserEmail(supabase)]);
   try {
@@ -420,7 +431,8 @@ export async function saveInvoice(input: {
         taxable,
         gst_rate: gst,
         tax,
-        total: Math.round(taxable + tax),
+        total,
+        received,
       },
       actor
     );

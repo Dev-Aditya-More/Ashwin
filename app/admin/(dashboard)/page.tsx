@@ -20,7 +20,7 @@ import { formatDate, formatMoney } from "@/lib/format";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { StatCard } from "@/components/admin/StatCard";
 // LedgerTable is unused now that the three ledgers below are commented out.
-import { QuickAccess, MonthlyPerformance /*, LedgerTable */ } from "@/components/admin/LedgerBlocks";
+import { /* QuickAccess, */ MonthlyPerformance /*, LedgerTable */ } from "@/components/admin/LedgerBlocks";
 import { AddEntityDropdown } from "@/components/admin/AddEntityDropdown";
 import { Button } from "@/components/ui/button";
 import { getGreeting } from "@/lib/format";
@@ -123,7 +123,9 @@ export default async function DashboardPage({
         />
       </div>
 
+      {/* Quick Access hidden for now — uncomment (and the import above) to bring it back.
       <QuickAccess />
+      */}
 
       <QuickAddTransaction
         clients={clients.map((c) => ({ id: c.id, name: c.name, gstin: c.gstin }))}

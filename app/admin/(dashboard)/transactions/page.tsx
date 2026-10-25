@@ -3,6 +3,7 @@ import { Download, X } from "lucide-react";
 import { listTransactions } from "@/lib/actions/transactions";
 import { formatDate, formatMoney, shortName } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
+import { DocumentRegister } from "@/components/admin/DocumentRegister";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -82,11 +83,11 @@ export default async function TransactionsPage({
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>Date</TableHead>
               <TableHead>Category</TableHead>
               <TableHead>Name</TableHead>
               <TableHead>Type</TableHead>
               <TableHead>Description</TableHead>
-              <TableHead>Date</TableHead>
               <TableHead>Added By</TableHead>
               <TableHead className="text-right">Amount</TableHead>
             </TableRow>
@@ -94,6 +95,7 @@ export default async function TransactionsPage({
           <TableBody>
             {transactions.map((t) => (
               <TableRow key={t.id}>
+                <TableCell className="text-[var(--text-muted)] whitespace-nowrap">{formatDate(t.date)}</TableCell>
                 <TableCell>
                   <Badge className={CATEGORY_TONE[t.category]}>{t.category}</Badge>
                 </TableCell>
@@ -102,7 +104,6 @@ export default async function TransactionsPage({
                 <TableCell className="text-[var(--text-muted)] max-w-[280px] truncate">
                   {t.description}
                 </TableCell>
-                <TableCell className="text-[var(--text-muted)]">{formatDate(t.date)}</TableCell>
                 <TableCell className="text-[var(--text-muted)]">
                   {t.addedBy ? shortName(t.addedBy) : "—"}
                 </TableCell>
@@ -146,6 +147,8 @@ export default async function TransactionsPage({
           )}
         </Table>
       </div>
+
+      <DocumentRegister />
     </div>
   );
 }

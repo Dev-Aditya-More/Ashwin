@@ -12,8 +12,46 @@ export const money = (n: unknown) => "₹" + fmt(n);
 export const fmtDate = (d: unknown) => String(d ?? "").split("-").reverse().join("/");
 
 export const logoUrl = () => `${window.location.origin}/ashwin-print-logo.png`;
+export const arnavLogoUrl = () => `${window.location.origin}/arnav-logo.png`;
 
-export function printHtmlInFrame(rawHtml: string, title?: string) {
+export type FitOptions = {
+  /** The block whose height is measured (inside the 12.7 mm margin frame). */
+  content: string;
+  /** Empty element (div or table cell) stretched so the content ends exactly at the bottom of its last page. */
+  spacer: string;
+  /** Printable height of one page between the repeated top/bottom margins, in mm. */
+  usableMm: number;
+  /** Element repeated at the top of every continuation page (e.g. a table header); its height is reserved per extra page. */
+  repeat?: string;
+};
+
+/**
+ * Pins the bottom section of a document to the bottom of its LAST page, however many
+ * pages the document runs to: measure the content, work out how many pages it needs,
+ * and stretch the spacer so the blocks after it land at the page foot.
+ * Self-contained on purpose (no closures) so it can also be injected into a test page.
+ */
+export function fitPages(d: Document, o: FitOptions) {
+  const content = d.querySelector(o.content) as HTMLElement | null;
+  const spacer = d.querySelector(o.spacer) as HTMLElement | null;
+  if (!content || !spacer) return;
+  spacer.style.height = "0px";
+  const usable = (o.usableMm * 96) / 25.4;
+  const natural = content.getBoundingClientRect().height;
+  // The small allowance covers rows that jump to the next page instead of splitting.
+  const rep = o.repeat ? (d.querySelector(o.repeat) as HTMLElement | null)?.getBoundingClientRect().height ?? 0 : 0;
+  // Row heights are snapped differently when printing, so the error grows with the document: keep ~1.2% slack.
+  const slack = 6 + natural * 0.012;
+  let pages = Math.max(1, Math.ceil((natural + slack + 6) / usable));
+  while (natural + (pages - 1) * rep + slack + 6 > pages * usable) pages++;
+  spacer.style.height = Math.max(0, pages * usable - natural - (pages - 1) * rep - slack) + "px";
+}
+
+export type PrintOptions = { title?: string; widthMm?: number; fit?: FitOptions };
+
+export function printHtmlInFrame(rawHtml: string, titleOrOpts?: string | PrintOptions) {
+  const opts: PrintOptions = typeof titleOrOpts === "string" ? { title: titleOrOpts } : titleOrOpts ?? {};
+  const title = opts.title;
   const html = String(rawHtml).replace(/<script[\s\S]*?<\/script>/gi, "");
   document.getElementById("printFrame")?.remove();
 
@@ -21,7 +59,7 @@ export function printHtmlInFrame(rawHtml: string, title?: string) {
   f.id = "printFrame";
   f.setAttribute("aria-hidden", "true");
   f.style.cssText =
-    "position:fixed;left:-12000px;top:0;width:1123px;height:1123px;border:0;visibility:hidden;pointer-events:none";
+    `position:fixed;left:-12000px;top:0;width:${opts.widthMm ? `${opts.widthMm}mm` : "1123px"};height:1123px;border:0;visibility:hidden;pointer-events:none`;
   document.body.appendChild(f);
 
   const prevTitle = document.title;
@@ -48,6 +86,7 @@ export function printHtmlInFrame(rawHtml: string, title?: string) {
       if (fired) return;
       fired = true;
       try {
+        if (opts.fit) fitPages(d, opts.fit);
         win.focus();
         win.print();
       } catch (e) {
