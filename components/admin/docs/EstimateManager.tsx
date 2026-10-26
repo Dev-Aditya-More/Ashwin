@@ -3,7 +3,7 @@
 import { todayIST } from "@/lib/today";
 
 import { useMemo, useState, useTransition } from "react";
-import { Loader2, Plus, Printer, Settings2, X } from "lucide-react";
+import { Loader2, Pencil, Plus, Printer, Settings2, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,6 +32,7 @@ import {
   calcEstimate,
   calcEstimateLine,
   describeInches,
+  sizeAsWritten,
   type CatalogKey,
   type EstimateLineInput,
 } from "@/lib/doc-calc";
@@ -126,18 +127,22 @@ export function EstimateManager({
   const [discountPct, setDiscountPct] = useState(0);
   const [transport, setTransport] = useState(0);
   const [hamali, setHamali] = useState(0);
-  const [lines, setLines] = useState<EstimateLineInput[]>([newLine(initialCatalog)]);
+  // Items already added to the estimate, and the one being filled in (like the workbook's item panel).
+  const [lines, setLines] = useState<EstimateLineInput[]>([]);
+  const [draft, setDraft] = useState<EstimateLineInput>(() => newLine(initialCatalog));
+  const [editIdx, setEditIdx] = useState<number | null>(null);
   const [sourceQuoteId, setSourceQuoteId] = useState("");
   const [manageOpen, setManageOpen] = useState(false);
   const [pending, startTransition] = useTransition();
 
+  const client = clients.find((c) => c.id === clientId);
   const totals = useMemo(
     () => calcEstimate(lines, { discountPct, transport, hamali, gstRate }),
     [lines, discountPct, transport, hamali, gstRate]
   );
+  const d = calcEstimateLine(draft);
 
-  const patch = (i: number, p: Partial<EstimateLineInput>) =>
-    setLines((ls) => ls.map((l, idx) => (idx === i ? { ...l, ...p } : l)));
+  const patchDraft = (p: Partial<EstimateLineInput>) => setDraft((cur) => ({ ...cur, ...p }));
 
   async function addOption(key: CatalogKey, value: string): Promise<boolean> {
     const v = value.trim();
@@ -153,10 +158,44 @@ export function EstimateManager({
     return true;
   }
 
-  async function onCatalogChange(i: number, key: CatalogKey, value: string) {
-    if (value !== CUSTOM) return patch(i, { [FIELD_OF[key]]: value } as Partial<EstimateLineInput>);
+  async function onCatalogChange(key: CatalogKey, value: string) {
+    if (value !== CUSTOM) return patchDraft({ [FIELD_OF[key]]: value } as Partial<EstimateLineInput>);
     const v = window.prompt(`New ${CATALOG_LABEL[key]} — enter:`);
-    if (v && (await addOption(key, v))) patch(i, { [FIELD_OF[key]]: v.trim() } as Partial<EstimateLineInput>);
+    if (v && (await addOption(key, v))) patchDraft({ [FIELD_OF[key]]: v.trim() } as Partial<EstimateLineInput>);
+  }
+
+  function resetDraft() {
+    // Keep the dropdown choices (most items on a site share material/glass/shade); clear the numbers.
+    setDraft((cur) => ({ ...cur, height: "", length: "", qty: 1, rate: 0 }));
+    setEditIdx(null);
+  }
+
+  function addItem() {
+    if (!d.heightIn || !d.lengthIn) {
+      toast.error("Enter Height and Length in inches (e.g. 45 3/8).");
+      return;
+    }
+    if (!(d.qty > 0)) {
+      toast.error("Qty must be at least 1.");
+      return;
+    }
+    if (editIdx !== null) {
+      setLines((ls) => ls.map((l, i) => (i === editIdx ? draft : l)));
+      toast.success(`Item ${editIdx + 1} updated.`);
+    } else {
+      setLines((ls) => [...ls, draft]);
+    }
+    resetDraft();
+  }
+
+  function editItem(i: number) {
+    setDraft(lines[i]);
+    setEditIdx(i);
+  }
+
+  function removeItem(i: number) {
+    setLines((ls) => ls.filter((_, idx) => idx !== i));
+    if (editIdx === i) resetDraft();
   }
 
   function loadQuote(id: string) {
@@ -168,11 +207,19 @@ export function EstimateManager({
     setWorkType(q.work_type ?? WORK_TYPES[0]);
     setSite(q.site_name ?? "");
     setNote(q.note ?? "");
-    setLines([newLine(catalog)]);
-    toast.info("Client / Site / Work Type loaded. Quotation descriptions were not copied — select Estimate items separately.");
+    setLines([]);
+    setDraft(newLine(catalog));
+    setEditIdx(null);
+    toast.info("Client / Site / Work Category loaded. Quotation descriptions were not copied — add Estimate items separately.");
   }
 
   function save() {
+    if (!lines.length) {
+      toast.error(
+        draft.height || draft.length ? "Press “Add Item” to add the item you filled in, then save." : "Add at least one item."
+      );
+      return;
+    }
     startTransition(async () => {
       const res = await saveEstimate(
         { no, date, clientId, siteName: site, workType, note, sourceQuoteId, discountPct, transport, hamali, gstRate },
@@ -183,7 +230,9 @@ export function EstimateManager({
         return;
       }
       toast.success("Estimate saved.");
-      setLines([newLine(catalog)]);
+      setLines([]);
+      setDraft(newLine(catalog));
+      setEditIdx(null);
       setSite("");
       setNote("");
       setSourceQuoteId("");
@@ -203,27 +252,26 @@ export function EstimateManager({
     });
   }
 
-  const catSelect = (l: EstimateLineInput, i: number, key: CatalogKey) => (
-    <select
-      className={selectCls}
-      value={l[FIELD_OF[key]] as string}
-      onChange={(e) => onCatalogChange(i, key, e.target.value)}
-    >
-      {(catalog[key] ?? []).map((o) => (
-        <option key={o}>{o}</option>
-      ))}
-      {!(catalog[key] ?? []).includes(l[FIELD_OF[key]] as string) && l[FIELD_OF[key]] && (
-        <option>{l[FIELD_OF[key]] as string}</option>
-      )}
-      <option value={CUSTOM}>+ Add new option…</option>
-    </select>
-  );
+  const catSelect = (key: CatalogKey) => {
+    const v = draft[FIELD_OF[key]] as string;
+    return (
+      <select className={selectCls} value={v} onChange={(e) => onCatalogChange(key, e.target.value)}>
+        {(catalog[key] ?? []).map((o) => (
+          <option key={o}>{o}</option>
+        ))}
+        {!(catalog[key] ?? []).includes(v) && v && <option>{v}</option>}
+        <option value={CUSTOM}>+ Add new option…</option>
+      </select>
+    );
+  };
+
+  const readOnly = "bg-[var(--bg-2)] text-[var(--text-secondary)]";
 
   return (
     <div className="space-y-6">
       {setup && <SetupNotice />}
 
-      <div className="rounded-xl border border-[var(--border)] bg-white p-4 space-y-4">
+      <div className="rounded-xl border border-[var(--border)] bg-white p-4 space-y-5">
         <h2 className="font-semibold text-sm">Create Estimate</h2>
 
         <Field label="Create Estimate from an existing Quotation (optional)">
@@ -237,14 +285,9 @@ export function EstimateManager({
           </select>
         </Field>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <Field label="Document Number">
-            <Input value={no} onChange={(e) => setNo(e.target.value)} />
-          </Field>
-          <Field label="Date">
-            <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-          </Field>
-          <Field label="Client">
+        {/* Client block */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <Field label="Client Name" className="sm:col-span-2 lg:col-span-1">
             <ClientPicker
               clients={clients}
               value={clientId}
@@ -252,151 +295,209 @@ export function EstimateManager({
               onCreated={(c) => setClients((cs) => [...cs, c].sort((a, b) => a.name.localeCompare(b.name)))}
             />
           </Field>
-          <Field label="Site Name">
-            <Input value={site} placeholder="Site / Project Name" onChange={(e) => setSite(e.target.value)} />
+          <Field label="Mobile Number">
+            <Input value={client?.phone ?? ""} readOnly placeholder="Select a client" className={readOnly} />
           </Field>
-          <Field label="Work Type">
+          <Field label="Client Address">
+            <Input value={client?.address ?? ""} readOnly placeholder="Select a client" className={readOnly} />
+          </Field>
+          <Field label="Work Category">
             <select className={selectCls} value={workType} onChange={(e) => setWorkType(e.target.value)}>
               {WORK_TYPES.map((w) => (
                 <option key={w}>{w}</option>
               ))}
             </select>
           </Field>
-          <Field label="GST % (Estimate)">
-            <select className={selectCls} value={gstRate} onChange={(e) => setGstRate(Number(e.target.value))}>
-              {GST_RATES.map((g) => (
-                <option key={g} value={g}>
-                  {g === 0 ? "0% / Non-GST" : `${g}%`}
-                </option>
-              ))}
-            </select>
+          <Field label="Date">
+            <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
           </Field>
-          <Field label="Notes / Terms" className="md:col-span-3">
+          <Field label="Estimate Number">
+            <Input value={no} onChange={(e) => setNo(e.target.value)} />
+          </Field>
+          <Field label="Site Name">
+            <Input value={site} placeholder="Site / Project Name" onChange={(e) => setSite(e.target.value)} />
+          </Field>
+          <Field label="Notes / Terms" className="sm:col-span-2 lg:col-span-2">
             <Input value={note} placeholder="Notes / Terms" onChange={(e) => setNote(e.target.value)} />
           </Field>
         </div>
 
-        <p className="rounded-md border-l-4 border-amber-400 bg-amber-50 px-3 py-2 text-sm">
-          Measurement rules: type inches as fractions (45 3/8, 45-3/8, 45½) or decimals (45.375). &quot;45 1&quot; is read as 45 + 1/8
-          inch. Each dimension is rounded up to the next half-foot — 62.25″ → 5.5 ft, 68.5″ → 6 ft. Sq.Ft. = Height(ft)
-          × Length(ft) × Qty.
-        </p>
+        {/* Item panel */}
+        <div className="rounded-lg border border-[var(--border)] p-4 space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="font-semibold text-sm uppercase tracking-wide">
+              {editIdx !== null ? `Edit Item ${editIdx + 1}` : `${workType} Work Details`}
+            </p>
+            <Button type="button" variant="ghost" size="sm" onClick={() => setManageOpen(true)}>
+              <Settings2 className="size-4" /> Manage dropdown options
+            </Button>
+          </div>
 
-        <div className="overflow-x-auto">
-          <Table className="min-w-[1500px]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+            <Field label="Material">{catSelect("material")}</Field>
+            <Field label="Floor Type">{catSelect("floor")}</Field>
+            <Field label="Product / Type">{catSelect("product")}</Field>
+            <Field label="Glass Type">{catSelect("glass")}</Field>
+            <Field label="Shade Type">{catSelect("shade")}</Field>
+            <Field label="Sheet Type">{catSelect("sheet")}</Field>
+            <Field label="Height (Inch)">
+              <Input
+                type="text"
+                inputMode="text"
+                autoComplete="off"
+                placeholder="e.g. 45 3/8"
+                value={draft.height}
+                onChange={(e) => patchDraft({ height: e.target.value })}
+              />
+              <p className="text-[11px] text-[var(--text-muted)]">{describeInches(draft.height)}</p>
+            </Field>
+            <Field label="Length (Inch)">
+              <Input
+                type="text"
+                inputMode="text"
+                autoComplete="off"
+                placeholder="e.g. 62½"
+                value={draft.length}
+                onChange={(e) => patchDraft({ length: e.target.value })}
+              />
+              <p className="text-[11px] text-[var(--text-muted)]">{describeInches(draft.length)}</p>
+            </Field>
+            <Field label="Height (Ft)">
+              <Input value={d.heightIn ? d.heightFt : ""} readOnly tabIndex={-1} className={readOnly} />
+            </Field>
+            <Field label="Length (Ft)">
+              <Input value={d.lengthIn ? d.lengthFt : ""} readOnly tabIndex={-1} className={readOnly} />
+            </Field>
+            <Field label="Size">
+              <Input value={sizeAsWritten(d)} readOnly tabIndex={-1} className={readOnly} />
+            </Field>
+            <Field label="Qty">
+              <Input type="number" min="1" value={draft.qty || ""} placeholder="1" onChange={(e) => patchDraft({ qty: Number(e.target.value) })} />
+            </Field>
+            <Field label="Sq. Ft.">
+              <Input value={d.sqft ? d.sqft.toFixed(2) : ""} readOnly tabIndex={-1} className={readOnly} />
+            </Field>
+            <Field label="Unit">
+              <select className={selectCls} value={draft.unit} onChange={(e) => patchDraft({ unit: e.target.value })}>
+                {UNITS.map((u) => (
+                  <option key={u}>{u}</option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Rate ₹">
+              <Input type="number" min="0" step="0.01" placeholder="0" value={draft.rate || ""} onChange={(e) => patchDraft({ rate: Number(e.target.value) })} />
+            </Field>
+            <Field label="Amount ₹">
+              <Input value={d.amount ? fmt(d.amount) : ""} readOnly tabIndex={-1} className={`${readOnly} font-semibold`} />
+            </Field>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" onClick={addItem}>
+              <Plus className="size-4" /> {editIdx !== null ? "Update Item" : "Add Item"}
+            </Button>
+            {editIdx !== null && (
+              <Button type="button" variant="outline" onClick={resetDraft}>
+                Cancel edit
+              </Button>
+            )}
+          </div>
+          <p className="text-xs text-[var(--text-muted)]">
+            Type inches as fractions (45 3/8, 45-3/8, 45½) or decimals. Each dimension is rounded up to the next half-foot
+            for Sq.Ft.; documents print the size exactly as you typed it.
+          </p>
+        </div>
+
+        {/* Added items */}
+        <div className="rounded-lg border border-[var(--border)] overflow-hidden">
+          <Table>
             <TableHeader>
               <TableRow>
-                {["Product Type", "Sheet Type", "Material Type", "Glass Type", "Shade Type", "Floor Type", "Height (inch)", "Length (inch)", "Qty", "Height (ft)", "Length (ft)", "Sq.Ft.", "Unit", "Rate ₹", "Amount ₹", ""].map(
-                  (h, i) => (
-                    <TableHead key={i} className="whitespace-normal">
-                      {h}
-                    </TableHead>
-                  )
-                )}
+                <TableHead className="w-10">#</TableHead>
+                <TableHead>Product</TableHead>
+                <TableHead>Material / Glass</TableHead>
+                <TableHead>Size</TableHead>
+                <TableHead className="text-right">Qty</TableHead>
+                <TableHead className="text-right">Sq.Ft.</TableHead>
+                <TableHead className="text-right">Rate</TableHead>
+                <TableHead className="text-right">Amount</TableHead>
+                <TableHead className="w-24" />
               </TableRow>
             </TableHeader>
             <TableBody>
               {lines.map((l, i) => {
                 const c = calcEstimateLine(l);
                 return (
-                  <TableRow key={i}>
-                    <TableCell className="min-w-36">{catSelect(l, i, "product")}</TableCell>
-                    <TableCell className="min-w-28">{catSelect(l, i, "sheet")}</TableCell>
-                    <TableCell className="min-w-32">{catSelect(l, i, "material")}</TableCell>
-                    <TableCell className="min-w-40">{catSelect(l, i, "glass")}</TableCell>
-                    <TableCell className="min-w-32">{catSelect(l, i, "shade")}</TableCell>
-                    <TableCell className="min-w-32">{catSelect(l, i, "floor")}</TableCell>
-                    <TableCell className="min-w-28">
-                      <Input
-                        type="text"
-                        inputMode="text"
-                        autoComplete="off"
-                        placeholder="e.g. 45 3/8"
-                        value={l.height}
-                        onChange={(e) => patch(i, { height: e.target.value })}
-                      />
-                      <p className="mt-1 text-[11px] text-[var(--text-muted)] whitespace-nowrap">{describeInches(l.height)}</p>
+                  <TableRow key={i} className={editIdx === i ? "bg-blue-50" : ""}>
+                    <TableCell>{i + 1}</TableCell>
+                    <TableCell className="font-medium">{l.productType}</TableCell>
+                    <TableCell className="text-[var(--text-muted)]">
+                      {[l.materialType, l.glassType].filter(Boolean).join(" · ")}
                     </TableCell>
-                    <TableCell className="min-w-28">
-                      <Input
-                        type="text"
-                        inputMode="text"
-                        autoComplete="off"
-                        placeholder="e.g. 45 3/8"
-                        value={l.length}
-                        onChange={(e) => patch(i, { length: e.target.value })}
-                      />
-                      <p className="mt-1 text-[11px] text-[var(--text-muted)] whitespace-nowrap">{describeInches(l.length)}</p>
-                    </TableCell>
-                    <TableCell className="min-w-20">
-                      <Input type="number" min="1" value={l.qty} onChange={(e) => patch(i, { qty: Number(e.target.value) })} />
-                    </TableCell>
-                    <TableCell>{c.heightFt.toFixed(2)}</TableCell>
-                    <TableCell>{c.lengthFt.toFixed(2)}</TableCell>
-                    <TableCell>{c.sqft.toFixed(2)}</TableCell>
-                    <TableCell className="min-w-24">
-                      <select className={selectCls} value={l.unit} onChange={(e) => patch(i, { unit: e.target.value })}>
-                        {UNITS.map((u) => (
-                          <option key={u}>{u}</option>
-                        ))}
-                      </select>
-                    </TableCell>
-                    <TableCell className="min-w-28">
-                      <Input type="number" min="0" step="0.01" placeholder="0" value={l.rate || ""} onChange={(e) => patch(i, { rate: Number(e.target.value) })} />
-                    </TableCell>
-                    <TableCell className="font-medium whitespace-nowrap">{fmt(c.amount)}</TableCell>
+                    <TableCell className="whitespace-nowrap">{sizeAsWritten(c)}</TableCell>
+                    <TableCell className="text-right">{c.qty}</TableCell>
+                    <TableCell className="text-right">{c.sqft.toFixed(2)}</TableCell>
+                    <TableCell className="text-right">{fmt(c.rate)}</TableCell>
+                    <TableCell className="text-right font-medium">{fmt(c.amount)}</TableCell>
                     <TableCell>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon-sm"
-                        disabled={lines.length === 1}
-                        onClick={() => setLines((ls) => ls.filter((_, idx) => idx !== i))}
-                      >
-                        <X className="size-4" />
-                      </Button>
+                      <div className="flex justify-end gap-1">
+                        <Button type="button" variant="ghost" size="icon-sm" title="Edit item" onClick={() => editItem(i)}>
+                          <Pencil className="size-3.5" />
+                        </Button>
+                        <Button type="button" variant="ghost" size="icon-sm" title="Remove item" onClick={() => removeItem(i)}>
+                          <X className="size-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 );
               })}
+              {lines.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={9} className="text-center text-[var(--text-muted)] py-6">
+                    No items yet — fill in the item details above and press “Add Item”.
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <Button type="button" variant="outline" onClick={() => setLines((ls) => [...ls, newLine(catalog)])}>
-            <Plus className="size-4" /> Add Estimate Item
-          </Button>
-          <Button type="button" variant="outline" onClick={() => setManageOpen(true)}>
-            <Settings2 className="size-4" /> Manage Items / Add Dropdown Options
-          </Button>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-3xl">
-          <Field label="Discount (%)">
-            <Input type="number" min="0" max="100" step="0.01" placeholder="0" value={discountPct || ""} onChange={(e) => setDiscountPct(Number(e.target.value))} />
-          </Field>
-          <Field label="Transport ₹">
-            <Input type="number" min="0" step="0.01" placeholder="0" value={transport || ""} onChange={(e) => setTransport(Number(e.target.value))} />
-          </Field>
-          <Field label="Hamali ₹">
-            <Input type="number" min="0" step="0.01" placeholder="0" value={hamali || ""} onChange={(e) => setHamali(Number(e.target.value))} />
-          </Field>
-        </div>
-
-        <div className="text-right text-sm font-medium space-y-0.5">
-          <div>Subtotal: {money(totals.subtotal)}</div>
-          <div>
-            Discount ({totals.discountPct}%): − {money(totals.discount)}
+        {/* Charges + totals */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Transport ₹">
+              <Input type="number" min="0" step="0.01" placeholder="0" value={transport || ""} onChange={(e) => setTransport(Number(e.target.value))} />
+            </Field>
+            <Field label="Hamali ₹">
+              <Input type="number" min="0" step="0.01" placeholder="0" value={hamali || ""} onChange={(e) => setHamali(Number(e.target.value))} />
+            </Field>
+            <Field label="GST">
+              <select className={selectCls} value={gstRate} onChange={(e) => setGstRate(Number(e.target.value))}>
+                {GST_RATES.map((g) => (
+                  <option key={g} value={g}>
+                    {g === 0 ? "0% / Non-GST" : `${g}%`}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Discount (%)">
+              <Input type="number" min="0" max="100" step="0.01" placeholder="0" value={discountPct || ""} onChange={(e) => setDiscountPct(Number(e.target.value))} />
+            </Field>
           </div>
-          <div>After Discount: {money(totals.afterDiscount)}</div>
-          <div>Transport: {money(totals.transport)}</div>
-          <div>Hamali: {money(totals.hamali)}</div>
-          <div>Taxable Amount: {money(totals.taxable)}</div>
-          <div>
-            GST ({totals.gstRate}%): {money(totals.tax)}
+
+          <div className="rounded-lg bg-[var(--bg-2)] p-4 text-sm space-y-1">
+            <Row label="Subtotal" value={money(totals.subtotal)} />
+            {totals.discount > 0 && <Row label={`Discount (${totals.discountPct}%)`} value={`− ${money(totals.discount)}`} />}
+            {totals.transport > 0 && <Row label="Transport" value={money(totals.transport)} />}
+            {totals.hamali > 0 && <Row label="Hamali" value={money(totals.hamali)} />}
+            <Row label="Taxable Amount" value={money(totals.taxable)} />
+            <Row label={`GST (${totals.gstRate}%)`} value={money(totals.tax)} />
+            <div className="flex justify-between border-t border-[var(--border)] pt-2 text-base font-semibold">
+              <span>Total Amount</span>
+              <span>{money(totals.total)}</span>
+            </div>
           </div>
-          <div className="text-lg font-semibold">Total Amount: {money(totals.total)}</div>
         </div>
 
         <div className="flex flex-wrap gap-2">
@@ -461,6 +562,15 @@ export function EstimateManager({
       </div>
 
       <ManageItemsDialog open={manageOpen} onOpenChange={setManageOpen} catalog={catalog} onAdd={addOption} />
+    </div>
+  );
+}
+
+function Row({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex justify-between">
+      <span className="text-[var(--text-muted)]">{label}</span>
+      <span>{value}</span>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { loadRevenue } from "@/lib/revenue";
 
 export type BreakdownCategory = "revenue" | "labour" | "vendor";
 
@@ -28,8 +29,8 @@ type Row = {
 /**
  * Party-wise detail behind a Revenue / Labour / Vendor figure for a date range — the numbers
  * the Monthly Performance table adds up, grouped by who they came from:
- *  - Revenue = work billed to clients (incl. Estimates confirmed as Detail Sheets;
- *    quotations, unconfirmed estimates and invoices are not counted, so nothing is earned twice)
+ *  - Revenue = ledger work billed to clients + invoices (taxable value). Estimates/Detail Sheets
+ *    and quotations never count — an estimate counts only through the invoice made from it.
  *  - Labour  = labour work entries
  *  - Vendor  = vendor bills
  * `fyOnly` mirrors the FY-month rows, which only include entries tagged to the active financial year.
@@ -40,11 +41,6 @@ export async function getBreakdown(from: string, to: string, fyOnly: boolean): P
     ? (await supabase.from("financial_years").select("id").eq("is_active", true).maybeSingle()).data?.id ?? null
     : null;
 
-  let work = supabase
-    .from("client_work")
-    .select("client_id, amount, work_date, description, bill_no, clients(name)")
-    .gte("work_date", from)
-    .lte("work_date", to);
   let labourQ = supabase
     .from("labour_work")
     .select("labourer_id, amount, work_date, description, labourers(name)")
@@ -56,21 +52,21 @@ export async function getBreakdown(from: string, to: string, fyOnly: boolean): P
     .gte("bill_date", from)
     .lte("bill_date", to);
   if (fyId) {
-    work = work.eq("financial_year_id", fyId);
     labourQ = labourQ.eq("financial_year_id", fyId);
     billsQ = billsQ.eq("financial_year_id", fyId);
   }
-  const [workRes, labour, bills] = await Promise.all([work, labourQ, billsQ]);
+  const [revenueRows, labour, bills] = await Promise.all([loadRevenue(supabase, { from, to }), labourQ, billsQ]);
 
-  type W = { client_id: string; amount: number; work_date: string; description: string; bill_no: string | null; clients: { name: string } | null };
   type L = { labourer_id: string; amount: number; work_date: string; description: string; labourers: { name: string } | null };
   type V = { vendor_id: string; amount: number; bill_date: string; description: string; bill_no: string | null; vendors: { name: string } | null };
 
   return {
     revenue: group(
-      ((workRes.data ?? []) as unknown as W[]).map((r) => ({
-        entity: r.client_id, name: r.clients?.name ?? null, date: r.work_date, description: r.description, billNo: r.bill_no, amount: Number(r.amount),
-      })),
+      revenueRows
+        .filter((r) => !fyId || r.financial_year_id === fyId)
+        .map((r) => ({
+          entity: r.client_id, name: r.client_name, date: r.work_date, description: r.description, billNo: r.bill_no, amount: r.amount,
+        })),
       "/admin/clients/"
     ),
     labour: group(

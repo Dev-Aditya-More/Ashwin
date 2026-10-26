@@ -11,7 +11,7 @@ type Cat = BreakdownCategory | "net";
 
 const TITLE: Record<Cat, string> = { revenue: "Revenue", labour: "Labour", vendor: "Vendor", net: "Net" };
 const HINT: Record<Cat, string> = {
-  revenue: "Work billed to clients (confirmed Detail Sheets included; quotations, unconfirmed estimates and invoices are not).",
+  revenue: "Work billed in client ledgers plus invoices (before GST). Estimates and quotations are not counted until invoiced.",
   labour: "Labour work entries.",
   vendor: "Bills received from vendors.",
   net: "Revenue minus labour and vendor costs.",

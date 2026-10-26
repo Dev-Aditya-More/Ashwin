@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { loadRevenue } from "@/lib/revenue";
 import type {
   ClientBalance,
   LabourBalance,
@@ -75,7 +76,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     supabase.from("clients").select("id, name"),
     supabase.from("labourers").select("id, name"),
     supabase.from("vendors").select("id, name"),
-    supabase.from("client_work").select("amount, work_date, financial_year_id"),
+    loadRevenue(supabase),
     supabase.from("labour_work").select("amount, work_date, financial_year_id"),
     supabase.from("vendor_bills").select("amount, bill_date, financial_year_id"),
     supabase
@@ -89,7 +90,7 @@ export async function getDashboardData(): Promise<DashboardData> {
   const startDate = activeFy.data?.start_date ?? "1970-01-01";
   const endDate = activeFy.data?.end_date ?? "2999-12-31";
 
-  const clientWorkFy = (clientWork.data ?? []).filter((r) => r.financial_year_id === fyId);
+  const clientWorkFy = clientWork.filter((r) => r.financial_year_id === fyId);
   const labourWorkFy = (labourWork.data ?? []).filter((r) => r.financial_year_id === fyId);
   const vendorBillsFy = (vendorBills.data ?? []).filter((r) => r.financial_year_id === fyId);
 
@@ -239,7 +240,7 @@ export async function getDailyPerformance(from: string, to: string): Promise<Dai
   const supabase = await createClient();
 
   const [clientWork, labourWork, vendorBills] = await Promise.all([
-    supabase.from("client_work").select("amount, work_date").gte("work_date", from).lte("work_date", to),
+    loadRevenue(supabase, { from, to }),
     supabase.from("labour_work").select("amount, work_date").gte("work_date", from).lte("work_date", to),
     supabase.from("vendor_bills").select("amount, bill_date").gte("bill_date", from).lte("bill_date", to),
   ]);
@@ -260,7 +261,7 @@ export async function getDailyPerformance(from: string, to: string): Promise<Dai
     cursor.setDate(cursor.getDate() + 1);
   }
 
-  (clientWork.data ?? []).forEach((r) => {
+  clientWork.forEach((r) => {
     const d = days.get(r.work_date);
     if (d) d.revenue += Number(r.amount);
   });
@@ -289,7 +290,7 @@ export async function getMonthlyPerformance(): Promise<MonthlyRow[]> {
 
   const [activeFy, clientWork, labourWork, vendorBills] = await Promise.all([
     supabase.from("financial_years").select("id, start_date, end_date").eq("is_active", true).maybeSingle(),
-    supabase.from("client_work").select("amount, work_date, financial_year_id"),
+    loadRevenue(supabase),
     supabase.from("labour_work").select("amount, work_date, financial_year_id"),
     supabase.from("vendor_bills").select("amount, bill_date, financial_year_id"),
   ]);
@@ -301,7 +302,7 @@ export async function getMonthlyPerformance(): Promise<MonthlyRow[]> {
   return buildMonthlySeries(
     startDate,
     endDate,
-    (clientWork.data ?? []).filter((r) => r.financial_year_id === fyId),
+    clientWork.filter((r) => r.financial_year_id === fyId),
     (labourWork.data ?? []).filter((r) => r.financial_year_id === fyId),
     (vendorBills.data ?? []).filter((r) => r.financial_year_id === fyId)
   );
