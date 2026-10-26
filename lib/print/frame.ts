@@ -83,16 +83,50 @@ function neutraliseLinks(d: Document) {
 
 export type PrintOptions = { title?: string; widthMm?: number; fit?: FitOptions };
 
-export function printHtmlInFrame(rawHtml: string, titleOrOpts?: string | PrintOptions) {
-  const opts: PrintOptions = typeof titleOrOpts === "string" ? { title: titleOrOpts } : titleOrOpts ?? {};
-  const title = opts.title;
+export type CapturedDocument = { html: string; opts: PrintOptions };
+let capturing: ((doc: CapturedDocument) => void) | null = null;
+
+/**
+ * Runs a print function but, instead of opening the print preview, hands back the document it
+ * would have printed — so the same templates also produce shareable PDFs.
+ */
+export function captureDocument(run: () => void): CapturedDocument | null {
+  let doc: CapturedDocument | null = null;
+  capturing = (d) => {
+    doc = d;
+  };
+  try {
+    run();
+  } finally {
+    capturing = null;
+  }
+  return doc;
+}
+
+/** Strip scripts and add the device-independence / no-auto-link head tags every document gets. */
+export function prepareHtml(rawHtml: string): string {
   // Stop phones/PDF viewers turning phone numbers, e-mails and dates into tappable links.
-  const html = String(rawHtml)
+  return String(rawHtml)
     .replace(/<script[\s\S]*?<\/script>/gi, "")
     .replace(
       /<head>/i,
-      '<head><meta name="format-detection" content="telephone=no,date=no,address=no,email=no">'
+      '<head><meta name="format-detection" content="telephone=no,date=no,address=no,email=no">' +
+        '<meta name="viewport" content="width=device-width, initial-scale=1">' +
+        // Never let a logo, long word or wide table push past the page edge on any device.
+        "<style>img{max-width:100%}table{max-width:100%}td,th{overflow-wrap:anywhere}" +
+        "@media print{html{-webkit-text-size-adjust:100%;text-size-adjust:100%}}</style>"
     );
+}
+
+export function printHtmlInFrame(rawHtml: string, titleOrOpts?: string | PrintOptions) {
+  const opts: PrintOptions = typeof titleOrOpts === "string" ? { title: titleOrOpts } : titleOrOpts ?? {};
+  const title = opts.title;
+  if (capturing) {
+    // Someone asked for this document as a file (Share → PDF) instead of a print preview.
+    capturing({ html: rawHtml, opts });
+    return;
+  }
+  const html = prepareHtml(rawHtml);
   document.getElementById("printFrame")?.remove();
 
   const f = document.createElement("iframe");

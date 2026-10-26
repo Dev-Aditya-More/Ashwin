@@ -5,6 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { printInvoice } from "@/components/admin/docs/InvoiceManager";
 import type { GstInvoice } from "@/lib/doc-types";
 import { formatDate, formatMoney } from "@/lib/format";
+import { SharePdfButton } from "@/components/admin/docs/SharePdfButton";
 
 /** Both companies' bills for a client in one list. They do not change the ledger balance (no double counting). */
 export function ClientBills({ bills }: { bills: GstInvoice[] }) {
@@ -37,10 +38,13 @@ export function ClientBills({ bills }: { bills: GstInvoice[] }) {
                   {b.invoice_type === "Non-GST" ? "ARNAV GLASS SERVICES (Non-GST)" : "ASHWIN ENTERPRISES (GST)"}
                 </TableCell>
                 <TableCell className="text-right">{formatMoney(Number(b.total))}</TableCell>
-                <TableCell className="text-right">
-                  <Button size="sm" variant="outline" onClick={() => printInvoice(b)}>
-                    View / Print
-                  </Button>
+                <TableCell>
+                  <div className="flex justify-end gap-1">
+                    <Button size="sm" variant="outline" onClick={() => printInvoice(b)}>
+                      View / Print
+                    </Button>
+                    <SharePdfButton print={() => printInvoice(b)} title={`${b.client?.name ?? ""} ${b.no}`} compact />
+                  </div>
                 </TableCell>
               </TableRow>
             ))}

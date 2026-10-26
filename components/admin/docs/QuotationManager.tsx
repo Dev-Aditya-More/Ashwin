@@ -15,6 +15,7 @@ import { UNITS, type QuoteLine } from "@/lib/doc-calc";
 import type { DocClient, Quotation } from "@/lib/doc-types";
 import { printQuotationOrEstimate } from "@/lib/print/documents";
 import { formatDate } from "@/lib/format";
+import { SharePdfButton } from "@/components/admin/docs/SharePdfButton";
 
 const blank = (): QuoteLine => ({ name: "", unit: "Sq.Ft.", rate: 0 });
 const today = () => todayIST();
@@ -200,6 +201,7 @@ export function QuotationManager({
                       <Button size="sm" variant="outline" onClick={() => printQuotation(q)}>
                         View / Print
                       </Button>
+                      <SharePdfButton print={() => printQuotation(q)} title={`${q.client?.name ?? ""} Q-${q.no}`} />
                       <DeleteRowButton
                         what="quotation"
                         action={async () => {

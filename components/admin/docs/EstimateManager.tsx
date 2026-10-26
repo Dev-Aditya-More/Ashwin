@@ -4,6 +4,8 @@ import { todayIST } from "@/lib/today";
 
 import { useMemo, useState, useTransition } from "react";
 import { Loader2, Pencil, Plus, Printer, Settings2, X } from "lucide-react";
+import { SharePdfButton } from "@/components/admin/docs/SharePdfButton";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +25,7 @@ import {
   deleteDocument,
   getNextDocNo,
   saveEstimate,
+  updateEstimate,
 } from "@/lib/actions/documents";
 import {
   CATALOG_KEYS,
@@ -32,7 +35,10 @@ import {
   calcEstimate,
   calcEstimateLine,
   describeInches,
+  lineToInput,
+  sameItemKey,
   sizeAsWritten,
+  sizeInFeet,
   type CatalogKey,
   type EstimateLineInput,
 } from "@/lib/doc-calc";
@@ -107,6 +113,23 @@ export function openDetailSheet(e: Estimate) {
   printDetailSheet(estimatePrintDoc(e), e.lines);
 }
 
+function formFrom(e: Estimate) {
+  const inputs = (e.lines ?? []).map(lineToInput);
+  const isFees = inputs.length > 0 && inputs.every((l) => l.lumpSum);
+  return {
+    no: e.no,
+    date: e.doc_date,
+    clientId: e.client_id,
+    site: e.site_name ?? "",
+    workType: e.work_type ?? "Glass & Aluminium",
+    note: e.note ?? "",
+    gstRate: Number(e.gst_rate) || 0,
+    discountPct: Number(e.discount_pct) || 0,
+    lines: isFees ? [] : inputs,
+    fees: isFees ? Object.fromEntries(inputs.map((l) => [l.productType, (Number(l.rate) || 0) * (Number(l.qty) || 1)])) : {},
+  };
+}
+
 export function EstimateManager({
   initialClients,
   initialNo,
@@ -114,6 +137,7 @@ export function EstimateManager({
   rows,
   quotations,
   setup,
+  editing,
 }: {
   initialClients: DocClient[];
   initialNo: string;
@@ -121,24 +145,31 @@ export function EstimateManager({
   rows: Estimate[];
   quotations: Quotation[];
   setup: boolean;
+  /** Opened from a client's ledger with ?edit=<id>: start with that estimate loaded. */
+  editing?: Estimate | null;
 }) {
+  const router = useRouter();
+  const init = editing ? formFrom(editing) : null;
+  const [editingId, setEditingId] = useState<string | null>(editing?.id ?? null);
+  const [editingConfirmed, setEditingConfirmed] = useState(!!editing?.confirmed_at);
   const [clients, setClients] = useState(initialClients);
   const [catalog, setCatalog] = useState(initialCatalog);
-  const [no, setNo] = useState(initialNo);
-  const [date, setDate] = useState(today());
-  const [clientId, setClientId] = useState("");
-  const [site, setSite] = useState("");
-  const [workType, setWorkType] = useState("Glass & Aluminium");
-  const [note, setNote] = useState("");
-  const [gstRate, setGstRate] = useState(18);
-  const [discountPct, setDiscountPct] = useState(0);
-  const [transport, setTransport] = useState(0);
-  const [hamali, setHamali] = useState(0);
+  const [no, setNo] = useState(init?.no ?? initialNo);
+  const [date, setDate] = useState(init?.date ?? today());
+  const [clientId, setClientId] = useState(init?.clientId ?? "");
+  const [site, setSite] = useState(init?.site ?? "");
+  const [workType, setWorkType] = useState(init?.workType ?? "Glass & Aluminium");
+  const [note, setNote] = useState(init?.note ?? "");
+  const [gstRate, setGstRate] = useState(init?.gstRate ?? 18);
+  const [discountPct, setDiscountPct] = useState(init?.discountPct ?? 0);
+  // Transport and Hamali are no longer entered on estimates (older saved ones still print theirs).
+  const transport = 0;
+  const hamali = 0;
   // Items already added to the estimate, and the one being filled in (like the workbook's item panel).
-  const [lines, setLines] = useState<EstimateLineInput[]>([]);
+  const [lines, setLines] = useState<EstimateLineInput[]>(init?.lines ?? []);
   const [draft, setDraft] = useState<EstimateLineInput>(() => newLine(initialCatalog));
   const [editIdx, setEditIdx] = useState<number | null>(null);
-  const [fees, setFees] = useState<Record<string, number>>({});
+  const [fees, setFees] = useState<Record<string, number>>(init?.fees ?? {});
   const [sourceQuoteId, setSourceQuoteId] = useState("");
   const [manageOpen, setManageOpen] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -204,7 +235,16 @@ export function EstimateManager({
       setLines((ls) => ls.map((l, i) => (i === editIdx ? draft : l)));
       toast.success(`Item ${editIdx + 1} updated.`);
     } else {
-      setLines((ls) => [...ls, draft]);
+      // The same item again (same product, finish, size and rate) just raises the Qty of the existing line.
+      const k = sameItemKey(draft);
+      const at = lines.findIndex((l) => sameItemKey(l) === k);
+      if (at >= 0) {
+        const qty = (Number(lines[at].qty) || 0) + (Number(draft.qty) || 0);
+        setLines((ls) => ls.map((l, i) => (i === at ? { ...l, qty } : l)));
+        toast.success(`Same item already added — Qty of item ${at + 1} is now ${qty}.`);
+      } else {
+        setLines((ls) => [...ls, draft]);
+      }
     }
     resetDraft();
   }
@@ -246,27 +286,54 @@ export function EstimateManager({
       return;
     }
     startTransition(async () => {
-      const res = await saveEstimate(
-        { no, date, clientId, siteName: site, workType, note, sourceQuoteId, discountPct, transport, hamali, gstRate },
-        docLines
-      );
+      const header = { no, date, clientId, siteName: site, workType, note, discountPct, transport, hamali, gstRate };
+      const res = editingId
+        ? await updateEstimate(editingId, header, docLines)
+        : await saveEstimate({ ...header, sourceQuoteId }, docLines);
       if (!res.ok) {
         toast.error(res.error);
         return;
       }
-      toast.success("Estimate saved.");
-      setLines([]);
-      setFees({});
-      setDraft(newLine(catalog));
-      setEditIdx(null);
-      setSite("");
-      setNote("");
-      setSourceQuoteId("");
-      setDiscountPct(0);
-      setTransport(0);
-      setHamali(0);
-      setNo(await getNextDocNo("estimate"));
+      toast.success(editingId ? res.message ?? "Estimate updated." : "Estimate saved.");
+      await startNew();
     });
+  }
+
+  /** Clear the form for a brand-new estimate (also leaves edit mode). */
+  async function startNew() {
+    setLines([]);
+    setFees({});
+    setDraft(newLine(catalog));
+    setEditIdx(null);
+    setSite("");
+    setNote("");
+    setSourceQuoteId("");
+    setDiscountPct(0);
+    setEditingId(null);
+    setEditingConfirmed(false);
+    if (editing) router.replace("/admin/estimates");
+    setNo(await getNextDocNo("estimate"));
+  }
+
+  /** Load a saved estimate into the form to change it. */
+  function loadForEdit(e: Estimate) {
+    const f = formFrom(e);
+    setEditingId(e.id);
+    setEditingConfirmed(!!e.confirmed_at);
+    setNo(f.no);
+    setDate(f.date);
+    setClientId(f.clientId);
+    setSite(f.site);
+    setWorkType(f.workType);
+    setNote(f.note);
+    setGstRate(f.gstRate);
+    setDiscountPct(f.discountPct);
+    setLines(f.lines);
+    setFees(f.fees);
+    setDraft(newLine(catalog));
+    setEditIdx(null);
+    setSourceQuoteId("");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function convert(e: Estimate) {
@@ -298,7 +365,20 @@ export function EstimateManager({
       {setup && <SetupNotice />}
 
       <div className="rounded-xl border border-[var(--border)] bg-white p-4 space-y-5">
-        <h2 className="font-semibold text-sm">Create Estimate</h2>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="font-semibold text-sm">{editingId ? `Edit Estimate ${no}` : "Create Estimate"}</h2>
+          {editingId && (
+            <Button type="button" variant="outline" size="sm" onClick={() => startNew()}>
+              Cancel edit — new estimate
+            </Button>
+          )}
+        </div>
+        {editingId && editingConfirmed && (
+          <p className="rounded-md border-l-4 border-blue-400 bg-blue-50 px-3 py-2 text-sm">
+            This estimate is confirmed as a Detail Sheet. Saving updates the Detail Sheet, the due in the client&apos;s
+            ledger and any bill made from it.
+          </p>
+        )}
 
         <Field label="Create Estimate from an existing Quotation (optional)">
           <select className={`${selectCls} max-w-xl`} value={sourceQuoteId} onChange={(e) => loadQuote(e.target.value)}>
@@ -483,7 +563,10 @@ export function EstimateManager({
                     <TableCell className="text-[var(--text-muted)]">
                       {[l.materialType, l.glassType].filter(Boolean).join(" · ")}
                     </TableCell>
-                    <TableCell className="whitespace-nowrap">{sizeAsWritten(c)}</TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      {sizeAsWritten(c)}
+                      <span className="block text-xs text-[var(--text-muted)]">{sizeInFeet(c)}</span>
+                    </TableCell>
                     <TableCell className="text-right">{c.qty}</TableCell>
                     <TableCell className="text-right">{c.sqft.toFixed(2)}</TableCell>
                     <TableCell className="text-right">{fmt(c.rate)}</TableCell>
@@ -518,12 +601,6 @@ export function EstimateManager({
         {/* Charges + totals */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Transport ₹">
-              <Input type="number" min="0" step="0.01" placeholder="0" value={transport || ""} onChange={(e) => setTransport(Number(e.target.value))} />
-            </Field>
-            <Field label="Hamali ₹">
-              <Input type="number" min="0" step="0.01" placeholder="0" value={hamali || ""} onChange={(e) => setHamali(Number(e.target.value))} />
-            </Field>
             <Field label="GST">
               <select className={selectCls} value={gstRate} onChange={(e) => setGstRate(Number(e.target.value))}>
                 {GST_RATES.map((g) => (
@@ -554,7 +631,7 @@ export function EstimateManager({
 
         <div className="flex flex-wrap gap-2">
           <Button type="button" onClick={save} disabled={pending}>
-            {pending && <Loader2 className="size-4 animate-spin" />} Save Estimate
+            {pending && <Loader2 className="size-4 animate-spin" />} {editingId ? "Update Estimate" : "Save Estimate"}
           </Button>
           <Button type="button" variant="outline" disabled={!rows.length} onClick={() => printEstimate(rows[0])}>
             <Printer className="size-4" /> Print / PDF
@@ -587,6 +664,10 @@ export function EstimateManager({
                       <Button size="sm" variant="outline" onClick={() => printEstimate(e)}>
                         View / Print
                       </Button>
+                      <Button size="sm" variant="outline" onClick={() => loadForEdit(e)}>
+                        <Pencil className="size-3.5" /> Edit
+                      </Button>
+                      <SharePdfButton print={() => printEstimate(e)} title={`${e.client?.name ?? ""} E-${e.no}`} />
                       <Button size="sm" disabled={pending} onClick={() => convert(e)}>
                         Convert to Detail Sheet
                       </Button>

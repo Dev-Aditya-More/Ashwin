@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { currentUserEmail, insertWithActor } from "@/lib/actions/audit-helper";
 import {
   calcEstimate,
+  mergeSameLines,
   CATALOG_KEYS,
   GSTIN_RE,
   type EstimateLineInput,
@@ -325,7 +326,7 @@ export async function saveEstimate(
   if (bad) return { ok: false, error: bad };
   const no = h.no.trim();
   if (!no) return { ok: false, error: "Document number required." };
-  const t = calcEstimate(lines, h);
+  const t = calcEstimate(mergeSameLines(lines), h);
   if (!t.lines.length || t.subtotal <= 0) {
     return { ok: false, error: "Rate and amount are required for an Estimate." };
   }
@@ -362,6 +363,124 @@ export async function saveEstimate(
   } catch (e) {
     return fail(e);
   }
+}
+
+/**
+ * Saves changes to an existing estimate and carries them everywhere it is used, so nothing goes stale:
+ *  - its Detail Sheet (same row) and the Due it booked in the client's ledger,
+ *  - any invoice / bill of supply made from it (amounts recalculated at that bill's own GST rate;
+ *    the bill keeps its number, date and type).
+ */
+export async function updateEstimate(
+  id: string,
+  h: Header & { discountPct: number; transport: number; hamali: number; gstRate: number },
+  lines: EstimateLineInput[]
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const { data: est } = await supabase.from("estimates").select("id, client_id, client_work_id").eq("id", id).maybeSingle();
+  if (!est) return { ok: false, error: "Estimate not found." };
+  const bad = await checkClient(supabase, h.clientId);
+  if (bad) return { ok: false, error: bad };
+  const no = h.no.trim();
+  if (!no) return { ok: false, error: "Document number required." };
+  const t = calcEstimate(mergeSameLines(lines), h);
+  if (!t.lines.length || t.subtotal <= 0) {
+    return { ok: false, error: "Rate and amount are required for an Estimate." };
+  }
+  try {
+    const { error } = await supabase
+      .from("estimates")
+      .update({
+        no,
+        doc_date: h.date || undefined,
+        client_id: h.clientId,
+        site_name: h.siteName.trim() || null,
+        work_type: h.workType || null,
+        note: h.note.trim() || null,
+        lines: t.lines,
+        subtotal: t.subtotal,
+        discount_pct: t.discountPct,
+        discount: t.discount,
+        after_discount: t.afterDiscount,
+        transport: t.transport,
+        hamali: t.hamali,
+        taxable: t.taxable,
+        gst_rate: t.gstRate,
+        tax: t.tax,
+        total: t.total,
+      })
+      .eq("id", id);
+    if (error) throw error;
+
+    // Ledger: the Detail Sheet's Due follows the estimate.
+    if (est.client_work_id) {
+      const { error: wErr } = await supabase
+        .from("client_work")
+        .update({
+          client_id: h.clientId,
+          amount: t.total,
+          work_date: h.date || undefined,
+          description: `Estimate / Detail Sheet ${no}`,
+          bill_no: no,
+        })
+        .eq("id", est.client_work_id);
+      if (wErr) throw wErr;
+    }
+
+    // Bills made from this estimate.
+    const { data: bills } = await supabase
+      .from("gst_invoices")
+      .select("id, invoice_type, gst_rate")
+      .eq("estimate_id", id);
+    for (const b of (bills ?? []) as { id: string; invoice_type: string; gst_rate: number }[]) {
+      const rate = b.invoice_type === "GST" ? Number(b.gst_rate) || 0 : 0;
+      const tax = Math.round(t.taxable * rate) / 100;
+      const total = b.invoice_type === "GST" ? Math.round(t.taxable + tax) : Math.round(t.taxable * 100) / 100;
+      await supabase
+        .from("gst_invoices")
+        .update({
+          client_id: h.clientId,
+          estimate_no: no,
+          site_name: h.siteName.trim() || null,
+          work_type: h.workType || null,
+          lines: t.lines,
+          subtotal: t.subtotal,
+          discount: t.discount,
+          transport: t.transport,
+          hamali: t.hamali,
+          taxable: t.taxable,
+          tax,
+          total,
+        })
+        .eq("id", b.id);
+    }
+  } catch (e) {
+    return fail(e);
+  }
+  revalidatePath("/admin/estimates");
+  revalidatePath("/admin/invoices");
+  revalidatePath(`/admin/clients/${h.clientId}`);
+  if (est.client_id !== h.clientId) revalidatePath(`/admin/clients/${est.client_id}`);
+  revalidatePath("/admin");
+  return { ok: true, id, message: "Estimate updated — its Detail Sheet, ledger due and bills were updated too." };
+}
+
+export async function getEstimate(id: string): Promise<Estimate | null> {
+  const supabase = await createClient();
+  const { data } = await supabase.from("estimates").select(`*, clients(${CLIENT_COLS})`).eq("id", id).maybeSingle();
+  if (!data) return null;
+  return flat(data as Joined<Omit<Estimate, "client">>) as unknown as Estimate;
+}
+
+/** Every estimate for one client, newest first — confirmed (Detail Sheet) or not. */
+export async function listClientEstimates(clientId: string): Promise<Estimate[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("estimates")
+    .select(`*, clients(${CLIENT_COLS})`)
+    .eq("client_id", clientId)
+    .order("created_at", { ascending: false });
+  return ((data ?? []) as Joined<Omit<Estimate, "client">>[]).map(flat) as unknown as Estimate[];
 }
 
 /** Confirms an estimate as the client's Detail Sheet and books its total as a Due entry in their ledger. */

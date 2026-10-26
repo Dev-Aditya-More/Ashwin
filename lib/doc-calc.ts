@@ -248,3 +248,54 @@ export function sizeAsWritten(l: Pick<EstimateLine, "heightText" | "lengthText" 
   if (!h && !w) return "";
   return `${h || "—"}″ × ${w || "—"}″`;
 }
+
+/** Same product, finish, size and rate → the same line (sizes compared by value, so 45 3/8 = 45.375). */
+export function sameItemKey(l: EstimateLineInput): string {
+  const dim = (v: string) => (String(v ?? "").trim() ? String(parseInches(v)) : "");
+  return [
+    l.lumpSum ? "fee" : "item",
+    l.productType, l.materialType, l.glassType, l.shadeType, l.floorType,
+    dim(l.height), dim(l.length), l.unit, Number(l.rate) || 0,
+  ].join("|").toLowerCase();
+}
+
+/** Identical items are one line with a bigger Qty instead of repeated rows. */
+export function mergeSameLines(lines: EstimateLineInput[]): EstimateLineInput[] {
+  const out: EstimateLineInput[] = [];
+  const at = new Map<string, number>();
+  for (const l of lines) {
+    const k = sameItemKey(l);
+    const i = at.get(k);
+    if (i === undefined) {
+      at.set(k, out.length);
+      out.push({ ...l });
+    } else {
+      out[i] = { ...out[i], qty: (Number(out[i].qty) || 0) + (Number(l.qty) || 0) };
+    }
+  }
+  return out;
+}
+
+/** A saved line back into what the form edits (sizes as they were typed). */
+export function lineToInput(l: EstimateLine): EstimateLineInput {
+  return {
+    productType: l.productType ?? "",
+    sheetType: l.sheetType ?? "",
+    materialType: l.materialType ?? "",
+    glassType: l.glassType ?? "",
+    shadeType: l.shadeType ?? "",
+    floorType: l.floorType ?? "",
+    height: l.lumpSum ? "" : l.heightText || (l.heightIn ? inchesToFraction(l.heightIn) : ""),
+    length: l.lumpSum ? "" : l.lengthText || (l.lengthIn ? inchesToFraction(l.lengthIn) : ""),
+    qty: Number(l.qty) || 1,
+    unit: l.unit || "Sq.Ft.",
+    rate: Number(l.rate) || 0,
+    lumpSum: l.lumpSum,
+  };
+}
+
+/** Size in rounded feet for estimates and bills, e.g. `4′ × 5.5′` (fee lines have none). */
+export function sizeInFeet(l: Pick<EstimateLine, "heightFt" | "lengthFt" | "lumpSum">): string {
+  if (l.lumpSum || !l.heightFt || !l.lengthFt) return "";
+  return `${Number(l.heightFt)}′ × ${Number(l.lengthFt)}′`;
+}

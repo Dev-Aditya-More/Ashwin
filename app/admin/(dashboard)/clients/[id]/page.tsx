@@ -14,7 +14,7 @@ import { AddRefundDialog } from "@/components/admin/dialogs/RefundDialog";
 import { PrintLedgerButton } from "@/components/admin/PrintLedgerButton";
 import { DetailSheets } from "@/components/admin/DetailSheets";
 import { ClientBills } from "@/components/admin/ClientBills";
-import { listEstimates, listInvoices } from "@/lib/actions/documents";
+import { listClientEstimates, listInvoices } from "@/lib/actions/documents";
 import { clientLedgerRows } from "@/lib/ledger-rows";
 import { TrackVisit } from "@/components/admin/TrackVisit";
 import { BackButton } from "@/components/admin/BackButton";
@@ -45,7 +45,7 @@ export default async function ClientDetailPage({
   }
   const { client, balance, work, payments, projects } = data;
   if (!client) notFound();
-  const [{ rows: detailSheets }, { rows: allBills }] = await Promise.all([listEstimates(true, id), listInvoices()]);
+  const [clientEstimates, { rows: allBills }] = await Promise.all([listClientEstimates(id), listInvoices()]);
   const bills = allBills.filter((b) => b.client_id === id);
 
   return (
@@ -181,7 +181,7 @@ export default async function ClientDetailPage({
           <div className="space-y-4">
             <ClientLedgerTable work={work} payments={payments} clientId={id} projects={projects} />
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 items-start">
-              <DetailSheets sheets={detailSheets} />
+              <DetailSheets estimates={clientEstimates} />
               <ClientBills bills={bills} />
             </div>
           </div>

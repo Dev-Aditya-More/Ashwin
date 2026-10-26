@@ -15,6 +15,7 @@ import type { EstimateOption, GstInvoice } from "@/lib/doc-types";
 import { printInvoiceDocument } from "@/lib/print/documents";
 import { money } from "@/lib/print/frame";
 import { formatDate } from "@/lib/format";
+import { SharePdfButton } from "@/components/admin/docs/SharePdfButton";
 
 const today = () => todayIST();
 
@@ -208,6 +209,7 @@ export function InvoiceManager({
                       <Button size="sm" variant="outline" onClick={() => printInvoice(inv)}>
                         View / Print
                       </Button>
+                      <SharePdfButton print={() => printInvoice(inv)} title={`${inv.client?.name ?? ""} ${inv.no}`} />
                       <DeleteRowButton
                         what="invoice"
                         action={async () => {

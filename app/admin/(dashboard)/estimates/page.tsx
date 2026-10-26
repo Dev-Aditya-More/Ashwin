@@ -1,5 +1,6 @@
 import { EstimateManager } from "@/components/admin/docs/EstimateManager";
 import {
+  getEstimate,
   getItemCatalog,
   getNextDocNo,
   listDocClients,
@@ -7,13 +8,19 @@ import {
   listQuotations,
 } from "@/lib/actions/documents";
 
-export default async function EstimatesPage() {
-  const [clients, nextNo, catalog, { rows, setup }, quotes] = await Promise.all([
+export default async function EstimatesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ edit?: string }>;
+}) {
+  const { edit } = await searchParams;
+  const [clients, nextNo, catalog, { rows, setup }, quotes, editing] = await Promise.all([
     listDocClients(),
     getNextDocNo("estimate"),
     getItemCatalog(),
     listEstimates(false),
     listQuotations(),
+    edit ? getEstimate(edit) : Promise.resolve(null),
   ]);
 
   return (
@@ -21,16 +28,20 @@ export default async function EstimatesPage() {
       <div>
         <h1 className="text-xl font-semibold">Estimate</h1>
         <p className="text-sm text-[var(--text-muted)]">
-          Measured items with half-foot rounding. Convert an estimate to a Detail Sheet to book it in the client&apos;s ledger.
+          Glass &amp; Aluminium work is measured item by item; Civil and Interior work is charged as fees. Convert an
+          estimate to a Detail Sheet to book it in the client&apos;s ledger.
         </p>
       </div>
       <EstimateManager
+        // Re-mount when switching which estimate is being edited so the form starts from it.
+        key={editing?.id ?? "new"}
         initialClients={clients}
         initialNo={nextNo}
         catalog={catalog}
         rows={rows}
         quotations={quotes.rows}
         setup={setup}
+        editing={editing}
       />
     </div>
   );
