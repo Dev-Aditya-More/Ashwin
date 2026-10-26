@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { currentUserEmail, insertWithActor } from "@/lib/actions/audit-helper";
 import {
   calcEstimate,
+  isFeeWork,
   mergeSameLines,
   CATALOG_KEYS,
   GSTIN_RE,
@@ -311,6 +312,11 @@ export async function saveQuotation(h: Header, lines: QuoteLine[]): Promise<Acti
   }
 }
 
+/** Transport and Hamali only apply to Glass & Aluminium work; Civil / Interior estimates never carry them. */
+function estimateCharges<T extends { workType: string; transport: number; hamali: number }>(h: T): T {
+  return isFeeWork(h.workType) ? { ...h, transport: 0, hamali: 0 } : h;
+}
+
 export async function saveEstimate(
   h: Header & {
     sourceQuoteId?: string;
@@ -326,7 +332,7 @@ export async function saveEstimate(
   if (bad) return { ok: false, error: bad };
   const no = h.no.trim();
   if (!no) return { ok: false, error: "Document number required." };
-  const t = calcEstimate(mergeSameLines(lines), h);
+  const t = calcEstimate(mergeSameLines(lines), estimateCharges(h));
   if (!t.lines.length || t.subtotal <= 0) {
     return { ok: false, error: "Rate and amount are required for an Estimate." };
   }
@@ -383,7 +389,7 @@ export async function updateEstimate(
   if (bad) return { ok: false, error: bad };
   const no = h.no.trim();
   if (!no) return { ok: false, error: "Document number required." };
-  const t = calcEstimate(mergeSameLines(lines), h);
+  const t = calcEstimate(mergeSameLines(lines), estimateCharges(h));
   if (!t.lines.length || t.subtotal <= 0) {
     return { ok: false, error: "Rate and amount are required for an Estimate." };
   }

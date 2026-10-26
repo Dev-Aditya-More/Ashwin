@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DeleteRowButton } from "@/components/admin/dialogs/DeleteRowButton";
-import { ClientPicker, Field, SetupNotice, WORK_TYPES, selectCls } from "@/components/admin/docs/shared";
+import { ClientPicker, DocCard, DocCardList, Field, SetupNotice, WORK_TYPES, selectCls } from "@/components/admin/docs/shared";
 import {
   addCatalogItem,
   convertToDetailSheet,
@@ -125,6 +125,8 @@ function formFrom(e: Estimate) {
     note: e.note ?? "",
     gstRate: Number(e.gst_rate) || 0,
     discountPct: Number(e.discount_pct) || 0,
+    transport: Number(e.transport) || 0,
+    hamali: Number(e.hamali) || 0,
     lines: isFees ? [] : inputs,
     fees: isFees ? Object.fromEntries(inputs.map((l) => [l.productType, (Number(l.rate) || 0) * (Number(l.qty) || 1)])) : {},
   };
@@ -162,9 +164,9 @@ export function EstimateManager({
   const [note, setNote] = useState(init?.note ?? "");
   const [gstRate, setGstRate] = useState(init?.gstRate ?? 18);
   const [discountPct, setDiscountPct] = useState(init?.discountPct ?? 0);
-  // Transport and Hamali are no longer entered on estimates (older saved ones still print theirs).
-  const transport = 0;
-  const hamali = 0;
+  // Transport and Hamali are entered for Glass & Aluminium only; Civil / Interior fee estimates never carry them.
+  const [transportInput, setTransport] = useState(init?.transport ?? 0);
+  const [hamaliInput, setHamali] = useState(init?.hamali ?? 0);
   // Items already added to the estimate, and the one being filled in (like the workbook's item panel).
   const [lines, setLines] = useState<EstimateLineInput[]>(init?.lines ?? []);
   const [draft, setDraft] = useState<EstimateLineInput>(() => newLine(initialCatalog));
@@ -177,6 +179,8 @@ export function EstimateManager({
   const client = clients.find((c) => c.id === clientId);
   const feeLabels = FEES_FOR[workType] ?? [];
   const byFees = feeLabels.length > 0;
+  const transport = byFees ? 0 : transportInput;
+  const hamali = byFees ? 0 : hamaliInput;
   // What gets saved: the measured items, or one line per fee for Civil / Interior work.
   const docLines = useMemo<EstimateLineInput[]>(
     () =>
@@ -309,6 +313,8 @@ export function EstimateManager({
     setNote("");
     setSourceQuoteId("");
     setDiscountPct(0);
+    setTransport(0);
+    setHamali(0);
     setEditingId(null);
     setEditingConfirmed(false);
     if (editing) router.replace("/admin/estimates");
@@ -328,6 +334,8 @@ export function EstimateManager({
     setNote(f.note);
     setGstRate(f.gstRate);
     setDiscountPct(f.discountPct);
+    setTransport(f.transport);
+    setHamali(f.hamali);
     setLines(f.lines);
     setFees(f.fees);
     setDraft(newLine(catalog));
@@ -613,6 +621,16 @@ export function EstimateManager({
             <Field label="Discount (%)">
               <Input type="number" min="0" max="100" step="0.01" placeholder="0" value={discountPct || ""} onChange={(e) => setDiscountPct(Number(e.target.value))} />
             </Field>
+            {!byFees && (
+              <>
+                <Field label="Transport ₹">
+                  <Input type="number" min="0" step="0.01" placeholder="0" value={transportInput || ""} onChange={(e) => setTransport(Number(e.target.value))} />
+                </Field>
+                <Field label="Hamali ₹">
+                  <Input type="number" min="0" step="0.01" placeholder="0" value={hamaliInput || ""} onChange={(e) => setHamali(Number(e.target.value))} />
+                </Field>
+              </>
+            )}
           </div>
 
           <div className="rounded-lg bg-[var(--bg-2)] p-4 text-sm space-y-1">
@@ -641,7 +659,39 @@ export function EstimateManager({
 
       <div className="rounded-xl border border-[var(--border)] bg-white overflow-hidden">
         <div className="px-4 py-3 border-b border-[var(--border)] font-semibold text-sm">Saved Estimates</div>
-        <div className="overflow-x-auto">
+        <DocCardList
+          empty={rows.length === 0 && "No unconverted Estimates. Converted Estimates are available as Detail Sheets in the Client page."}
+        >
+          {rows.map((e) => (
+            <DocCard
+              key={e.id}
+              title={e.client?.name}
+              subtitle={`${e.no} · ${formatDate(e.doc_date)}`}
+              amount={money(e.total)}
+              corner={
+                <DeleteRowButton
+                  what="estimate"
+                  action={async () => {
+                    const r = await deleteDocument("estimate", e.id);
+                    if (!r.ok) throw new Error(r.error);
+                  }}
+                />
+              }
+            >
+              <Button size="sm" className="col-span-2" disabled={pending} onClick={() => convert(e)}>
+                Convert to Detail Sheet
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => printEstimate(e)}>
+                <Printer className="size-3.5" /> View / Print
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => loadForEdit(e)}>
+                <Pencil className="size-3.5" /> Edit
+              </Button>
+              <SharePdfButton className="col-span-2" print={() => printEstimate(e)} title={`${e.client?.name ?? ""} E-${e.no}`} />
+            </DocCard>
+          ))}
+        </DocCardList>
+        <div className="hidden md:block overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>

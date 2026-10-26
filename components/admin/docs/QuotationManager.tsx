@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DeleteRowButton } from "@/components/admin/dialogs/DeleteRowButton";
-import { ClientPicker, Field, SetupNotice, WORK_TYPES, selectCls } from "@/components/admin/docs/shared";
+import { ClientPicker, DocCard, DocCardList, Field, SetupNotice, WORK_TYPES, selectCls } from "@/components/admin/docs/shared";
 import { deleteDocument, getNextDocNo, saveQuotation } from "@/lib/actions/documents";
 import { UNITS, type QuoteLine } from "@/lib/doc-calc";
 import type { DocClient, Quotation } from "@/lib/doc-types";
@@ -30,6 +30,7 @@ export function printQuotation(q: Quotation) {
       clientMobile: q.client?.phone,
       clientAddress: q.client?.address,
       siteName: q.site_name,
+      workType: q.work_type,
     },
     q.lines,
     { name: q.client?.name ?? "", phone: q.client?.phone, address: q.client?.address }
@@ -178,7 +179,30 @@ export function QuotationManager({
 
       <div className="rounded-xl border border-[var(--border)] bg-white overflow-hidden">
         <div className="px-4 py-3 border-b border-[var(--border)] font-semibold text-sm">Saved Quotations</div>
-        <div className="overflow-x-auto">
+        <DocCardList empty={rows.length === 0 && "No saved records yet."}>
+          {rows.map((q) => (
+            <DocCard
+              key={q.id}
+              title={q.client?.name}
+              subtitle={[q.no, formatDate(q.doc_date), q.site_name].filter(Boolean).join(" · ")}
+              corner={
+                <DeleteRowButton
+                  what="quotation"
+                  action={async () => {
+                    const r = await deleteDocument("quotation", q.id);
+                    if (!r.ok) throw new Error(r.error);
+                  }}
+                />
+              }
+            >
+              <Button size="sm" variant="outline" onClick={() => printQuotation(q)}>
+                <Printer className="size-3.5" /> View / Print
+              </Button>
+              <SharePdfButton print={() => printQuotation(q)} title={`${q.client?.name ?? ""} Q-${q.no}`} />
+            </DocCard>
+          ))}
+        </DocCardList>
+        <div className="hidden md:block overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>

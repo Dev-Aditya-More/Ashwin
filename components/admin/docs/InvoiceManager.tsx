@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DeleteRowButton } from "@/components/admin/dialogs/DeleteRowButton";
-import { Field, SetupNotice, selectCls } from "@/components/admin/docs/shared";
+import { DocCard, DocCardList, Field, SetupNotice, selectCls } from "@/components/admin/docs/shared";
 import { deleteDocument, getNextDocNo, saveInvoice } from "@/lib/actions/documents";
 import type { EstimateOption, GstInvoice } from "@/lib/doc-types";
 import { printInvoiceDocument } from "@/lib/print/documents";
@@ -31,6 +31,7 @@ export function printInvoice(inv: GstInvoice) {
       no: inv.no,
       type: inv.invoice_type,
       siteName: inv.site_name,
+      workType: inv.work_type,
       date: inv.doc_date,
       client: inv.client?.name ?? "",
       clientMobile: inv.client_mobile,
@@ -182,7 +183,36 @@ export function InvoiceManager({
 
       <div className="rounded-xl border border-[var(--border)] bg-white overflow-hidden">
         <div className="px-4 py-3 border-b border-[var(--border)] font-semibold text-sm">Saved Invoices</div>
-        <div className="overflow-x-auto">
+        <DocCardList empty={rows.length === 0 && "No saved records yet."}>
+          {rows.map((inv) => (
+            <DocCard
+              key={inv.id}
+              title={inv.client?.name}
+              subtitle={`${inv.no} · ${formatDate(inv.doc_date)}`}
+              badge={
+                <span className="text-[11px] text-[var(--text-muted)]">
+                  {inv.invoice_type === "Non-GST" ? "ARNAV GLASS SERVICES (Non-GST)" : "ASHWIN ENTERPRISES (GST)"}
+                </span>
+              }
+              amount={money(inv.total)}
+              corner={
+                <DeleteRowButton
+                  what="invoice"
+                  action={async () => {
+                    const r = await deleteDocument("invoice", inv.id);
+                    if (!r.ok) throw new Error(r.error);
+                  }}
+                />
+              }
+            >
+              <Button size="sm" variant="outline" onClick={() => printInvoice(inv)}>
+                <Printer className="size-3.5" /> View / Print
+              </Button>
+              <SharePdfButton print={() => printInvoice(inv)} title={`${inv.client?.name ?? ""} ${inv.no}`} />
+            </DocCard>
+          ))}
+        </DocCardList>
+        <div className="hidden md:block overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>

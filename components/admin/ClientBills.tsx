@@ -6,6 +6,8 @@ import { printInvoice } from "@/components/admin/docs/InvoiceManager";
 import type { GstInvoice } from "@/lib/doc-types";
 import { formatDate, formatMoney } from "@/lib/format";
 import { SharePdfButton } from "@/components/admin/docs/SharePdfButton";
+import { DocCard, DocCardList } from "@/components/admin/docs/shared";
+import { Printer } from "lucide-react";
 
 /** Both companies' bills for a client in one list. They do not change the ledger balance (no double counting). */
 export function ClientBills({ bills }: { bills: GstInvoice[] }) {
@@ -18,7 +20,22 @@ export function ClientBills({ bills }: { bills: GstInvoice[] }) {
           changed by these bills.
         </p>
       </div>
-      <div className="overflow-x-auto">
+      <DocCardList empty={bills.length === 0 && "No bills for this client yet."}>
+        {bills.map((b) => (
+          <DocCard
+            key={b.id}
+            title={b.no}
+            subtitle={`${formatDate(b.doc_date)} · ${b.invoice_type === "Non-GST" ? "ARNAV GLASS SERVICES (Non-GST)" : "ASHWIN ENTERPRISES (GST)"}`}
+            amount={formatMoney(Number(b.total))}
+          >
+            <Button size="sm" variant="outline" onClick={() => printInvoice(b)}>
+              <Printer className="size-3.5" /> View / Print
+            </Button>
+            <SharePdfButton print={() => printInvoice(b)} title={`${b.client?.name ?? ""} ${b.no}`} />
+          </DocCard>
+        ))}
+      </DocCardList>
+      <div className="hidden md:block overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>

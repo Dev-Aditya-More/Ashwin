@@ -15,6 +15,7 @@ export function SharePdfButton({
   title,
   label = "Share",
   compact = false,
+  className,
 }: {
   /** The same function the Print button uses — its output becomes the PDF. */
   print: () => void;
@@ -22,6 +23,7 @@ export function SharePdfButton({
   title: string;
   label?: string;
   compact?: boolean;
+  className?: string;
 }) {
   const [busy, setBusy] = useState(false);
 
@@ -46,7 +48,7 @@ export function SharePdfButton({
   }
 
   return (
-    <Button type="button" size="sm" variant="outline" onClick={share} disabled={busy} title="Share as PDF">
+    <Button type="button" size="sm" variant="outline" onClick={share} disabled={busy} title="Share as PDF" className={className}>
       {busy ? <Loader2 className="size-3.5 animate-spin" /> : <Share2 className="size-3.5" />}
       {!compact && (busy ? "Making PDF…" : label)}
     </Button>

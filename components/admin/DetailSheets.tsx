@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { openDetailSheet, printEstimate } from "@/components/admin/docs/EstimateManager";
+import { DocCard, DocCardList } from "@/components/admin/docs/shared";
 import type { Estimate } from "@/lib/doc-types";
 import { formatDate, formatMoney } from "@/lib/format";
 
@@ -18,7 +19,46 @@ export function DetailSheets({ estimates }: { estimates: Estimate[] }) {
   return (
     <div className="rounded-xl border border-[var(--border)] bg-white overflow-hidden">
       <div className="px-4 py-3 border-b border-[var(--border)] font-semibold text-sm">Estimates &amp; Detail Sheets</div>
-      <Table>
+      <DocCardList empty={estimates.length === 0 && "No estimates for this client yet."}>
+        {estimates.map((e) => (
+          <DocCard
+            key={e.id}
+            title={e.no}
+            subtitle={[formatDate(e.doc_date), e.site_name].filter(Boolean).join(" · ")}
+            amount={formatMoney(Number(e.total))}
+            badge={
+              e.confirmed_at ? (
+                <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200">Detail Sheet</Badge>
+              ) : (
+                <Badge variant="secondary">Estimate</Badge>
+              )
+            }
+          >
+            <Button size="sm" variant="outline" onClick={() => printEstimate(e)}>
+              Estimate
+            </Button>
+            {e.confirmed_at && (
+              <Button size="sm" variant="outline" onClick={() => openDetailSheet(e)}>
+                Detail Sheet
+              </Button>
+            )}
+            <Button asChild size="sm" variant="outline">
+              <Link href={`/admin/estimates?edit=${e.id}`}>
+                <Pencil className="size-3.5" /> Edit
+              </Link>
+            </Button>
+            <SharePdfButton
+              print={() => (e.confirmed_at ? openDetailSheet(e) : printEstimate(e))}
+              title={`${e.client?.name ?? ""} ${e.confirmed_at ? "D" : "E"}-${e.no}`}
+              label={e.confirmed_at ? "Share Detail Sheet" : "Share"}
+            />
+            {e.confirmed_at && (
+              <SharePdfButton print={() => printEstimate(e)} title={`${e.client?.name ?? ""} E-${e.no}`} label="Share Estimate" />
+            )}
+          </DocCard>
+        ))}
+      </DocCardList>
+      <Table className="hidden md:table">
         <TableHeader>
           <TableRow>
             <TableHead>Date</TableHead>

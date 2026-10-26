@@ -12,7 +12,8 @@ export const money = (n: unknown) => "₹" + fmt(n);
 export const fmtDate = (d: unknown) => String(d ?? "").split("-").reverse().join("/");
 
 export const logoUrl = () => `${window.location.origin}/ashwin-print-logo.png`;
-export const arnavLogoUrl = () => `${window.location.origin}/arnav-logo.png`;
+export const civilLogoUrl = () => `${window.location.origin}/ashwin-civil-logo.png`;
+export const arnavLogoUrl =() => `${window.location.origin}/arnav-logo.png`;
 
 export type FitOptions = {
   /** The block whose height is measured (inside the 12.7 mm margin frame). */

@@ -49,7 +49,54 @@ export function SetupNotice() {
   );
 }
 
-export const WORK_TYPES = ["Civil", "Interior", "Civil & Interior", "Glass & Aluminium"];
+/**
+ * Phone layout for a saved document: who / what on top, then its buttons in an even two-column grid
+ * (a table row squeezes them into a ragged pile). `corner` holds a small icon action such as Delete.
+ */
+export function DocCard({
+  title,
+  subtitle,
+  amount,
+  badge,
+  corner,
+  children,
+}: {
+  title: React.ReactNode;
+  subtitle?: React.ReactNode;
+  amount?: React.ReactNode;
+  badge?: React.ReactNode;
+  corner?: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="p-4 space-y-3">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="font-medium text-sm break-words">{title}</p>
+          {subtitle && <p className="text-xs text-[var(--text-muted)] mt-0.5 break-words">{subtitle}</p>}
+          {badge && <div className="mt-1.5">{badge}</div>}
+        </div>
+        <div className="flex items-start gap-1 shrink-0">
+          {amount && <p className="text-sm font-semibold whitespace-nowrap pt-0.5">{amount}</p>}
+          {corner}
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-2 [&>*]:w-full [&>*:last-child:nth-child(odd)]:col-span-2">{children}</div>
+    </div>
+  );
+}
+
+/** Wraps a list's cards: shown on phones only, the table takes over from `md` up. */
+export function DocCardList({ empty, children }: { empty: string | false; children: React.ReactNode }) {
+  return (
+    <div className="md:hidden divide-y divide-[var(--border)]">
+      {children}
+      {empty && <p className="px-4 py-8 text-center text-sm text-[var(--text-muted)]">{empty}</p>}
+    </div>
+  );
+}
+
+export const WORK_TYPES =["Civil", "Interior", "Civil & Interior", "Glass & Aluminium"];
 
 /** Client dropdown with the "+ Add New Client" shortcut (name, optional mobile, address, GSTIN). */
 export function ClientPicker({

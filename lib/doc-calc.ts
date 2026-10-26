@@ -16,6 +16,10 @@ export const CATALOG_LABEL: Record<CatalogKey, string> = {
   floor: "Floor Type",
 };
 
+/** Civil / Interior work is charged as fees: no Transport / Hamali, and its documents print the ASHWIN civil logo. */
+export const FEE_WORK_TYPES = ["Civil", "Interior", "Civil & Interior"] as const;
+export const isFeeWork = (workType: unknown) => (FEE_WORK_TYPES as readonly string[]).includes(String(workType ?? ""));
+
 export type QuoteLine = { name: string; unit: string; rate: number };
 
 export type EstimateLine = {
