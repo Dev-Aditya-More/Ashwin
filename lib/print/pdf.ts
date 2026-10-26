@@ -47,8 +47,9 @@ export async function documentToPdf({ html, opts }: CapturedDocument, fileName: 
     // block that the spacer below pushes to the foot of the last page.
     const fix = d.createElement("style");
     fix.textContent =
-      ".doc-table,.fee-table,.items{border-collapse:separate!important;border-spacing:0!important;border-top:1px solid #777;border-left:1px solid #777}" +
-      ".doc-table th,.doc-table td,.fee-table th,.fee-table td,.items th,.items td{border-width:0 1px 1px 0!important}" +
+      // (The Bill of Supply grid, .items.bos, already draws single column lines and is left alone.)
+      ".doc-table,.fee-table,.items:not(.bos){border-collapse:separate!important;border-spacing:0!important;border-top:1px solid #777;border-left:1px solid #777}" +
+      ".doc-table th,.doc-table td,.fee-table th,.fee-table td,.items:not(.bos) th,.items:not(.bos) td{border-width:0 1px 1px 0!important}" +
       `.isq .bottom{position:static!important;margin:0 ${MARGIN_MM}mm!important;padding-bottom:${MARGIN_MM}mm!important}` +
       ".isq .frame>tfoot>tr>td{height:0!important}";
     d.head.appendChild(fix);
