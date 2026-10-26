@@ -1,7 +1,7 @@
 // Print templates ported 1:1 from the ASHWIN starter (A4 with 12.7 mm margins, pinned
 // quotation footer, landscape detail sheet, GST tax invoice with UPI QR, party ledger).
 
-import { amountInWords, hsnFor, isFeeWork, sizeAsWritten, sizeInFeet } from "@/lib/doc-calc";
+import { amountInWords, hsnFor, isFeeWork, mergeForPrint, sizeInFeet } from "@/lib/doc-calc";
 import type { EstimateLine, QuoteLine } from "@/lib/doc-calc";
 import { arnavLogoUrl, civilLogoUrl, esc, fmt, fmtDate, logoUrl, money, printHtmlInFrame } from "@/lib/print/frame";
 import type { PrintOptions } from "@/lib/print/frame";
@@ -55,6 +55,7 @@ export function printQuotationOrEstimate(
   party: PrintParty
 ) {
   const quote = kind === "quotation";
+  if (!quote) lines = mergeForPrint(lines as EstimateLine[]);
   // Civil / Interior estimates are fees only: print Sr. | Description | Amount instead of the measured-glass columns.
   const fees = !quote && lines.length > 0 && (lines as EstimateLine[]).every((l) => l.lumpSum);
   const rows = lines
@@ -99,12 +100,18 @@ export function printQuotationOrEstimate(
 }
 
 // ------------------------------------------------------------ Detail sheet (landscape)
-export function printDetailSheet(d: PrintDoc, lines: EstimateLine[]) {
+export function printDetailSheet(d: PrintDoc, saved: EstimateLine[]) {
+  const lines = mergeForPrint(saved);
   const fees = lines.length > 0 && lines.every((l) => l.lumpSum);
+  // A merged row lists every exact measurement it covers, one per line, with how many of each.
+  const sizeCell = (l: (typeof lines)[number]) =>
+    l.sizes
+      .map((s) => `<span class="sz">${esc(s.text)}${l.sizes.length > 1 ? ` <i>(${s.qty} Nos.)</i>` : ""}</span>`)
+      .join("<br>");
   const rows = lines
     .map((l, i) => {
       if (fees) return `<tr><td>${i + 1}</td><td>${esc(l.productType || "")}</td><td class="num">${fmt(l.amount)}</td></tr>`;
-      return `<tr><td>${i + 1}</td><td>${esc(l.productType || "")}</td><td>${esc(l.materialType || "")}</td><td>${esc(l.glassType || "")}</td><td>${esc(l.shadeType || "")}</td><td>${esc(l.floorType || "")}</td><td class="num">${esc(sizeAsWritten(l))}</td><td>${l.qty ?? ""}</td><td>${esc(l.unit || "Sq.Ft.")}</td><td class="num">${l.lumpSum ? "" : Number(l.sqft || 0).toFixed(2)}</td><td class="num">${fmt(l.rate)}</td><td class="num">${fmt(l.amount)}</td></tr>`;
+      return `<tr><td>${i + 1}</td><td>${esc(l.productType || "")}</td><td>${esc(l.materialType || "")}</td><td>${esc(l.glassType || "")}</td><td>${esc(l.shadeType || "")}</td><td>${esc(l.floorType || "")}</td><td>${sizeCell(l)}</td><td>${l.qty ?? ""}</td><td>${esc(l.unit || "Sq.Ft.")}</td><td class="num">${l.lumpSum ? "" : Number(l.sqft || 0).toFixed(2)}</td><td class="num">${fmt(l.rate)}</td><td class="num">${fmt(l.amount)}</td></tr>`;
     })
     .join("");
   const subtotal = Number(d.subtotal) || 0;
@@ -119,14 +126,15 @@ export function printDetailSheet(d: PrintDoc, lines: EstimateLine[]) {
 
   const html = `<html><head><title>${esc((d.client ? d.client + " " : "") + "D-" + d.no)}</title><style>@page{size:A4 landscape;margin:0}${FRAME_CSS}*{box-sizing:border-box}:root{--fs:9px;--ink:#333;--c-title:#000;--c-client:#1B2A6B;--c-co:#000}body{font:var(--fs) Arial;color:var(--ink);margin:0}
 h2{font-size:18px;margin:10px 0 8px;color:var(--c-title)}
-.cl{line-height:1.6;color:var(--c-client)}.head{display:flex;justify-content:space-between;margin-bottom:14px}.logo{width:150px;height:auto;object-fit:contain}.logo.sq{display:block;width:auto;height:90px}.meta{text-align:right;line-height:1.7;font-size:var(--fs)}table{width:100%;border-collapse:collapse;font-size:var(--fs)}th,td{border:1px solid #777;padding:4px;vertical-align:top}.items{table-layout:fixed}.items th,.items td{overflow-wrap:anywhere}.items th{text-align:left;white-space:nowrap}.num{text-align:right;white-space:nowrap}.totals{width:310px;margin:12px 0 0 auto;font-size:var(--fs)}.totals td{border:0;padding:3px 5px}.totals td:last-child{text-align:right;white-space:nowrap}.grand{font-weight:bold;border-top:2px solid var(--ink);font-size:var(--fs)}.totalwords{margin-top:8px;font-weight:bold}.footer{display:flex;justify-content:space-between;margin-top:14px;font-size:var(--fs)}.address{text-align:center;margin-top:12px;border-top:1px solid #aaa;padding-top:5px}@media print{table{break-inside:avoid}.frame{break-inside:auto}}</style></head><body><table class="frame"><thead><tr><td></td></tr></thead><tbody><tr><td><div class="head"><div>${brandLogo(d.workType, "logo")}<h2>DETAIL SHEET</h2><div class="cl"><b>Client:</b> ${esc(d.client)}<br><b>Site:</b> ${esc(d.siteName || "")}<br><b>Work Type:</b> ${esc(d.workType || "")}</div></div><div class="meta"><b>Detail Sheet No.:</b> ${esc(d.no)}<br><b>Date:</b> ${esc(fmtDate(d.date))}</div></div>${fees
+.cl{line-height:1.6;color:var(--c-client)}.head{display:flex;justify-content:space-between;margin-bottom:14px}.logo{width:150px;height:auto;object-fit:contain}.logo.sq{display:block;width:auto;height:90px}.meta{text-align:right;line-height:1.7;font-size:var(--fs)}table{width:100%;border-collapse:collapse;font-size:var(--fs)}th,td{border:1px solid #777;padding:4px;vertical-align:top}.items{table-layout:fixed}.items th,.items td{overflow-wrap:anywhere}.items th{text-align:left;white-space:nowrap}.num{text-align:right;white-space:nowrap}.sz{white-space:nowrap}.sz i{font-style:normal;color:#666}.totals{width:310px;margin:12px 0 0 auto;font-size:var(--fs)}.totals td{border:0;padding:3px 5px}.totals td:last-child{text-align:right;white-space:nowrap}.grand{font-weight:bold;border-top:2px solid var(--ink);font-size:var(--fs)}.totalwords{margin-top:8px;font-weight:bold}.footer{display:flex;justify-content:space-between;margin-top:14px;font-size:var(--fs)}.address{text-align:center;margin-top:12px;border-top:1px solid #aaa;padding-top:5px}@media print{table{break-inside:avoid}.frame{break-inside:auto}}</style></head><body><table class="frame"><thead><tr><td></td></tr></thead><tbody><tr><td><div class="head"><div>${brandLogo(d.workType, "logo")}<h2>DETAIL SHEET</h2><div class="cl"><b>Client:</b> ${esc(d.client)}<br><b>Site:</b> ${esc(d.siteName || "")}<br><b>Work Type:</b> ${esc(d.workType || "")}</div></div><div class="meta"><b>Detail Sheet No.:</b> ${esc(d.no)}<br><b>Date:</b> ${esc(fmtDate(d.date))}</div></div>${fees
         ? `<table class="items"><colgroup><col style="width:8%"><col><col style="width:22%"></colgroup><thead><tr><th>Sr.</th><th>Description</th><th class="num">Amount (₹)</th></tr></thead><tbody>${rows}</tbody></table>`
         : `<table class="items"><colgroup><col style="width:3%"><col style="width:14%"><col style="width:10%"><col style="width:14%"><col style="width:7%"><col style="width:7%"><col style="width:16%"><col style="width:4%"><col style="width:5%"><col style="width:6%"><col style="width:6%"><col style="width:8%"></colgroup><thead><tr><th>Sr.</th><th>Product</th><th>Material</th><th>Glass</th><th>Shade</th><th>Floor</th><th>Size (inches)</th><th>Qty</th><th>Unit</th><th>Sq.Ft.</th><th>Rate</th><th>Amount</th></tr></thead><tbody>${rows}</tbody></table>`}<table class="totals"><tr><td>Subtotal</td><td>${money(subtotal)}</td></tr>${discount ? `<tr><td>Discount</td><td>− ${money(discount)}</td></tr><tr><td>After Discount</td><td>${money(after)}</td></tr>` : ""}${transport ? `<tr><td>Transport</td><td>${money(transport)}</td></tr>` : ""}${hamali ? `<tr><td>Hamali</td><td>${money(hamali)}</td></tr>` : ""}<tr><td>Taxable Amount</td><td>${money(taxable)}</td></tr><tr><td>GST (${gstRate}%)</td><td>${money(tax)}</td></tr><tr class="grand"><td>Total Amount</td><td>${money(total)}</td></tr></table></td></tr></tbody><tfoot><tr><td></td></tr></tfoot></table></body></html>`;
   printHtmlInFrame(html, { widthMm: 297 });
 }
 
 // ------------------------------------------------------------ GST tax invoice
-export function buildTaxInvoice(d: PrintDoc, lines: EstimateLine[], party: PrintParty) {
+export function buildTaxInvoice(d: PrintDoc, saved: EstimateLine[], party: PrintParty) {
+  const lines = mergeForPrint(saved);
   const inr = (n: number) => Number(n || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const rowsHtml = lines
     .map((l, i) => {
@@ -181,7 +189,8 @@ export function printTaxInvoice(d: PrintDoc, lines: EstimateLine[], party: Print
 
 
 // ------------------------------------------------------------ Bill of Supply (Non-GST, ARNAV GLASS SERVICES)
-export function buildBillOfSupply(d: PrintDoc, lines: EstimateLine[]) {
+export function buildBillOfSupply(d: PrintDoc, saved: EstimateLine[]) {
+  const lines = mergeForPrint(saved);
   const inr = (n: unknown) => "₹ " + Number(n || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const dmy = (x: unknown) => String(x ?? "").split("-").reverse().join("-");
   const sizeOf = (l: EstimateLine) => sizeInFeet(l);

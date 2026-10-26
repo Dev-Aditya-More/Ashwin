@@ -267,7 +267,7 @@ export function inchesToFraction(n: number): string {
 
 /** One dimension as the user wrote it; older saved lines (numbers only) are shown as fractions, never decimals. */
 function dimAsWritten(text: string | undefined, inches: number | undefined): string {
-  const t = String(text ?? "").trim().replace(/[″"]+$/, "");
+  const t = String(text ?? "").trim().replace(/\s+/g, " ").replace(/[″"]+$/, "").trim();
   if (t) return t;
   return inches != null && Number(inches) ? inchesToFraction(Number(inches)) : "";
 }
@@ -323,6 +323,44 @@ export function lineToInput(l: EstimateLine): EstimateLineInput {
     rate: Number(l.rate) || 0,
     lumpSum: l.lumpSum,
   };
+}
+
+/** A printed row: one or more saved lines that come out the same once sizes are rounded to feet. */
+export type PrintLine = EstimateLine & {
+  /** Each exact measurement folded into this row, as typed, with how many of that size. */
+  sizes: { text: string; qty: number }[];
+};
+
+/**
+ * Lines with the same product, finish, rate and size in rounded feet print as ONE row with the Qty,
+ * Sq.Ft. and Amount added up (e.g. 45 1/8″ × 47 2/8″ and 46 3/8″ × 43 5/8″ are both 4′ × 4′).
+ * The exact inch sizes are kept in `sizes` so the Detail Sheet can still show every measurement.
+ */
+export function mergeForPrint(lines: EstimateLine[]): PrintLine[] {
+  const out: PrintLine[] = [];
+  const at = new Map<string, number>();
+  for (const l of lines) {
+    const text = sizeAsWritten(l);
+    const k = [
+      l.lumpSum ? "fee" : "item",
+      l.productType, l.materialType, l.glassType, l.shadeType, l.floorType,
+      l.heightFt, l.lengthFt, l.unit, Number(l.rate) || 0, l.hsn ?? "",
+    ].join("|").toLowerCase();
+    const i = at.get(k);
+    if (i === undefined || l.lumpSum) {
+      at.set(k, out.length);
+      out.push({ ...l, sizes: text ? [{ text, qty: Number(l.qty) || 0 }] : [] });
+      continue;
+    }
+    const row = out[i];
+    row.qty = (Number(row.qty) || 0) + (Number(l.qty) || 0);
+    row.sqft = Math.round(((Number(row.sqft) || 0) + (Number(l.sqft) || 0)) * 100) / 100;
+    row.amount = Math.round(((Number(row.amount) || 0) + (Number(l.amount) || 0)) * 100) / 100;
+    const same = row.sizes.find((s) => s.text === text);
+    if (same) same.qty += Number(l.qty) || 0;
+    else if (text) row.sizes.push({ text, qty: Number(l.qty) || 0 });
+  }
+  return out;
 }
 
 /** Size in rounded feet for estimates and bills, e.g. `4′ × 5.5′` (fee lines have none). */
