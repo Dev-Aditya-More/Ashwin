@@ -20,6 +20,33 @@ export const CATALOG_LABEL: Record<CatalogKey, string> = {
 export const FEE_WORK_TYPES = ["Civil", "Interior", "Civil & Interior"] as const;
 export const isFeeWork = (workType: unknown) => (FEE_WORK_TYPES as readonly string[]).includes(String(workType ?? ""));
 
+/**
+ * HSN / SAC code for a bill line, worked out from what the item is (a code typed on the line wins).
+ *  - Civil / Interior fees → SAC 9954 (construction works) / 998391 (interior design services)
+ *  - SS railing → 7308 (iron/steel structures) · ACP → 7606 (aluminium sheets)
+ *  - Glass-led items (glass partition/door/railing, glazing, etching) → by glass:
+ *    toughened 7007 · mirror 7009 · patterned/etched/processed 7006 · plain float 7005
+ *  - Everything else (aluminium windows, doors, partitions, nets, louvers) → 7610 (aluminium structures)
+ * Rates and codes must still be confirmed with the accountant.
+ */
+export function hsnFor(l: Pick<EstimateLine, "hsn" | "productType" | "materialType" | "glassType" | "lumpSum">): string {
+  if (l.hsn?.trim()) return l.hsn.trim();
+  const product = (l.productType ?? "").toLowerCase();
+  const material = (l.materialType ?? "").toLowerCase();
+  const glass = (l.glassType ?? "").toLowerCase();
+  if (l.lumpSum) return product.includes("interior") ? "998391" : "9954";
+  if (material.includes("ss railing") || (product.includes("railing") && !product.includes("glass") && material.includes("ss"))) return "7308";
+  if (product.includes("acp") || glass.includes("acp")) return "7606";
+  const glassLed = /glass|glazing|etching/.test(product) || material.includes("toughened glass railing");
+  if (glassLed) {
+    if (glass.includes("toughened") || material.includes("toughened") || product.includes("12 mm")) return "7007";
+    if (glass.includes("mirror")) return "7009";
+    if (product.includes("etching") || /karachi|bindiya|bajra|diomond|rubik|grill|sigma|dd |karishma|fluted/.test(glass)) return "7006";
+    return "7005";
+  }
+  return "7610";
+}
+
 export type QuoteLine = { name: string; unit: string; rate: number };
 
 export type EstimateLine = {
