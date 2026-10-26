@@ -38,6 +38,7 @@ export type EstimateLine = {
   /** Measurement exactly as typed (e.g. "45 3/8") — what every document prints. */
   heightText?: string;
   lengthText?: string;
+  lumpSum?: boolean;
 };
 
 /** Raw line as typed in the form (dimensions are free text such as "45 1/8"). */
@@ -53,6 +54,8 @@ export type EstimateLineInput = {
   qty: number;
   unit: string;
   rate: number;
+  /** A fee charged as one amount (Civil / Interior Fees): no measurements, amount = rate × qty. */
+  lumpSum?: boolean;
 };
 
 /**
@@ -100,6 +103,13 @@ const num = (v: unknown) => (Number.isFinite(Number(v)) ? Number(v) : 0);
 export function calcEstimateLine(l: EstimateLineInput): EstimateLine {
   const qty = Math.max(0, num(l.qty));
   const rate = Math.max(0, num(l.rate));
+  if (l.lumpSum) {
+    return {
+      productType: l.productType ?? "", sheetType: "", materialType: "", glassType: "", shadeType: "", floorType: "",
+      heightIn: 0, lengthIn: 0, heightText: "", lengthText: "", heightFt: 0, lengthFt: 0,
+      qty: qty || 1, unit: l.unit || "LS", sqft: 0, rate, amount: rate * (qty || 1), lumpSum: true,
+    };
+  }
   const h = halfFoot(l.height);
   const len = halfFoot(l.length);
   const sqft = h * len * qty;

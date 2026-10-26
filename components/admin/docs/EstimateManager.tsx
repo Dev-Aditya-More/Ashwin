@@ -53,6 +53,13 @@ const FIELD_OF: Record<CatalogKey, keyof EstimateLineInput> = {
   floor: "floorType",
 };
 
+/** Civil / Interior estimates are charged as fees; Glass & Aluminium is measured item by item. */
+const FEES_FOR: Record<string, string[]> = {
+  Civil: ["Civil Fees"],
+  Interior: ["Interior Fees"],
+  "Civil & Interior": ["Civil Fees", "Interior Fees"],
+};
+
 const newLine = (cat: CatalogMap): EstimateLineInput => ({
   productType: cat.product?.[0] ?? "",
   sheetType: cat.sheet?.[0] ?? "",
@@ -121,7 +128,7 @@ export function EstimateManager({
   const [date, setDate] = useState(today());
   const [clientId, setClientId] = useState("");
   const [site, setSite] = useState("");
-  const [workType, setWorkType] = useState(WORK_TYPES[0]);
+  const [workType, setWorkType] = useState("Glass & Aluminium");
   const [note, setNote] = useState("");
   const [gstRate, setGstRate] = useState(18);
   const [discountPct, setDiscountPct] = useState(0);
@@ -131,14 +138,28 @@ export function EstimateManager({
   const [lines, setLines] = useState<EstimateLineInput[]>([]);
   const [draft, setDraft] = useState<EstimateLineInput>(() => newLine(initialCatalog));
   const [editIdx, setEditIdx] = useState<number | null>(null);
+  const [fees, setFees] = useState<Record<string, number>>({});
   const [sourceQuoteId, setSourceQuoteId] = useState("");
   const [manageOpen, setManageOpen] = useState(false);
   const [pending, startTransition] = useTransition();
 
   const client = clients.find((c) => c.id === clientId);
+  const feeLabels = FEES_FOR[workType] ?? [];
+  const byFees = feeLabels.length > 0;
+  // What gets saved: the measured items, or one line per fee for Civil / Interior work.
+  const docLines = useMemo<EstimateLineInput[]>(
+    () =>
+      byFees
+        ? feeLabels
+            .filter((f) => (fees[f] ?? 0) > 0)
+            .map((f) => ({ ...newLine({}), productType: f, unit: "LS", qty: 1, rate: fees[f], lumpSum: true }))
+        : lines,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [byFees, workType, fees, lines]
+  );
   const totals = useMemo(
-    () => calcEstimate(lines, { discountPct, transport, hamali, gstRate }),
-    [lines, discountPct, transport, hamali, gstRate]
+    () => calcEstimate(docLines, { discountPct, transport, hamali, gstRate }),
+    [docLines, discountPct, transport, hamali, gstRate]
   );
   const d = calcEstimateLine(draft);
 
@@ -214,7 +235,11 @@ export function EstimateManager({
   }
 
   function save() {
-    if (!lines.length) {
+    if (byFees && !docLines.length) {
+      toast.error(`Enter the ${feeLabels.join(" / ")}.`);
+      return;
+    }
+    if (!byFees && !lines.length) {
       toast.error(
         draft.height || draft.length ? "Press “Add Item” to add the item you filled in, then save." : "Add at least one item."
       );
@@ -223,7 +248,7 @@ export function EstimateManager({
     startTransition(async () => {
       const res = await saveEstimate(
         { no, date, clientId, siteName: site, workType, note, sourceQuoteId, discountPct, transport, hamali, gstRate },
-        lines
+        docLines
       );
       if (!res.ok) {
         toast.error(res.error);
@@ -231,6 +256,7 @@ export function EstimateManager({
       }
       toast.success("Estimate saved.");
       setLines([]);
+      setFees({});
       setDraft(newLine(catalog));
       setEditIdx(null);
       setSite("");
@@ -322,6 +348,30 @@ export function EstimateManager({
           </Field>
         </div>
 
+        {byFees ? (
+          <div className="rounded-lg border border-[var(--border)] p-4 space-y-3">
+            <p className="font-semibold text-sm uppercase tracking-wide">{workType} Fees</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl">
+              {feeLabels.map((f) => (
+                <Field key={f} label={`${f} ₹`}>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="0"
+                    value={fees[f] || ""}
+                    onChange={(e) => setFees((cur) => ({ ...cur, [f]: Number(e.target.value) }))}
+                  />
+                </Field>
+              ))}
+            </div>
+            <p className="text-xs text-[var(--text-muted)]">
+              {workType} estimates are charged as fees. Choose “Glass &amp; Aluminium” as the Work Category to enter measured
+              items instead.
+            </p>
+          </div>
+        ) : (
+          <>
         {/* Item panel */}
         <div className="rounded-lg border border-[var(--border)] p-4 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -339,7 +389,6 @@ export function EstimateManager({
             <Field label="Product / Type">{catSelect("product")}</Field>
             <Field label="Glass Type">{catSelect("glass")}</Field>
             <Field label="Shade Type">{catSelect("shade")}</Field>
-            <Field label="Sheet Type">{catSelect("sheet")}</Field>
             <Field label="Height (Inch)">
               <Input
                 type="text"
@@ -462,6 +511,9 @@ export function EstimateManager({
             </TableBody>
           </Table>
         </div>
+
+          </>
+        )}
 
         {/* Charges + totals */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">

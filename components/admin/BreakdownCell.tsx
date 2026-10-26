@@ -11,10 +11,10 @@ type Cat = BreakdownCategory | "net";
 
 const TITLE: Record<Cat, string> = { revenue: "Revenue", labour: "Labour", vendor: "Vendor", net: "Net" };
 const HINT: Record<Cat, string> = {
-  revenue: "Work billed in client ledgers plus invoices (before GST). Estimates and quotations are not counted until invoiced.",
-  labour: "Labour work entries.",
-  vendor: "Bills received from vendors.",
-  net: "Revenue minus labour and vendor costs.",
+  revenue: "Payments received from clients (refunds subtracted). Quotations, estimates and invoices are not counted — only money actually received.",
+  labour: "Payments made to labour (refunds subtracted).",
+  vendor: "Payments made to vendors (refunds subtracted).",
+  net: "Received from clients minus paid to labour and vendors.",
 };
 
 /**
@@ -27,7 +27,6 @@ export function BreakdownCell({
   from,
   to,
   label,
-  fyOnly,
   className = "",
 }: {
   category: Cat;
@@ -35,7 +34,6 @@ export function BreakdownCell({
   from: string;
   to: string;
   label: string;
-  fyOnly: boolean;
   className?: string;
 }) {
   const [open, setOpen] = useState(false);
@@ -43,7 +41,7 @@ export function BreakdownCell({
 
   async function show() {
     setOpen(true);
-    if (!data) setData(await getBreakdown(from, to, fyOnly));
+    if (!data) setData(await getBreakdown(from, to));
   }
 
   const sections: BreakdownCategory[] = category === "net" ? ["revenue", "labour", "vendor"] : [category];

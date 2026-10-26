@@ -153,11 +153,16 @@ export async function createDocClient(input: {
 // ---------------------------------------------------------------- catalog
 export async function getItemCatalog(): Promise<CatalogMap> {
   const supabase = await createClient();
-  const { data } = await supabase
+  // `position` (migration 0010) keeps the workbook's order; older databases fall back to insertion order.
+  const ordered = await supabase
     .from("item_catalog")
     .select("category, value")
+    .order("position", { ascending: true, nullsFirst: false })
     .order("created_at")
     .order("value");
+  const { data } = ordered.error
+    ? await supabase.from("item_catalog").select("category, value").order("created_at").order("value")
+    : ordered;
   const map: CatalogMap = {};
   for (const k of CATALOG_KEYS) map[k] = [];
   for (const r of (data ?? []) as { category: string; value: string }[]) {

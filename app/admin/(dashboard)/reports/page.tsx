@@ -45,9 +45,9 @@ export default async function ReportsPage() {
       {/* Lines up under the row above: Vendor Cost under Vendor Payable,
           Labour Cost under Labour Due. */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <SummaryTile label="Total FY Revenue" value={totalRevenue} tone="blue" />
-        <SummaryTile label="Total Vendor Cost" value={totalVendorCost} tone="blue" />
-        <SummaryTile label="Total Labour Cost" value={totalLabourCost} tone="blue" />
+        <SummaryTile label="Total FY Received" value={totalRevenue} tone="blue" />
+        <SummaryTile label="Total Vendor Paid" value={totalVendorCost} tone="blue" />
+        <SummaryTile label="Total Labour Paid" value={totalLabourCost} tone="blue" />
       </div>
 
       <QuickAccess />

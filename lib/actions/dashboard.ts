@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { loadRevenue } from "@/lib/revenue";
+import { loadCashFlows, type FlowRow } from "@/lib/revenue";
 import type {
   ClientBalance,
   LabourBalance,
@@ -64,9 +64,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     clients,
     labourers,
     vendors,
-    clientWork,
-    labourWork,
-    vendorBills,
+    flows,
     recentTxns,
   ] = await Promise.all([
     supabase.from("financial_years").select("*").eq("is_active", true).maybeSingle(),
@@ -76,9 +74,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     supabase.from("clients").select("id, name"),
     supabase.from("labourers").select("id, name"),
     supabase.from("vendors").select("id, name"),
-    loadRevenue(supabase),
-    supabase.from("labour_work").select("amount, work_date, financial_year_id"),
-    supabase.from("vendor_bills").select("amount, bill_date, financial_year_id"),
+    loadCashFlows(supabase),
     supabase
       .from("all_transactions")
       .select("*")
@@ -86,13 +82,14 @@ export async function getDashboardData(): Promise<DashboardData> {
       .limit(60),
   ]);
 
-  const fyId = activeFy.data?.id ?? null;
   const startDate = activeFy.data?.start_date ?? "1970-01-01";
   const endDate = activeFy.data?.end_date ?? "2999-12-31";
 
-  const clientWorkFy = clientWork.filter((r) => r.financial_year_id === fyId);
-  const labourWorkFy = (labourWork.data ?? []).filter((r) => r.financial_year_id === fyId);
-  const vendorBillsFy = (vendorBills.data ?? []).filter((r) => r.financial_year_id === fyId);
+  // The FY is a date range: every payment dated inside it counts, whatever FY tag it carries.
+  const inFy = (r: FlowRow) => r.date >= startDate && r.date <= endDate;
+  const clientWorkFy = asWork(flows.revenue.filter(inFy));
+  const labourWorkFy = asWork(flows.labour.filter(inFy));
+  const vendorBillsFy = asBills(flows.vendor.filter(inFy));
 
   const clientReceivable = sum(clientBalances.data as ClientBalance[]);
   const labourDue = sum(labourBalances.data as LabourBalance[]);
@@ -239,11 +236,10 @@ export async function getDailyPerformance(from: string, to: string): Promise<Dai
 
   const supabase = await createClient();
 
-  const [clientWork, labourWork, vendorBills] = await Promise.all([
-    loadRevenue(supabase, { from, to }),
-    supabase.from("labour_work").select("amount, work_date").gte("work_date", from).lte("work_date", to),
-    supabase.from("vendor_bills").select("amount, bill_date").gte("bill_date", from).lte("bill_date", to),
-  ]);
+  const flows = await loadCashFlows(supabase, { from, to });
+  const clientWork = asWork(flows.revenue);
+  const labourWork = { data: asWork(flows.labour) };
+  const vendorBills = { data: asBills(flows.vendor) };
 
   const days = new Map<string, DailyRow>();
   const cursor = new Date(from);
@@ -288,22 +284,27 @@ export async function getDailyPerformance(from: string, to: string): Promise<Dai
 export async function getMonthlyPerformance(): Promise<MonthlyRow[]> {
   const supabase = await createClient();
 
-  const [activeFy, clientWork, labourWork, vendorBills] = await Promise.all([
+  const [activeFy, flows] = await Promise.all([
     supabase.from("financial_years").select("id, start_date, end_date").eq("is_active", true).maybeSingle(),
-    loadRevenue(supabase),
-    supabase.from("labour_work").select("amount, work_date, financial_year_id"),
-    supabase.from("vendor_bills").select("amount, bill_date, financial_year_id"),
+    loadCashFlows(supabase),
   ]);
 
-  const fyId = activeFy.data?.id ?? null;
   const startDate = activeFy.data?.start_date ?? "1970-01-01";
   const endDate = activeFy.data?.end_date ?? "2999-12-31";
 
   return buildMonthlySeries(
     startDate,
     endDate,
-    clientWork.filter((r) => r.financial_year_id === fyId),
-    (labourWork.data ?? []).filter((r) => r.financial_year_id === fyId),
-    (vendorBills.data ?? []).filter((r) => r.financial_year_id === fyId)
+    asWork(flows.revenue.filter((r) => r.date >= startDate && r.date <= endDate)),
+    asWork(flows.labour.filter((r) => r.date >= startDate && r.date <= endDate)),
+    asBills(flows.vendor.filter((r) => r.date >= startDate && r.date <= endDate))
   );
+}
+
+function asWork(rows: FlowRow[]) {
+  return rows.map((r) => ({ amount: r.amount, work_date: r.date }));
+}
+
+function asBills(rows: FlowRow[]) {
+  return rows.map((r) => ({ amount: r.amount, bill_date: r.date }));
 }

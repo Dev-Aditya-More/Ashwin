@@ -187,7 +187,7 @@ export function MonthlyPerformance({
                       {(["revenue", "labour", "vendor"] as const).map((c) => (
                         <TableCell key={c} className="text-right">
                           {d[c] ? (
-                            <BreakdownCell category={c} value={d[c]} from={d.key} to={d.key} label={formatDate(d.key)} fyOnly={false} />
+                            <BreakdownCell category={c} value={d[c]} from={d.key} to={d.key} label={formatDate(d.key)} />
                           ) : (
                             "—"
                           )}
@@ -199,7 +199,7 @@ export function MonthlyPerformance({
                         }`}
                       >
                         {hasActivity ? (
-                          <BreakdownCell category="net" value={d.net} from={d.key} to={d.key} label={formatDate(d.key)} fyOnly={false} />
+                          <BreakdownCell category="net" value={d.net} from={d.key} to={d.key} label={formatDate(d.key)} />
                         ) : (
                           "—"
                         )}
@@ -229,7 +229,7 @@ export function MonthlyPerformance({
                       {(["revenue", "labour", "vendor"] as const).map((c) => (
                         <TableCell key={c} className="text-right">
                           {m[c] ? (
-                            <BreakdownCell category={c} value={m[c]} from={range.from} to={range.to} label={label} fyOnly />
+                            <BreakdownCell category={c} value={m[c]} from={range.from} to={range.to} label={label} />
                           ) : (
                             "—"
                           )}
@@ -241,7 +241,7 @@ export function MonthlyPerformance({
                         }`}
                       >
                         {hasActivity ? (
-                          <BreakdownCell category="net" value={m.net} from={range.from} to={range.to} label={label} fyOnly />
+                          <BreakdownCell category="net" value={m.net} from={range.from} to={range.to} label={label} />
                         ) : (
                           "—"
                         )}

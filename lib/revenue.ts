@@ -1,73 +1,58 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-export type RevenueRow = {
-  work_date: string;
+export type FlowRow = {
+  date: string;
+  /** Positive = money moved the normal way; a refund is negative so it cancels a payment. */
   amount: number;
-  financial_year_id: string | null;
-  client_id: string;
-  client_name: string | null;
+  entity: string;
+  name: string | null;
   description: string;
-  bill_no: string | null;
 };
 
-const DETAIL_SHEET_PREFIX = "Estimate / Detail Sheet";
+export type CashFlows = { revenue: FlowRow[]; labour: FlowRow[]; vendor: FlowRow[] };
 
 /**
- * What counts as Revenue in the performance figures:
- *  - work billed to clients in their ledger (normal dues, opening balances…), EXCEPT the dues booked
- *    by confirming an Estimate as a Detail Sheet — an estimate is paperwork, not a sale;
- *  - plus every GST / Non-GST invoice, at its taxable value (GST collected belongs to the government),
- *    on the invoice date. An estimate therefore counts only once it is actually invoiced.
- * Quotations never count. The client ledger itself is unchanged — this only affects revenue figures.
+ * The performance figures follow actual money movements — the same transactions as the
+ * Transactions page — like the workbook's day-wise "Total Credit":
+ *  - Revenue = payments received from clients (refunds to clients subtract)
+ *  - Labour  = payments made to labour (refunds from labour subtract)
+ *  - Vendor  = payments made to vendors (refunds from vendors subtract)
+ * Documents (quotations, estimates, Detail Sheet dues, invoices) are never counted: they say what
+ * is owed, not what was paid, and counting them would double up with the payment that settles them.
  */
-export async function loadRevenue(
+export async function loadCashFlows(
   supabase: SupabaseClient,
   range?: { from: string; to: string }
-): Promise<RevenueRow[]> {
-  let work = supabase
-    .from("client_work")
-    .select("id, client_id, amount, work_date, financial_year_id, description, bill_no, clients(name)");
-  let invoices = supabase
-    .from("gst_invoices")
-    .select("client_id, taxable, doc_date, financial_year_id, no, invoice_type, estimate_no, clients(name)");
+): Promise<CashFlows> {
+  const sel = "amount, payment_date, note, payment_mode, is_refund";
+  let c = supabase.from("client_payments").select(`client_id, ${sel}, clients(name)`);
+  let l = supabase.from("labour_payments").select(`labourer_id, ${sel}, labourers(name)`);
+  let v = supabase.from("vendor_payments").select(`vendor_id, ${sel}, vendors(name)`);
   if (range) {
-    work = work.gte("work_date", range.from).lte("work_date", range.to);
-    invoices = invoices.gte("doc_date", range.from).lte("doc_date", range.to);
+    c = c.gte("payment_date", range.from).lte("payment_date", range.to);
+    l = l.gte("payment_date", range.from).lte("payment_date", range.to);
+    v = v.gte("payment_date", range.from).lte("payment_date", range.to);
   }
+  const [cr, lr, vr] = await Promise.all([c, l, v]);
 
-  const [w, est, inv] = await Promise.all([
-    work,
-    supabase.from("estimates").select("client_work_id").not("client_work_id", "is", null),
-    invoices,
-  ]);
-
-  // Tables from migration 0007 may be missing: then there is nothing to exclude or add.
-  const fromEstimates = new Set(((est.data ?? []) as { client_work_id: string }[]).map((r) => r.client_work_id));
-
-  type W = {
-    id: string; client_id: string; amount: number; work_date: string; financial_year_id: string | null;
-    description: string; bill_no: string | null; clients: { name: string } | null;
+  type P = {
+    amount: number; payment_date: string; note: string | null; payment_mode: string | null; is_refund?: boolean;
+    client_id?: string; labourer_id?: string; vendor_id?: string;
+    clients?: { name: string } | null; labourers?: { name: string } | null; vendors?: { name: string } | null;
   };
-  type I = {
-    client_id: string; taxable: number; doc_date: string; financial_year_id: string | null;
-    no: string; invoice_type: string; estimate_no: string | null; clients: { name: string } | null;
-  };
+  const map = (rows: unknown, entityKey: "client_id" | "labourer_id" | "vendor_id", rel: "clients" | "labourers" | "vendors", word: string) =>
+    ((rows ?? []) as P[]).map((r) => ({
+      date: r.payment_date,
+      amount: r.is_refund ? -Number(r.amount) : Number(r.amount),
+      entity: r[entityKey] ?? "",
+      name: r[rel]?.name ?? null,
+      description:
+        [r.is_refund ? "Refund" : word, r.payment_mode, r.note].filter(Boolean).join(" · "),
+    }));
 
-  const rows: RevenueRow[] = [];
-  for (const r of (w.data ?? []) as unknown as W[]) {
-    if (fromEstimates.has(r.id) || String(r.description ?? "").startsWith(DETAIL_SHEET_PREFIX)) continue;
-    rows.push({
-      work_date: r.work_date, amount: Number(r.amount), financial_year_id: r.financial_year_id,
-      client_id: r.client_id, client_name: r.clients?.name ?? null, description: r.description, bill_no: r.bill_no,
-    });
-  }
-  for (const r of (inv.data ?? []) as unknown as I[]) {
-    rows.push({
-      work_date: r.doc_date, amount: Number(r.taxable), financial_year_id: r.financial_year_id,
-      client_id: r.client_id, client_name: r.clients?.name ?? null,
-      description: `${r.invoice_type} Invoice${r.estimate_no ? ` (Estimate ${r.estimate_no})` : ""}`,
-      bill_no: r.no,
-    });
-  }
-  return rows;
+  return {
+    revenue: map(cr.data, "client_id", "clients", "Payment received"),
+    labour: map(lr.data, "labourer_id", "labourers", "Payment made"),
+    vendor: map(vr.data, "vendor_id", "vendors", "Payment made"),
+  };
 }

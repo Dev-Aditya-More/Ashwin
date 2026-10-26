@@ -96,9 +96,9 @@ async function Stats() {
       {/* Second row lines up under the first: Vendor Cost under Vendor
           Payable, Labour Cost under Labour Due. */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatCard icon={TrendingUp} label="Total FY Revenue" value={data.totalRevenue} sublabel="From client work" />
-        <StatCard icon={Truck} label="Total Vendor Cost" value={data.totalVendorCost} sublabel="Material purchases" />
-        <StatCard icon={HardHat} label="Total Labour Cost" value={data.totalLabourCost} sublabel="Payments to workers" />
+        <StatCard icon={TrendingUp} label="Total FY Received" value={data.totalRevenue} sublabel="Payments from clients" />
+        <StatCard icon={Truck} label="Total Vendor Paid" value={data.totalVendorCost} sublabel="Payments to vendors" />
+        <StatCard icon={HardHat} label="Total Labour Paid" value={data.totalLabourCost} sublabel="Payments to workers" />
         <StatCard
           icon={UserSquare2}
           label="Active Accounts"
