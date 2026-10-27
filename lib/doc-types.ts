@@ -78,6 +78,7 @@ export type EstimateOption = {
   total: number;
   taxable: number;
   subtotal: number;
+  site_name: string | null;
   client: { name: string; gstin: string | null } | null;
 };
 

@@ -8,13 +8,18 @@ const finish = (rows: Keyed[]): LedgerPrintRow[] =>
     .sort((a, b) => a.key.localeCompare(b.key))
     .map((r) => ({ date: r.date, particulars: r.particulars, debit: r.debit, credit: r.credit }));
 
+/** The Due booked by a Detail Sheet is described as "Estimate / Detail Sheet <no>" — on the ledger the Bill No. says it all. */
+const AUTO_DETAIL_SHEET = /^Estimate \/ Detail Sheet\b/i;
+
 /** Debit = increases what the client owes (work billed, refunds); credit = payments received. */
 export function clientLedgerRows(work: ClientWork[], payments: ClientPayment[]): LedgerPrintRow[] {
   return finish([
     ...work.map((w) => ({
       key: `${w.work_date}T${w.created_at}`,
       date: w.work_date,
-      particulars: [w.bill_no ? `Bill ${w.bill_no}` : "", w.description].filter(Boolean).join(" — "),
+      particulars: w.bill_no
+        ? [`Bill ${w.bill_no}`, AUTO_DETAIL_SHEET.test(w.description ?? "") ? "" : w.description].filter(Boolean).join(" — ")
+        : w.description ?? "",
       debit: Number(w.amount),
       credit: 0,
     })),

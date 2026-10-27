@@ -226,12 +226,13 @@ export async function listEstimates(
   };
 }
 
-/** Every estimate (confirmed or not) for the invoice picker — only the fields it shows, no line items. */
+/** Detail Sheets (confirmed estimates) for the invoice picker — only a Detail Sheet can be billed. No line items. */
 export async function listEstimateOptions(): Promise<EstimateOption[]> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("estimates")
-    .select("id, no, total, taxable, subtotal, clients(name, gstin)")
+    .select("id, no, total, taxable, subtotal, site_name, clients(name, gstin)")
+    .not("confirmed_at", "is", null)
     .order("created_at", { ascending: false });
   return ((data ?? []) as unknown as (Omit<EstimateOption, "client"> & {
     clients: { name: string; gstin: string | null } | null;
@@ -273,20 +274,50 @@ async function checkClient(supabase: SupabaseClient, clientId: string) {
   return data ? null : "Client not found.";
 }
 
+function cleanQuoteLines(lines: QuoteLine[]): QuoteLine[] | null {
+  const clean = lines.map((l) => ({
+    name: String(l.name ?? "").trim(),
+    unit: l.unit || "Sq.Ft.",
+    rate: Math.max(0, Number(l.rate) || 0),
+  }));
+  return !clean.length || clean.some((l) => !l.name) ? null : clean;
+}
+
+/** Saves changes to an existing quotation (number, date, client, site, work type, notes and lines). */
+export async function updateQuotation(id: string, h: Header, lines: QuoteLine[]): Promise<ActionResult> {
+  const supabase = await createClient();
+  const bad = await checkClient(supabase, h.clientId);
+  if (bad) return { ok: false, error: bad };
+  const no = h.no.trim();
+  if (!no) return { ok: false, error: "Document number required." };
+  const clean = cleanQuoteLines(lines);
+  if (!clean) return { ok: false, error: "Enter a Description for every line." };
+  const { error } = await supabase
+    .from("quotations")
+    .update({
+      no,
+      doc_date: h.date || undefined,
+      client_id: h.clientId,
+      site_name: h.siteName.trim() || null,
+      work_type: h.workType || null,
+      note: h.note.trim() || null,
+      lines: clean,
+    })
+    .eq("id", id);
+  if (error) return fail(error);
+  revalidatePath("/admin/quotations");
+  revalidatePath("/admin");
+  return { ok: true, id, message: "Quotation updated." };
+}
+
 export async function saveQuotation(h: Header, lines: QuoteLine[]): Promise<ActionResult> {
   const supabase = await createClient();
   const bad = await checkClient(supabase, h.clientId);
   if (bad) return { ok: false, error: bad };
   const no = h.no.trim();
   if (!no) return { ok: false, error: "Document number required." };
-  const clean = lines.map((l) => ({
-    name: String(l.name ?? "").trim(),
-    unit: l.unit || "Sq.Ft.",
-    rate: Math.max(0, Number(l.rate) || 0),
-  }));
-  if (!clean.length || clean.some((l) => !l.name)) {
-    return { ok: false, error: "Enter a Description for every line." };
-  }
+  const clean = cleanQuoteLines(lines);
+  if (!clean) return { ok: false, error: "Enter a Description for every line." };
   const [fy, actor] = await Promise.all([activeFy(supabase), currentUserEmail(supabase)]);
   try {
     const { data } = await insertStrict(
@@ -538,7 +569,10 @@ export async function saveInvoice(input: {
     .select(`*, clients(${CLIENT_COLS})`)
     .eq("id", input.estimateId)
     .maybeSingle();
-  if (!est) return { ok: false, error: "Select an estimate." };
+  if (!est) return { ok: false, error: "Select a Detail Sheet." };
+  if (!est.confirmed_at) {
+    return { ok: false, error: `Estimate ${est.no} is not a Detail Sheet yet. Convert it to a Detail Sheet first, then bill it.` };
+  }
   // One bill per estimate: either the GST invoice or the Non-GST bill of supply, never both.
   const { data: already } = await supabase
     .from("gst_invoices")

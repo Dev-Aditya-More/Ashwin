@@ -134,8 +134,9 @@ export function ClientPicker({
 
   return (
     <>
-      <div className="flex gap-2">
-        <select className={selectCls} value={value} onChange={(e) => onChange(e.target.value)}>
+      {/* The name gets the room; on a narrow column the button drops to its own line instead of squeezing it. */}
+      <div className="flex flex-wrap gap-2">
+        <select className={`${selectCls} flex-1 min-w-[12rem] w-auto`} value={value} onChange={(e) => onChange(e.target.value)}>
           <option value="">Select Client</option>
           {clients.map((c) => (
             <option key={c.id} value={c.id}>

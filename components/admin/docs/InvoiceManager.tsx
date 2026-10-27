@@ -114,16 +114,17 @@ export function InvoiceManager({
       )}
 
       <div className="rounded-xl border border-[var(--border)] bg-white p-4 space-y-4">
-        <h2 className="font-semibold text-sm">Create Invoice from Estimate</h2>
+        <h2 className="font-semibold text-sm">Create Invoice from Detail Sheet</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <Field label="Estimate">
+          <Field label="Detail Sheet">
             <select className={selectCls} value={estimateId} onChange={(e) => setEstimateId(e.target.value)}>
-              <option value="">Select saved estimate</option>
+              <option value="">{estimates.length ? "Select Detail Sheet" : "No Detail Sheets yet"}</option>
               {estimates.map((e) => {
                 const billed = invoicedBy.get(e.id);
                 return (
                   <option key={e.id} value={e.id} disabled={!!billed}>
-                    {e.no} — {e.client?.name} — {money(e.total)}
+                    {e.no} — {e.client?.name}
+                    {e.site_name ? ` — ${e.site_name}` : ""} — {money(e.total)}
                     {billed ? ` (already billed: ${billed})` : ""}
                   </option>
                 );
@@ -157,7 +158,7 @@ export function InvoiceManager({
         <p className="rounded-md border-l-4 border-amber-400 bg-amber-50 px-3 py-2 text-sm">
           {est ? (
             <>
-              Client: <b>{est.client?.name}</b> · GSTIN: {est.client?.gstin || "Not entered"} · Estimate: {est.no}
+              Client: <b>{est.client?.name}</b> · GSTIN: {est.client?.gstin || "Not entered"} · Detail Sheet: {est.no}
               <br />
               Taxable value: {money(taxable)} · GST {rate}%: {money(tax)} ·{" "}
               <b>{type === "GST" ? "Invoice total" : "Bill total (no GST)"}: {money(invoiceTotal)}</b>
@@ -167,7 +168,7 @@ export function InvoiceManager({
                 : "Bill of Supply issued by ARNAV GLASS SERVICES (no GST, no QR)."}
             </>
           ) : (
-            "The bill amount will appear after you select an Estimate."
+            "The bill amount will appear after you select a Detail Sheet. Only Detail Sheets can be billed — convert an Estimate to a Detail Sheet first."
           )}
         </p>
 

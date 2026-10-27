@@ -3,14 +3,14 @@
 import { todayIST } from "@/lib/today";
 
 import { useState, useTransition } from "react";
-import { Loader2, Plus, Printer, X } from "lucide-react";
+import { Loader2, Pencil, Plus, Printer, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DeleteRowButton } from "@/components/admin/dialogs/DeleteRowButton";
 import { ClientPicker, DocCard, DocCardList, Field, SetupNotice, WORK_TYPES, selectCls } from "@/components/admin/docs/shared";
-import { deleteDocument, getNextDocNo, saveQuotation } from "@/lib/actions/documents";
+import { deleteDocument, getNextDocNo, saveQuotation, updateQuotation } from "@/lib/actions/documents";
 import { UNITS, type QuoteLine } from "@/lib/doc-calc";
 import type { DocClient, Quotation } from "@/lib/doc-types";
 import { printQuotationOrEstimate } from "@/lib/print/documents";
@@ -56,50 +56,74 @@ export function QuotationManager({
   const [workType, setWorkType] = useState(WORK_TYPES[0]);
   const [note, setNote] = useState("");
   const [lines, setLines] = useState<QuoteLine[]>([blank()]);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
   const patch = (i: number, p: Partial<QuoteLine>) =>
     setLines((ls) => ls.map((l, idx) => (idx === i ? { ...l, ...p } : l)));
 
+  /** Clear the form for a brand-new quotation (also leaves edit mode). */
+  async function startNew() {
+    setEditingId(null);
+    setLines([blank()]);
+    setSite("");
+    setNote("");
+    setNo(await getNextDocNo("quotation"));
+  }
+
+  /** Load a saved quotation into the form to change it. */
+  function loadForEdit(q: Quotation) {
+    setEditingId(q.id);
+    setNo(q.no);
+    setDate(q.doc_date);
+    setClientId(q.client_id);
+    setSite(q.site_name ?? "");
+    setWorkType(q.work_type ?? WORK_TYPES[0]);
+    setNote(q.note ?? "");
+    setLines(q.lines?.length ? q.lines.map((l) => ({ ...l })) : [blank()]);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
   function save() {
     startTransition(async () => {
-      const res = await saveQuotation({ no, date, clientId, siteName: site, workType, note }, lines);
+      const header = { no, date, clientId, siteName: site, workType, note };
+      const res = editingId ? await updateQuotation(editingId, header, lines) : await saveQuotation(header, lines);
       if (!res.ok) {
         toast.error(res.error);
         return;
       }
-      toast.success("Quotation saved.");
-      setLines([blank()]);
-      setSite("");
-      setNote("");
-      setNo(await getNextDocNo("quotation"));
+      toast.success(editingId ? "Quotation updated." : "Quotation saved.");
+      await startNew();
     });
   }
 
   return (
-    <div className="grid grid-cols-1 2xl:grid-cols-2 gap-6 items-start">
-      {setup && (
-        <div className="2xl:col-span-2">
-          <SetupNotice />
-        </div>
-      )}
+    <div className="space-y-6">
+      {setup && <SetupNotice />}
 
       <div className="rounded-xl border border-[var(--border)] bg-white p-4 space-y-4">
-        <h2 className="font-semibold text-sm">Create Quotation</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <Field label="Document Number">
-            <Input value={no} onChange={(e) => setNo(e.target.value)} />
-          </Field>
-          <Field label="Date">
-            <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-          </Field>
-          <Field label="Client">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="font-semibold text-sm">{editingId ? `Edit Quotation ${no}` : "Create Quotation"}</h2>
+          {editingId && (
+            <Button type="button" variant="outline" size="sm" onClick={() => startNew()}>
+              Cancel edit — new quotation
+            </Button>
+          )}
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <Field label="Client" className="sm:col-span-2">
             <ClientPicker
               clients={clients}
               value={clientId}
               onChange={setClientId}
               onCreated={(c) => setClients((cs) => [...cs, c].sort((a, b) => a.name.localeCompare(b.name)))}
             />
+          </Field>
+          <Field label="Document Number">
+            <Input value={no} onChange={(e) => setNo(e.target.value)} />
+          </Field>
+          <Field label="Date">
+            <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
           </Field>
           <Field label="Site Name">
             <Input value={site} placeholder="Site / Project Name" onChange={(e) => setSite(e.target.value)} />
@@ -111,7 +135,7 @@ export function QuotationManager({
               ))}
             </select>
           </Field>
-          <Field label="Notes / Terms">
+          <Field label="Notes / Terms" className="sm:col-span-2 lg:col-span-3">
             <Input value={note} placeholder="Notes / Terms" onChange={(e) => setNote(e.target.value)} />
           </Field>
         </div>
@@ -169,7 +193,7 @@ export function QuotationManager({
             <Plus className="size-4" /> Add Description
           </Button>
           <Button type="button" onClick={save} disabled={pending}>
-            {pending && <Loader2 className="size-4 animate-spin" />} Save Quotation
+            {pending && <Loader2 className="size-4 animate-spin" />} {editingId ? "Update Quotation" : "Save Quotation"}
           </Button>
           <Button type="button" variant="outline" disabled={!rows.length} onClick={() => printQuotation(rows[0])}>
             <Printer className="size-4" /> Print / PDF
@@ -198,6 +222,9 @@ export function QuotationManager({
               <Button size="sm" variant="outline" onClick={() => printQuotation(q)}>
                 <Printer className="size-3.5" /> View / Print
               </Button>
+              <Button size="sm" variant="outline" onClick={() => loadForEdit(q)}>
+                <Pencil className="size-3.5" /> Edit
+              </Button>
               <SharePdfButton print={() => printQuotation(q)} title={`${q.client?.name ?? ""} Q-${q.no}`} />
             </DocCard>
           ))}
@@ -224,6 +251,9 @@ export function QuotationManager({
                     <div className="flex justify-end gap-1">
                       <Button size="sm" variant="outline" onClick={() => printQuotation(q)}>
                         View / Print
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => loadForEdit(q)}>
+                        <Pencil className="size-3.5" /> Edit
                       </Button>
                       <SharePdfButton print={() => printQuotation(q)} title={`${q.client?.name ?? ""} Q-${q.no}`} />
                       <DeleteRowButton

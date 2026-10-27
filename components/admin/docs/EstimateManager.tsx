@@ -222,7 +222,7 @@ export function EstimateManager({
 
   function resetDraft() {
     // Keep the dropdown choices (most items on a site share material/glass/shade); clear the numbers.
-    setDraft((cur) => ({ ...cur, height: "", length: "", qty: 1, rate: 0 }));
+    setDraft((cur) => ({ ...cur, height: "", length: "", qty: 1, rate: 0, note: "" }));
     setEditIdx(null);
   }
 
@@ -527,6 +527,13 @@ export function EstimateManager({
             <Field label="Amount ₹">
               <Input value={d.amount ? fmt(d.amount) : ""} readOnly tabIndex={-1} className={`${readOnly} font-semibold`} />
             </Field>
+            <Field label="Notes (optional)" className="sm:col-span-2 lg:col-span-3 xl:col-span-4">
+              <Input
+                value={draft.note ?? ""}
+                placeholder="Anything extra for this item, e.g. with mosquito net, client to supply handles"
+                onChange={(e) => patchDraft({ note: e.target.value })}
+              />
+            </Field>
           </div>
 
           <div className="flex flex-wrap gap-2">
@@ -567,7 +574,12 @@ export function EstimateManager({
                 return (
                   <TableRow key={i} className={editIdx === i ? "bg-blue-50" : ""}>
                     <TableCell>{i + 1}</TableCell>
-                    <TableCell className="font-medium">{l.productType}</TableCell>
+                    <TableCell className="font-medium">
+                      {l.productType}
+                      {l.note?.trim() && (
+                        <span className="block text-xs font-normal italic text-[var(--text-muted)]">{l.note}</span>
+                      )}
+                    </TableCell>
                     <TableCell className="text-[var(--text-muted)]">
                       {[l.materialType, l.glassType].filter(Boolean).join(" · ")}
                     </TableCell>

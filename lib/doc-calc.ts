@@ -70,6 +70,8 @@ export type EstimateLine = {
   heightText?: string;
   lengthText?: string;
   lumpSum?: boolean;
+  /** Optional remark for a Glass & Aluminium item (e.g. "with mosquito net"); printed under its description. */
+  note?: string;
 };
 
 /** Raw line as typed in the form (dimensions are free text such as "45 1/8"). */
@@ -87,6 +89,8 @@ export type EstimateLineInput = {
   rate: number;
   /** A fee charged as one amount (Civil / Interior Fees): no measurements, amount = rate × qty. */
   lumpSum?: boolean;
+  /** Optional remark for this item. */
+  note?: string;
 };
 
 /**
@@ -144,7 +148,9 @@ export function calcEstimateLine(l: EstimateLineInput): EstimateLine {
   const h = halfFoot(l.height);
   const len = halfFoot(l.length);
   const sqft = h * len * qty;
+  const note = String(l.note ?? "").trim().replace(/\s+/g, " ");
   return {
+    ...(note ? { note } : {}),
     productType: l.productType ?? "",
     sheetType: l.sheetType ?? "",
     materialType: l.materialType ?? "",
@@ -286,7 +292,7 @@ export function sameItemKey(l: EstimateLineInput): string {
   return [
     l.lumpSum ? "fee" : "item",
     l.productType, l.materialType, l.glassType, l.shadeType, l.floorType,
-    dim(l.height), dim(l.length), l.unit, Number(l.rate) || 0,
+    dim(l.height), dim(l.length), l.unit, Number(l.rate) || 0, String(l.note ?? "").trim(),
   ].join("|").toLowerCase();
 }
 
@@ -322,6 +328,7 @@ export function lineToInput(l: EstimateLine): EstimateLineInput {
     unit: l.unit || "Sq.Ft.",
     rate: Number(l.rate) || 0,
     lumpSum: l.lumpSum,
+    note: l.note ?? "",
   };
 }
 
@@ -344,7 +351,7 @@ export function mergeForPrint(lines: EstimateLine[]): PrintLine[] {
     const k = [
       l.lumpSum ? "fee" : "item",
       l.productType, l.materialType, l.glassType, l.shadeType, l.floorType,
-      l.heightFt, l.lengthFt, l.unit, Number(l.rate) || 0, l.hsn ?? "",
+      l.heightFt, l.lengthFt, l.unit, Number(l.rate) || 0, l.hsn ?? "", l.note ?? "",
     ].join("|").toLowerCase();
     const i = at.get(k);
     if (i === undefined || l.lumpSum) {
