@@ -2,7 +2,38 @@
 // (live totals) and re-run on the server when saving, so stored totals never
 // depend on what the browser sent.
 
-export const UNITS = ["Sq.Ft.", "Sq.Mtr.", "Rft.", "Nos.", "Job", "Set", "LS"] as const;
+export const UNITS = ["Sq.Ft.", "Sq.Mtr.", "Rft.", "Nos.", "Set", "LS"] as const;
+
+/**
+ * How a unit bills an item:
+ *  - Sq.Ft.  → area: height × length (each rounded up to the next half-foot) × Qty
+ *  - Sq.Mtr. → area in square metres from the exact inches × Qty
+ *  - Rft.    → running feet: length (rounded up to the next half-foot; height if no length) × Qty
+ *  - Nos. / Set → per piece: Qty
+ *  - LS      → lump sum: the rate is the whole amount
+ * Older lines saved as "Job" bill per piece.
+ */
+export type UnitKind = "sqft" | "sqm" | "rft" | "count" | "lump";
+export function unitKind(unit: unknown): UnitKind {
+  const u = String(unit ?? "").trim().toLowerCase().replace(/[.\s]/g, "");
+  if (!u || u === "sqft" || u === "sqf") return "sqft";
+  if (u === "sqmtr" || u === "sqm") return "sqm";
+  if (u === "rft" || u === "rf") return "rft";
+  if (u === "ls") return "lump";
+  return "count";
+}
+/** Whether the unit needs Height / Length to work out the amount. */
+export const unitNeedsSize = (unit: unknown) => ["sqft", "sqm", "rft"].includes(unitKind(unit));
+/** Label for what the item is billed by, e.g. "Sq. Ft.", "Sq. Mtr.", "Rft.", "Nos.". */
+export function measureLabel(unit: unknown): string {
+  switch (unitKind(unit)) {
+    case "sqft": return "Sq. Ft.";
+    case "sqm": return "Sq. Mtr.";
+    case "rft": return "Rft.";
+    case "lump": return "LS";
+    default: return String(unit ?? "").trim() === "Job" ? "Nos." : String(unit || "Nos.");
+  }
+}
 export const GST_RATES = [0, 5, 12, 18, 28] as const;
 
 export const CATALOG_KEYS = ["product", "sheet", "material", "glass", "shade", "floor"] as const;
@@ -62,6 +93,10 @@ export type EstimateLine = {
   lengthFt: number;
   qty: number;
   unit: string;
+  /**
+   * Billed quantity in the line's unit: square feet for Sq.Ft. (the original meaning, hence the name),
+   * square metres for Sq.Mtr., running feet for Rft., pieces for Nos./Set, 1 for LS.
+   */
   sqft: number;
   rate: number;
   amount: number;
@@ -147,7 +182,7 @@ export function calcEstimateLine(l: EstimateLineInput): EstimateLine {
   }
   const h = halfFoot(l.height);
   const len = halfFoot(l.length);
-  const sqft = h * len * qty;
+  const sqft = billedQty(l.unit, { h, len, hIn: parseInches(l.height), lIn: parseInches(l.length), qty });
   const note = String(l.note ?? "").trim().replace(/\s+/g, " ");
   return {
     ...(note ? { note } : {}),
@@ -167,8 +202,27 @@ export function calcEstimateLine(l: EstimateLineInput): EstimateLine {
     unit: l.unit || "Sq.Ft.",
     sqft,
     rate,
-    amount: sqft * rate,
+    amount: round2(sqft * rate),
   };
+}
+
+/** The quantity the rate is charged on, for the line's unit (see `unitKind`). */
+function billedQty(unit: unknown, m: { h: number; len: number; hIn: number; lIn: number; qty: number }): number {
+  switch (unitKind(unit)) {
+    case "sqft": return round2(m.h * m.len * m.qty);
+    case "sqm": return round2(m.hIn * m.lIn * 0.00064516 * m.qty); // 1 sq. inch = 0.00064516 m²
+    case "rft": return round2((m.len || m.h) * m.qty);
+    case "lump": return 1;
+    default: return m.qty;
+  }
+}
+
+/** Billed quantity with its unit for documents, e.g. "24.00 Sq. Ft.", "12.50 Rft.", "3 Nos.", "1 LS". */
+export function measureText(l: Pick<EstimateLine, "sqft" | "unit" | "lumpSum">): string {
+  if (l.lumpSum) return "";
+  const k = unitKind(l.unit);
+  const n = Number(l.sqft) || 0;
+  return `${k === "count" || k === "lump" ? n : n.toFixed(2)} ${measureLabel(l.unit)}`;
 }
 
 export type EstimateTotals = {
@@ -283,7 +337,9 @@ export function sizeAsWritten(l: Pick<EstimateLine, "heightText" | "lengthText" 
   const h = dimAsWritten(l.heightText, l.heightIn);
   const w = dimAsWritten(l.lengthText, l.lengthIn);
   if (!h && !w) return "";
-  return `${h || "—"}″ × ${w || "—"}″`;
+  // Running-feet items may have just one dimension: print only what was typed.
+  if (!h || !w) return `${h || w}″`;
+  return `${h}″ × ${w}″`;
 }
 
 /** Same product, finish, size and rate → the same line (sizes compared by value, so 45 3/8 = 45.375). */
@@ -372,6 +428,7 @@ export function mergeForPrint(lines: EstimateLine[]): PrintLine[] {
 
 /** Size in rounded feet for estimates and bills, e.g. `4′ × 5.5′` (fee lines have none). */
 export function sizeInFeet(l: Pick<EstimateLine, "heightFt" | "lengthFt" | "lumpSum">): string {
-  if (l.lumpSum || !l.heightFt || !l.lengthFt) return "";
+  if (l.lumpSum) return "";
+  if (!l.heightFt || !l.lengthFt) return l.heightFt || l.lengthFt ? `${Number(l.heightFt || l.lengthFt)}′` : "";
   return `${Number(l.heightFt)}′ × ${Number(l.lengthFt)}′`;
 }

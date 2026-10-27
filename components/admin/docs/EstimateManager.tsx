@@ -34,6 +34,10 @@ import {
   UNITS,
   calcEstimate,
   calcEstimateLine,
+  measureLabel,
+  measureText,
+  unitKind,
+  unitNeedsSize,
   describeInches,
   lineToInput,
   sameItemKey,
@@ -227,8 +231,13 @@ export function EstimateManager({
   }
 
   function addItem() {
-    if (!d.heightIn || !d.lengthIn) {
+    const kind = unitKind(draft.unit);
+    if ((kind === "sqft" || kind === "sqm") && (!d.heightIn || !d.lengthIn)) {
       toast.error("Enter Height and Length in inches (e.g. 45 3/8).");
+      return;
+    }
+    if (kind === "rft" && !d.heightIn && !d.lengthIn) {
+      toast.error("Enter the Length in inches (e.g. 62½) for a running-feet item.");
       return;
     }
     if (!(d.qty > 0)) {
@@ -477,7 +486,14 @@ export function EstimateManager({
             <Field label="Product / Type">{catSelect("product")}</Field>
             <Field label="Glass Type">{catSelect("glass")}</Field>
             <Field label="Shade Type">{catSelect("shade")}</Field>
-            <Field label="Height (Inch)">
+            <Field label="Unit">
+              <select className={selectCls} value={draft.unit} onChange={(e) => patchDraft({ unit: e.target.value })}>
+                {UNITS.map((u) => (
+                  <option key={u}>{u}</option>
+                ))}
+              </select>
+            </Field>
+            <Field label={unitNeedsSize(draft.unit) && unitKind(draft.unit) !== "rft" ? "Height (Inch)" : "Height (Inch, optional)"}>
               <Input
                 type="text"
                 inputMode="text"
@@ -488,7 +504,7 @@ export function EstimateManager({
               />
               <p className="text-[11px] text-[var(--text-muted)]">{describeInches(draft.height)}</p>
             </Field>
-            <Field label="Length (Inch)">
+            <Field label={unitNeedsSize(draft.unit) ? "Length (Inch)" : "Length (Inch, optional)"}>
               <Input
                 type="text"
                 inputMode="text"
@@ -511,15 +527,8 @@ export function EstimateManager({
             <Field label="Qty">
               <Input type="number" min="1" value={draft.qty || ""} placeholder="1" onChange={(e) => patchDraft({ qty: Number(e.target.value) })} />
             </Field>
-            <Field label="Sq. Ft.">
-              <Input value={d.sqft ? d.sqft.toFixed(2) : ""} readOnly tabIndex={-1} className={readOnly} />
-            </Field>
-            <Field label="Unit">
-              <select className={selectCls} value={draft.unit} onChange={(e) => patchDraft({ unit: e.target.value })}>
-                {UNITS.map((u) => (
-                  <option key={u}>{u}</option>
-                ))}
-              </select>
+            <Field label={`Billed ${measureLabel(draft.unit)}`}>
+              <Input value={d.sqft ? measureText(d) : ""} readOnly tabIndex={-1} className={readOnly} />
             </Field>
             <Field label="Rate ₹">
               <Input type="number" min="0" step="0.01" placeholder="0" value={draft.rate || ""} onChange={(e) => patchDraft({ rate: Number(e.target.value) })} />
@@ -547,8 +556,10 @@ export function EstimateManager({
             )}
           </div>
           <p className="text-xs text-[var(--text-muted)]">
-            Type inches as fractions (45 3/8, 45-3/8, 45½) or decimals. Each dimension is rounded up to the next half-foot
-            for Sq.Ft.; documents print the size exactly as you typed it.
+            Type inches as fractions (45 3/8, 45-3/8, 45½) or decimals; documents print the size exactly as you typed it.
+            The Unit decides the amount: Sq.Ft. = height × length (each rounded up to the next half-foot) × Qty; Sq.Mtr. =
+            exact area in square metres × Qty; Rft. = length in feet (rounded up to the next half-foot) × Qty; Nos. / Set =
+            Qty; LS = the rate is the whole amount.
           </p>
         </div>
 
@@ -562,7 +573,7 @@ export function EstimateManager({
                 <TableHead>Material / Glass</TableHead>
                 <TableHead>Size</TableHead>
                 <TableHead className="text-right">Qty</TableHead>
-                <TableHead className="text-right">Sq.Ft.</TableHead>
+                <TableHead className="text-right">Billed</TableHead>
                 <TableHead className="text-right">Rate</TableHead>
                 <TableHead className="text-right">Amount</TableHead>
                 <TableHead className="w-24" />
@@ -588,7 +599,7 @@ export function EstimateManager({
                       <span className="block text-xs text-[var(--text-muted)]">{sizeInFeet(c)}</span>
                     </TableCell>
                     <TableCell className="text-right">{c.qty}</TableCell>
-                    <TableCell className="text-right">{c.sqft.toFixed(2)}</TableCell>
+                    <TableCell className="text-right whitespace-nowrap">{measureText(c)}</TableCell>
                     <TableCell className="text-right">{fmt(c.rate)}</TableCell>
                     <TableCell className="text-right font-medium">{fmt(c.amount)}</TableCell>
                     <TableCell>
