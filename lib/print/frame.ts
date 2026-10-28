@@ -55,8 +55,8 @@ export function fitPages(d: Document, o: FitOptions) {
   const natural = content.getBoundingClientRect().height;
   // The small allowance covers rows that jump to the next page instead of splitting.
   const rep = o.repeat ? (d.querySelector(o.repeat) as HTMLElement | null)?.getBoundingClientRect().height ?? 0 : 0;
-  // Row heights are snapped differently when printing, so the error grows with the document: keep ~1.2% slack.
-  const slack = 14 + natural * 0.012;
+  // Row heights are snapped differently when printing, so the error grows with the document: keep ~2.5% slack (an over-tall spacer would push the footer onto a page of empty column lines).
+  const slack = 20 + natural * 0.025;
   let pages = Math.max(1, Math.ceil((natural + slack + 6) / usable));
   while (natural + (pages - 1) * rep + slack + 6 > pages * usable) pages++;
   spacer.style.height = Math.max(0, pages * usable - natural - (pages - 1) * rep - slack) + "px";
