@@ -53,15 +53,6 @@ export function fitPages(d: Document, o: FitOptions) {
   const content = d.querySelector(o.content) as HTMLElement | null;
   const spacer = d.querySelector(o.spacer) as HTMLElement | null;
   if (!content || !spacer) return;
-  // Phones/tablets can lay the frame out at a different width than the printed page; measuring
-  // then would give a wrong answer (and push the footer onto a second page), so leave the
-  // layout-independent CSS fallback in charge.
-  if (o.widthMm) {
-    const wantPx = (o.widthMm * 96) / 25.4;
-    // innerWidth includes any scrollbar; phones lay out at ~400px, far from a 794px page.
-    const have = d.defaultView?.innerWidth ?? d.documentElement.clientWidth;
-    if (Math.abs(have - wantPx) > 30) return;
-  }
   if (o.shrink) shrinkToFit(d, o.shrink);
   // Measure the content at its natural size (drop the CSS one-page minimum used as the fallback).
   content.style.minHeight = "0px";
@@ -123,7 +114,7 @@ export function captureDocument(run: () => void): CapturedDocument | null {
 }
 
 /** Strip scripts and add the device-independence / no-auto-link head tags every document gets. */
-export function prepareHtml(rawHtml: string): string {
+export function prepareHtml(rawHtml: string, widthMm?: number): string {
   // Stop phones/PDF viewers turning phone numbers, e-mails and dates into tappable links.
   return String(rawHtml)
     .replace(/<script[\s\S]*?<\/script>/gi, "")
@@ -132,7 +123,7 @@ export function prepareHtml(rawHtml: string): string {
       '<head><meta name="format-detection" content="telephone=no,date=no,address=no,email=no">' +
         '<meta name="viewport" content="width=device-width, initial-scale=1">' +
         // Never let a logo, long word or wide table push past the page edge on any device.
-        "<style>img{max-width:100%}table{max-width:100%}td,th{overflow-wrap:anywhere}" +
+        "<style>" + (widthMm ? `html,body{width:${widthMm}mm;min-width:${widthMm}mm}` : "") + "img{max-width:100%}table{max-width:100%}td,th{overflow-wrap:anywhere}" +
         "@media print{html{-webkit-text-size-adjust:100%;text-size-adjust:100%}}</style>"
     );
 }
@@ -145,31 +136,7 @@ export function printHtmlInFrame(rawHtml: string, titleOrOpts?: string | PrintOp
     capturing({ html: rawHtml, opts });
     return;
   }
-  // Phone browsers ignore the landscape page size and break long tables badly when printing an iframe,
-  // so on a phone the document is turned into a proper A4 PDF (correct orientation) and opened instead.
-  if (typeof navigator !== "undefined" && /Android|iPhone|iPad|iPod|Mobi/i.test(navigator.userAgent)) {
-    const w = window.open("", "_blank");
-    void (async () => {
-      try {
-        const { documentToPdf, pdfName } = await import("@/lib/print/pdf");
-        const file = await documentToPdf({ html: rawHtml, opts }, pdfName(title || "document"));
-        const url = URL.createObjectURL(file);
-        if (w) w.location.href = url;
-        else {
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = file.name;
-          a.click();
-        }
-        setTimeout(() => URL.revokeObjectURL(url), 120000);
-      } catch (e) {
-        w?.close();
-        alert("Could not prepare the PDF: " + (e as Error).message);
-      }
-    })();
-    return;
-  }
-  const html = prepareHtml(rawHtml);
+  const html = prepareHtml(rawHtml, opts.widthMm);
   document.getElementById("printFrame")?.remove();
 
   const f = document.createElement("iframe");

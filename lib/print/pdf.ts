@@ -40,7 +40,7 @@ export async function documentToPdf({ html, opts }: CapturedDocument, fileName: 
   try {
     const d = frame.contentWindow!.document;
     d.open();
-    d.write(prepareHtml(html));
+    d.write(prepareHtml(html, opts.widthMm));
     d.close();
     // html2canvas draws collapsed table borders twice; single 1px lines look the same as on paper.
     // The quotation's footer is "fixed to the page bottom" for printing; in a PDF it becomes a normal
