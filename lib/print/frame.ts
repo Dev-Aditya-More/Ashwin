@@ -37,7 +37,7 @@ export function shrinkToFit(d: Document, selector: string) {
   if (!t || !box) return;
   const avail = box.clientWidth - parseFloat(d.defaultView?.getComputedStyle(box).paddingLeft || "0") - parseFloat(d.defaultView?.getComputedStyle(box).paddingRight || "0");
   let size = parseFloat(d.defaultView?.getComputedStyle(t).fontSize || "9");
-  while (t.scrollWidth > avail + 1 && size > 5.5) {
+  while (t.scrollWidth > avail + 1 && size > 4.5) {
     size -= 0.25;
     t.style.fontSize = size + "px";
   }
@@ -129,14 +129,29 @@ export function prepareHtml(rawHtml: string, widthMm?: number): string {
 }
 
 export function printHtmlInFrame(rawHtml: string, titleOrOpts?: string | PrintOptions) {
-  const opts: PrintOptions = typeof titleOrOpts === "string" ? { title: titleOrOpts } : titleOrOpts ?? {};
+  let opts: PrintOptions = typeof titleOrOpts === "string" ? { title: titleOrOpts } : titleOrOpts ?? {};
   const title = opts.title;
   if (capturing) {
     // Someone asked for this document as a file (Share → PDF) instead of a print preview.
     capturing({ html: rawHtml, opts });
     return;
   }
-  const html = prepareHtml(rawHtml, opts.widthMm);
+  // iPhone/iPad Safari ignores "@page { size: A4 landscape }" and prints portrait, which cuts a landscape layout
+  // off at both edges. There, lay the same document out for a portrait page (the table text shrinks to fit).
+  const ios = typeof navigator !== "undefined" &&
+    (/iPhone|iPad|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1));
+  let source = rawHtml;
+  if (ios && (opts.widthMm ?? 210) > 250) {
+    source = source
+      .replace(/size:\s*A4 landscape/g, "size:A4 portrait")
+      .replace("</style></head>", ".frame>tbody>tr>td{padding-left:6mm!important;padding-right:6mm!important}</style></head>");
+    opts = {
+      ...opts,
+      widthMm: 210,
+      fit: opts.fit && { ...opts.fit, widthMm: 210, usableMm: opts.fit.usableMm + 87 },
+    };
+  }
+  const html = prepareHtml(source, opts.widthMm);
   document.getElementById("printFrame")?.remove();
 
   const f = document.createElement("iframe");
