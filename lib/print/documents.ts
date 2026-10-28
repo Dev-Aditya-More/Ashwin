@@ -155,7 +155,7 @@ export function printQuotationOrEstimate(
     ? `<col style="width:8%"><col><col style="width:24%">`
     : quote
     ? `<col style="width:8%"><col><col style="width:18%"><col style="width:14%">`
-    : `<col style="width:4%"><col style="width:15%"><col style="width:10%"><col style="width:12%"><col style="width:8%"><col style="width:7%"><col style="width:9%"><col style="width:5%"><col style="width:10%"><col style="width:9%"><col style="width:11%">`;
+    : `<col style="width:3%"><col style="width:14%"><col style="width:10%"><col style="width:13%"><col style="width:8%"><col style="width:7%"><col style="width:15%"><col style="width:4%"><col style="width:9%"><col style="width:7%"><col style="width:10%">`;
   const head = fees
     ? `<th class="c">Sr.</th><th>Description</th><th class="num">Amount (₹)</th>`
     : quote
@@ -175,8 +175,8 @@ export function printQuotationOrEstimate(
   const toExtra = !quote && d.workType ? [`Work: ${esc(d.workType)}`] : [];
 
   const title = docTitle(d.client, (quote ? "Q-" : "E-") + d.no);
-  const html = `<html><head><title>${esc(title)}</title><style>@page{size:A4 portrait;margin:0}${FRAME_CSS}${ITEMS_CSS}*{box-sizing:border-box}:root{--fs:9px;--ink:#333;--c-title:#000;--c-client:#1B2A6B;--c-co:#000}body{font:var(--fs) Arial,sans-serif;color:var(--ink);margin:0}
-.page{min-height:271mm;display:flex;flex-direction:column}.isq .page{min-height:0}
+  const html = `<html><head><title>${esc(title)}</title><style>@page{size:A4 ${quote ? "portrait" : "landscape"};margin:0}${FRAME_CSS}${ITEMS_CSS}*{box-sizing:border-box}:root{--fs:9px;--ink:#333;--c-title:#000;--c-client:#1B2A6B;--c-co:#000}body{font:var(--fs) Arial,sans-serif;color:var(--ink);margin:0}
+.page{min-height:271mm;display:flex;flex-direction:column}.isq .page{min-height:0}.ise .page{min-height:184mm}
 .top{display:flex;justify-content:space-between;align-items:flex-start;margin:3mm 0 12px}.logo{width:140px;height:auto;object-fit:contain;margin-top:5mm}.logo.sq{width:auto;height:96px;margin-top:2mm}
 .meta{text-align:right;line-height:1.7}.meta h2{font-size:21px;margin:0 0 5px;text-decoration:underline;color:var(--c-title)}
 .to{line-height:1.6;margin:6px 0 12px;color:var(--c-client)}.to .pn{font-size:11px}.intro{line-height:1.45;margin:0 0 10px}
@@ -188,12 +188,12 @@ export function printQuotationOrEstimate(
 .bottom{display:flex;flex-direction:column}.isq .frame>tfoot>tr>td{height:68mm}.isq .bottom{position:fixed;left:12.7mm;right:12.7mm;bottom:12.7mm;background:#fff}
 .quoteFooterTerms{position:relative}.quoteFooterTerms .forco{position:absolute;right:0;top:0}.terms-heading{display:inline-block;padding-bottom:2px;border-bottom:1px solid #888;margin:0 0 5px;font-size:13px}.terms{font-size:10px;line-height:1.35}
 .quoteSignatures{margin-top:6px;min-height:30px;display:flex;align-items:flex-end}.thankyou{text-align:center;margin:6px 0 7px;font-weight:600}
-@media print{.tail,.bottom,.summary{break-inside:avoid}}</style></head><body class="${quote ? "isq" : ""}"><table class="frame"><thead><tr><td></td></tr></thead><tbody><tr><td><div class="page"><div class="top">${brandLogo(d.workType, "logo")}<div class="meta"><h2>${quote ? "QUOTATION" : "ESTIMATE"}</h2><b>${quote ? "Quotation" : "Estimate"} No.:</b> ${esc(d.no)}<br><b>Date:</b> ${esc(fmtDate(d.date))}</div></div><div class="to">To,<br>${partyBlock(d, party, toExtra)}</div>${quote ? `<p class="intro">With reference to your requirement, we are pleased to submit our quotation for the proposed work at the above-mentioned site. This quotation includes supply and installation with all necessary materials as per the agreed terms.</p>` : ""}${itemsTable}${estimateBottom}</div></td></tr></tbody><tfoot><tr><td></td></tr></tfoot></table>${quote ? `<div class="bottom"><div class="quoteFooterTerms">${QUOTE_TERMS}${sign}</div><div class="quoteSignatures"><div class="receiver">Receiver’s Signature: __________________________</div></div><div class="thankyou">Thank you for your business. We look forward to working with you.</div>${footer}</div>` : ""}</body></html>`;
+@media print{.tail,.bottom,.summary{break-inside:avoid}}</style></head><body class="${quote ? "isq" : "ise"}"><table class="frame"><thead><tr><td></td></tr></thead><tbody><tr><td><div class="page"><div class="top">${brandLogo(d.workType, "logo")}<div class="meta"><h2>${quote ? "QUOTATION" : "ESTIMATE"}</h2><b>${quote ? "Quotation" : "Estimate"} No.:</b> ${esc(d.no)}<br><b>Date:</b> ${esc(fmtDate(d.date))}</div></div><div class="to">To,<br>${partyBlock(d, party, toExtra)}</div>${quote ? `<p class="intro">With reference to your requirement, we are pleased to submit our quotation for the proposed work at the above-mentioned site. This quotation includes supply and installation with all necessary materials as per the agreed terms.</p>` : ""}${itemsTable}${estimateBottom}</div></td></tr></tbody><tfoot><tr><td></td></tr></tfoot></table>${quote ? `<div class="bottom"><div class="quoteFooterTerms">${QUOTE_TERMS}${sign}</div><div class="quoteSignatures"><div class="receiver">Receiver’s Signature: __________________________</div></div><div class="thankyou">Thank you for your business. We look forward to working with you.</div>${footer}</div>` : ""}</body></html>`;
   // Quotation: its fixed footer takes 68 mm of every page; estimate: the footer is part of the page flow.
   printHtmlInFrame(html, {
     title,
-    widthMm: 210,
-    fit: { content: ".page", spacer: ".spacer", usableMm: quote ? 297 - 12.7 - 68 : 297 - 25.4, repeat: ".items thead", widthMm: 210 },
+    widthMm: quote ? 210 : 297,
+    fit: { content: ".page", spacer: ".spacer", usableMm: quote ? 297 - 12.7 - 68 : 210 - 25.4, repeat: ".items thead", widthMm: quote ? 210 : 297 },
   });
 }
 
@@ -205,7 +205,7 @@ export function printDetailSheet(d: PrintDoc, saved: EstimateLine[]) {
   const sizeCell = (l: (typeof lines)[number]) =>
     l.sizes
       .map((s) => `<span class="sz">${esc(s.text)}${l.sizes.length > 1 ? ` <i>(${s.qty} Nos.)</i>` : ""}</span>`)
-      .join("<br>");
+      .join("");
   const rows = lines
     .map((l, i) => {
       if (fees) return `<tr><td class="c">${i + 1}</td><td>${describe(l)}</td><td class="num">${fmt(l.amount)}</td></tr>`;
@@ -221,7 +221,7 @@ export function printDetailSheet(d: PrintDoc, saved: EstimateLine[]) {
   const html = `<html><head><title>${esc(title)}</title><style>@page{size:A4 landscape;margin:0}${FRAME_CSS}${ITEMS_CSS}*{box-sizing:border-box}:root{--fs:9px;--ink:#333;--c-title:#000;--c-client:#1B2A6B}body{font:var(--fs) Arial,sans-serif;color:var(--ink);margin:0}
 .page{min-height:184mm;display:flex;flex-direction:column}
 h2{font-size:18px;margin:8px 0 6px;color:var(--c-title)}.cl{line-height:1.6;color:var(--c-client)}.cl .pn{font-size:11px}.head{display:flex;justify-content:space-between;margin-bottom:10px}.logo{width:150px;height:auto;object-fit:contain}.logo.sq{display:block;width:auto;height:80px}.meta{text-align:right;line-height:1.7}
-.sz{white-space:nowrap}.sz i{font-style:normal;color:#666}
+.sz{display:block;white-space:nowrap;margin:0 -3px;padding:2px 3px}.sz+.sz{border-top:1px solid #999}.sz:first-child{padding-top:0}.sz i{font-style:normal;color:#666}
 .tail{margin-top:auto;break-inside:avoid}.summary{display:flex;gap:10px}.summary .words{flex:1;border:1px solid #777;border-top:0;padding:6px;line-height:1.5}
 .charges{width:320px;border-collapse:collapse;flex:0 0 320px}.charges td{border:1px solid #777;border-top:0;padding:4px 6px}.charges .num{text-align:right;white-space:nowrap}.charges .grand td{font-weight:bold;font-size:10px;background:#f3f4f7}
 .address{text-align:center;border-top:1px solid #aaa;padding-top:5px;margin-top:8px;line-height:1.4}</style></head><body><table class="frame"><thead><tr><td></td></tr></thead><tbody><tr><td><div class="page"><div class="head"><div>${brandLogo(d.workType, "logo")}<h2>DETAIL SHEET</h2><div class="cl">${partyBlock(d, undefined, d.workType ? [`Work Type: ${esc(d.workType)}`] : [])}</div></div><div class="meta"><b>Detail Sheet No.:</b> ${esc(d.no)}<br><b>Date:</b> ${esc(fmtDate(d.date))}</div></div>${table}<div class="tail"><div class="summary"><div class="words"><b>Amount in Words:</b><br>${esc(amountInWords(charges.total))}</div>${charges.html}</div><div class="address">${COMPANY_ADDRESS}</div></div></div></td></tr></tbody><tfoot><tr><td></td></tr></tfoot></table></body></html>`;
