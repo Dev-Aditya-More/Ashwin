@@ -26,7 +26,22 @@ export type FitOptions = {
   repeat?: string;
   /** Page width the document is laid out for; fitting is skipped if the frame is not actually that wide. */
   widthMm?: number;
+  /** Table (e.g. ".it.fit") whose text is kept on one line per cell; its font is shrunk until it fits the page width. */
+  shrink?: string;
 };
+
+/** Shrink the table's font in small steps until it no longer overflows the width it sits in. */
+export function shrinkToFit(d: Document, selector: string) {
+  const t = d.querySelector(selector) as HTMLElement | null;
+  const box = t?.parentElement;
+  if (!t || !box) return;
+  const avail = box.clientWidth - parseFloat(d.defaultView?.getComputedStyle(box).paddingLeft || "0") - parseFloat(d.defaultView?.getComputedStyle(box).paddingRight || "0");
+  let size = parseFloat(d.defaultView?.getComputedStyle(t).fontSize || "9");
+  while (t.scrollWidth > avail + 1 && size > 5.5) {
+    size -= 0.25;
+    t.style.fontSize = size + "px";
+  }
+}
 
 /**
  * Pins the bottom section of a document to the bottom of its LAST page, however many
@@ -47,6 +62,7 @@ export function fitPages(d: Document, o: FitOptions) {
     const have = d.defaultView?.innerWidth ?? d.documentElement.clientWidth;
     if (Math.abs(have - wantPx) > 30) return;
   }
+  if (o.shrink) shrinkToFit(d, o.shrink);
   // Measure the content at its natural size (drop the CSS one-page minimum used as the fallback).
   content.style.minHeight = "0px";
   spacer.style.flex = "0 0 auto";
@@ -59,7 +75,9 @@ export function fitPages(d: Document, o: FitOptions) {
   const slack = 20 + natural * 0.025;
   let pages = Math.max(1, Math.ceil((natural + slack + 6) / usable));
   while (natural + (pages - 1) * rep + slack + 6 > pages * usable) pages++;
-  spacer.style.height = Math.max(0, pages * usable - natural - (pages - 1) * rep - slack) + "px";
+  // Padding is only for a one-page document. On several pages an over-tall spacer can leave a page of empty
+  // column lines, so the totals just follow the last row.
+  spacer.style.height = pages > 1 ? "0px" : Math.max(0, usable - natural - slack) + "px";
 }
 
 const ZWSP = "\u200B";
@@ -125,6 +143,30 @@ export function printHtmlInFrame(rawHtml: string, titleOrOpts?: string | PrintOp
   if (capturing) {
     // Someone asked for this document as a file (Share → PDF) instead of a print preview.
     capturing({ html: rawHtml, opts });
+    return;
+  }
+  // Phone browsers ignore the landscape page size and break long tables badly when printing an iframe,
+  // so on a phone the document is turned into a proper A4 PDF (correct orientation) and opened instead.
+  if (typeof navigator !== "undefined" && /Android|iPhone|iPad|iPod|Mobi/i.test(navigator.userAgent)) {
+    const w = window.open("", "_blank");
+    void (async () => {
+      try {
+        const { documentToPdf, pdfName } = await import("@/lib/print/pdf");
+        const file = await documentToPdf({ html: rawHtml, opts }, pdfName(title || "document"));
+        const url = URL.createObjectURL(file);
+        if (w) w.location.href = url;
+        else {
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = file.name;
+          a.click();
+        }
+        setTimeout(() => URL.revokeObjectURL(url), 120000);
+      } catch (e) {
+        w?.close();
+        alert("Could not prepare the PDF: " + (e as Error).message);
+      }
+    })();
     return;
   }
   const html = prepareHtml(rawHtml);

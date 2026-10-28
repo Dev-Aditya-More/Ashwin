@@ -1,7 +1,7 @@
 // Turns any print template into a real PDF file in the browser (no server, no print dialog),
 // so documents can be shared straight to WhatsApp / e-mail as a PDF attachment.
 
-import { captureDocument, prepareHtml, type CapturedDocument } from "@/lib/print/frame";
+import { captureDocument, prepareHtml, shrinkToFit, type CapturedDocument } from "@/lib/print/frame";
 
 const PX_PER_MM = 96 / 25.4;
 const MARGIN_MM = 12.7; // same 0.5 inch margin the printed documents use
@@ -70,6 +70,7 @@ export async function documentToPdf({ html, opts }: CapturedDocument, fileName: 
       spacer.style.height = "0px";
     }
     await waitForImages(d);
+    if (opts.fit?.shrink) shrinkToFit(d, opts.fit.shrink);
 
     const marginCss = MARGIN_MM * PX_PER_MM;
     const measure = () => {
@@ -88,7 +89,10 @@ export async function documentToPdf({ html, opts }: CapturedDocument, fileName: 
     let m = measure();
     let slices = paginate(m.total, m.rows, pageHpx, marginCss, m.keepFrom);
     // Growing the spacer can move a page break, so settle it in a few passes.
-    for (let pass = 0; spacer && pass < 5; pass++) {
+    // Several pages: no padding (it could leave a page of empty column lines); the totals follow the last row.
+    // The quotation's pinned footer still needs its spacer.
+    const stretch = spacer && (slices.length === 1 || !!d.querySelector(".isq"));
+    for (let pass = 0; stretch && spacer && pass < 5; pass++) {
       const last = slices[slices.length - 1];
       const room = pageHpx - (slices.length === 1 ? 0 : marginCss);
       const gap = Math.floor(last[0] + room - m.total - 2);
