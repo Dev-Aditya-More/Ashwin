@@ -158,7 +158,7 @@ export function prepareHtml(rawHtml: string, widthMm?: number): string {
       '<head><meta name="format-detection" content="telephone=no,date=no,address=no,email=no">' +
         '<meta name="viewport" content="width=device-width, initial-scale=1">' +
         // Never let a logo, long word or wide table push past the page edge on any device.
-        "<style>" + (widthMm ? `html,body{width:${widthMm}mm;min-width:${widthMm}mm}` : "") + "img{max-width:100%}table{max-width:100%}td,th{overflow-wrap:anywhere}" +
+        "<style>" + (widthMm ? `html,body{width:${widthMm}mm;min-width:${widthMm}mm}` : "") + "img{max-width:100%}table{max-width:100%}td.d,th.d{text-align:left!important}td,th{overflow-wrap:anywhere}" +
         "@media print{html{-webkit-text-size-adjust:100%;text-size-adjust:100%}}</style>"
     );
 }

@@ -139,14 +139,14 @@ export function printQuotationOrEstimate(
     .map((raw, i) => {
       if (fees) {
         const l = raw as EstimateLine;
-        return `<tr><td class="c">${i + 1}</td><td>${describe(l)}</td><td class="num">${fmt(l.amount)}</td></tr>`;
+        return `<tr><td class="c">${i + 1}</td><td class="d">${describe(l)}</td><td class="num">${fmt(l.amount)}</td></tr>`;
       }
       if (quote) {
         const l = raw as QuoteLine;
-        return `<tr><td class="c">${i + 1}</td><td>${esc(l.name || "")}</td><td class="num">${fmt(l.rate)}</td><td class="c">${esc(l.unit || "")}</td></tr>`;
+        return `<tr><td class="c">${i + 1}</td><td class="d">${esc(l.name || "")}</td><td class="num">${fmt(l.rate)}</td><td class="c">${esc(l.unit || "")}</td></tr>`;
       }
       const l = raw as EstimateLine;
-      return `<tr><td class="c">${i + 1}</td><td>${describe(l)}</td><td>${esc(l.materialType || "")}</td><td>${esc(l.glassType || "")}</td><td>${esc(l.shadeType || "")}</td><td>${esc(l.floorType || "")}</td><td class="c">${esc(sizeInFeet(l))}</td><td class="c">${l.qty ?? ""}</td><td class="r">${esc(measureText(l))}</td><td class="num">${fmt(l.rate)}</td><td class="num">${fmt(l.amount)}</td></tr>`;
+      return `<tr><td class="c">${i + 1}</td><td class="d">${describe(l)}</td><td>${esc(l.materialType || "")}</td><td>${esc(l.glassType || "")}</td><td>${esc(l.shadeType || "")}</td><td>${esc(l.floorType || "")}</td><td class="c">${esc(sizeInFeet(l))}</td><td class="c">${l.qty ?? ""}</td><td class="r">${esc(measureText(l))}</td><td class="num">${fmt(l.rate)}</td><td class="num">${fmt(l.amount)}</td></tr>`;
     })
     .join("");
 
@@ -157,9 +157,9 @@ export function printQuotationOrEstimate(
     ? `<col style="width:8%"><col><col style="width:18%"><col style="width:14%">`
     : `<col style="width:3%"><col style="width:14%"><col style="width:10%"><col style="width:13%"><col style="width:8%"><col style="width:7%"><col style="width:15%"><col style="width:4%"><col style="width:9%"><col style="width:7%"><col style="width:10%">`;
   const head = fees
-    ? `<th class="c">Sr.</th><th>Description</th><th class="num">Amount (₹)</th>`
+    ? `<th class="c">Sr.</th><th class="d">Description</th><th class="num">Amount (₹)</th>`
     : quote
-    ? `<th class="c">Sr. No.</th><th>Description</th><th class="num">Rate (₹)</th><th class="c">Unit</th>`
+    ? `<th class="c">Sr. No.</th><th class="d">Description</th><th class="num">Rate (₹)</th><th class="c">Unit</th>`
     : `<th class="c">Sr.</th><th>Product / Type</th><th>Material</th><th>Glass Type</th><th>Shade</th><th>Floor</th><th class="c">Size (ft)</th><th class="c">Qty</th><th class="r">Billed Qty</th><th class="num">Rate (₹)</th><th class="num">Amount (₹)</th>`;
   const fit = !quote && !fees; // measured estimate: columns size to their content, one line each
   const itemsTable = `<table class="it items${fit ? " fit" : ""}">${fit ? "" : `<colgroup>${colgroup}</colgroup>`}<thead><tr>${head}</tr></thead><tbody>${rows}${fillerRow(cols)}</tbody></table>`;
@@ -179,7 +179,7 @@ export function printQuotationOrEstimate(
   const html = `<html><head><title>${esc(title)}</title><style>@page{size:A4 ${quote ? "portrait" : "landscape"};margin:0}${FRAME_CSS}${ITEMS_CSS}*{box-sizing:border-box}:root{--fs:9px;--ink:#333;--c-title:#000;--c-client:#1B2A6B;--c-co:#000}body{font:var(--fs) Arial,sans-serif;color:var(--ink);margin:0}
 .page{min-height:264mm;display:flex;flex-direction:column}.isq .page{min-height:0}.ise .page{min-height:183mm}.ise .frame>thead>tr>td{height:8mm}.ise .frame>tfoot>tr>td{height:11mm}.ise .top{margin:0 0 6px}.ise .logo{margin-top:0}.ise .logo.sq{margin-top:0}.ise .to{margin:0 0 8px}
 .top{display:flex;justify-content:space-between;align-items:flex-start;margin:3mm 0 12px}.logo{width:140px;height:auto;object-fit:contain;margin-top:5mm}.logo.sq{width:auto;height:96px;margin-top:2mm}
-.meta{text-align:right;line-height:1.7}.meta h2{font-size:21px;margin:0 0 5px;text-decoration:underline;color:var(--c-title)}
+.meta{text-align:right;line-height:1.7}.isq .meta h2{font-size:16px}.isq .meta b{min-width:30px}.meta b{display:inline-block;min-width:66px;text-align:left}.meta h2{font-size:21px;margin:0 0 5px;text-decoration:underline;color:var(--c-title)}
 .to{line-height:1.6;margin:6px 0 12px;color:var(--c-client)}.to{font-size:10px}.to b.pn{font-size:14px;line-height:1.5}.intro{line-height:1.45;margin:0 0 10px}
 .tail{margin-top:auto;break-inside:avoid}.summary{display:flex;gap:10px;align-items:stretch}.summary .words{flex:1;border:1px solid #777;border-top:0;padding:6px;line-height:1.5}
 .charges{width:300px;border-collapse:collapse;flex:0 0 300px}.charges td{border:1px solid #777;border-top:0;padding:4px 6px;vertical-align:middle}.charges .num{text-align:center;white-space:nowrap}.charges .grand td{font-weight:bold;font-size:10px;background:#f3f4f7}
@@ -189,7 +189,7 @@ export function printQuotationOrEstimate(
 .bottom{display:flex;flex-direction:column}.isq .frame>tfoot>tr>td{height:68mm}.isq .bottom{position:fixed;left:12.7mm;right:12.7mm;bottom:12.7mm;background:#fff}
 .quoteFooterTerms{position:relative}.quoteFooterTerms .forco{position:absolute;right:0;top:0}.terms-heading{display:inline-block;padding-bottom:2px;border-bottom:1px solid #888;margin:0 0 5px;font-size:13px}.terms{font-size:10px;line-height:1.35}
 .quoteSignatures{margin-top:6px;min-height:30px;display:flex;align-items:flex-end}.thankyou{text-align:center;margin:6px 0 7px;font-weight:600}
-@media print{.tail,.bottom,.summary{break-inside:avoid}}</style></head><body class="${quote ? "isq" : "ise"}"><table class="frame"><thead><tr><td></td></tr></thead><tbody><tr><td><div class="page"><div class="top">${brandLogo(d.workType, "logo")}<div class="meta"><h2>${quote ? "QUOTATION" : "ESTIMATE"}</h2><b>${quote ? "Quotation" : "Estimate"} No.:</b> ${esc(d.no)}<br><b>Date:</b> ${esc(fmtDate(d.date))}</div></div><div class="to">To,<br>${partyBlock(d, party, toExtra)}</div>${quote ? `<p class="intro">With reference to your requirement, we are pleased to submit our quotation for the proposed work at the above-mentioned site. This quotation includes supply and installation with all necessary materials as per the agreed terms.</p>` : ""}${itemsTable}${estimateBottom}</div></td></tr></tbody><tfoot><tr><td></td></tr></tfoot></table>${quote ? `<div class="bottom"><div class="quoteFooterTerms">${QUOTE_TERMS}${sign}</div><div class="quoteSignatures"><div class="receiver">Receiver’s Signature: __________________________</div></div><div class="thankyou">Thank you for your business. We look forward to working with you.</div>${footer}</div>` : ""}</body></html>`;
+@media print{.tail,.bottom,.summary{break-inside:avoid}}</style></head><body class="${quote ? "isq" : "ise"}"><table class="frame"><thead><tr><td></td></tr></thead><tbody><tr><td><div class="page"><div class="top">${brandLogo(d.workType, "logo")}<div class="meta"><h2>${quote ? "QUOTATION" : "ESTIMATE"}</h2><b>${quote ? "Q." : "Estimate"} No.:</b> ${esc(d.no)}<br><b>Date:</b> ${esc(fmtDate(d.date))}</div></div><div class="to">To,<br>${partyBlock(d, party, toExtra)}</div>${quote ? `<p class="intro">With reference to your requirement, we are pleased to submit our quotation for the proposed work at the above-mentioned site. This quotation includes supply and installation with all necessary materials as per the agreed terms.</p>` : ""}${itemsTable}${estimateBottom}</div></td></tr></tbody><tfoot><tr><td></td></tr></tfoot></table>${quote ? `<div class="bottom"><div class="quoteFooterTerms">${QUOTE_TERMS}${sign}</div><div class="quoteSignatures"><div class="receiver">Receiver’s Signature: __________________________</div></div><div class="thankyou">Thank you for your business. We look forward to working with you.</div>${footer}</div>` : ""}</body></html>`;
   // Quotation: its fixed footer takes 68 mm of every page; estimate: the footer is part of the page flow.
   printHtmlInFrame(html, {
     title,
@@ -206,13 +206,13 @@ export function printDetailSheet(d: PrintDoc, saved: EstimateLine[]) {
   const sizeCell = (l: EstimateLine) => `<span class="sz">${esc(sizeAsWritten(l))}</span>`;
   const rows = lines
     .map((l, i) => {
-      if (fees) return `<tr><td class="c">${i + 1}</td><td>${describe(l)}</td><td class="num">${fmt(l.amount)}</td></tr>`;
-      return `<tr><td class="c">${i + 1}</td><td>${describe(l)}</td><td>${esc(l.materialType || "")}</td><td>${esc(l.glassType || "")}</td><td>${esc(l.shadeType || "")}</td><td>${esc(l.floorType || "")}</td><td>${sizeCell(l)}</td><td class="c">${l.qty ?? ""}</td><td class="r">${esc(measureText(l))}</td><td class="num">${fmt(l.rate)}</td><td class="num">${fmt(l.amount)}</td></tr>`;
+      if (fees) return `<tr><td class="c">${i + 1}</td><td class="d">${describe(l)}</td><td class="num">${fmt(l.amount)}</td></tr>`;
+      return `<tr><td class="c">${i + 1}</td><td class="d">${describe(l)}</td><td>${esc(l.materialType || "")}</td><td>${esc(l.glassType || "")}</td><td>${esc(l.shadeType || "")}</td><td>${esc(l.floorType || "")}</td><td>${sizeCell(l)}</td><td class="c">${l.qty ?? ""}</td><td class="r">${esc(measureText(l))}</td><td class="num">${fmt(l.rate)}</td><td class="num">${fmt(l.amount)}</td></tr>`;
     })
     .join("");
   const charges = chargesTable(d);
   const table = fees
-    ? `<table class="it items"><colgroup><col style="width:6%"><col><col style="width:20%"></colgroup><thead><tr><th class="c">Sr.</th><th>Description</th><th class="num">Amount (₹)</th></tr></thead><tbody>${rows}${fillerRow(3)}</tbody></table>`
+    ? `<table class="it items"><colgroup><col style="width:6%"><col><col style="width:20%"></colgroup><thead><tr><th class="c">Sr.</th><th class="d">Description</th><th class="num">Amount (₹)</th></tr></thead><tbody>${rows}${fillerRow(3)}</tbody></table>`
     : `<table class="it items fit"><thead><tr><th class="c">Sr.</th><th>Product / Type</th><th>Material</th><th>Glass Type</th><th>Shade</th><th>Floor</th><th>Size (inches)</th><th class="c">Qty</th><th class="r">Billed Qty</th><th class="num">Rate (₹)</th><th class="num">Amount (₹)</th></tr></thead><tbody>${rows}${fillerRow(11)}</tbody></table>`;
 
   const title = docTitle(d.client, "D-" + d.no);
@@ -239,9 +239,9 @@ export function buildTaxInvoice(d: PrintDoc, saved: EstimateLine[], party: Print
   const rowsHtml = lines
     .map((l, i) => {
       if (fees)
-        return `<tr><td class="c">${i + 1}</td><td>${describe(l)}</td><td class="c">${esc(hsnFor(l))}</td><td class="num">₹ ${inr(l.amount)}</td></tr>`;
+        return `<tr><td class="c">${i + 1}</td><td class="d">${describe(l)}</td><td class="c">${esc(hsnFor(l))}</td><td class="num">₹ ${inr(l.amount)}</td></tr>`;
       const size = sizeInFeet(l);
-      return `<tr><td class="c">${i + 1}</td><td>${describe(l)}</td><td class="c">${esc(hsnFor(l))}</td><td class="c">${esc(size)}</td><td class="c">${l.lumpSum ? "" : Number(l.qty || 0)}</td><td class="r">${esc(measureText(l))}</td><td class="num">₹ ${inr(l.rate)}</td><td class="num">₹ ${inr(l.amount)}</td></tr>`;
+      return `<tr><td class="c">${i + 1}</td><td class="d">${describe(l)}</td><td class="c">${esc(hsnFor(l))}</td><td class="c">${esc(size)}</td><td class="c">${l.lumpSum ? "" : Number(l.qty || 0)}</td><td class="r">${esc(measureText(l))}</td><td class="num">₹ ${inr(l.rate)}</td><td class="num">₹ ${inr(l.amount)}</td></tr>`;
     })
     .join("");
 
@@ -262,8 +262,8 @@ export function buildTaxInvoice(d: PrintDoc, saved: EstimateLine[], party: Print
     ? measureText({ ...measured[0], sqft: Math.round(measured.reduce((s, l) => s + Number(l.sqft || 0), 0) * 100) / 100 })
     : "";
   const itemsHead = fees
-    ? `<tr><th style="width:7%">Sr.<br>No.</th><th>Description</th><th style="width:14%">HSN Code</th><th style="width:22%">Amount (₹)</th></tr>`
-    : `<tr><th style="width:5%">Sr.<br>No.</th><th style="width:26%">Description</th><th style="width:8%">HSN Code</th><th style="width:11%">Size</th><th style="width:6%">Qty</th><th style="width:13%">Billed Qty</th><th style="width:14%">Rate (₹)</th><th style="width:17%">Amount (₹)</th></tr>`;
+    ? `<tr><th style="width:7%">Sr.<br>No.</th><th class="d">Description</th><th style="width:14%">HSN Code</th><th style="width:22%">Amount (₹)</th></tr>`
+    : `<tr><th style="width:5%">Sr.<br>No.</th><th class="d" style="width:26%">Description</th><th style="width:8%">HSN Code</th><th style="width:11%">Size</th><th style="width:6%">Qty</th><th style="width:13%">Billed Qty</th><th style="width:14%">Rate (₹)</th><th style="width:17%">Amount (₹)</th></tr>`;
   const itemsTotal = fees
     ? `<tr class="tot"><td colspan="3"><b>Total</b></td><td class="num"><b>₹ ${inr(taxable)}</b></td></tr>`
     : `<tr class="tot"><td colspan="5"><b>Total</b></td><td class="r"><b>${esc(totalBilled)}</b></td><td></td><td class="num"><b>₹ ${inr(lines.reduce((s, l) => s + Number(l.amount || 0), 0))}</b></td></tr>`;
@@ -322,16 +322,16 @@ export function buildBillOfSupply(d: PrintDoc, saved: EstimateLine[], party?: Pr
   const rows = lines
     .map((l, i) =>
       fees
-        ? `<tr><td class="c">${i + 1}</td><td class="sl">${describe(l)}</td><td class="r sl">${inr(l.amount)}</td></tr>`
-        : `<tr><td class="c">${i + 1}</td><td class="sl">${describe(l)}</td><td class="c sl">${esc(sizeOf(l))}</td><td class="c sl">${l.lumpSum ? "" : Number(l.qty || 0)}</td><td class="c sl">${esc(measureText(l))}</td><td class="r sl">${inr(l.rate)}</td><td class="r sl">${inr(l.amount)}</td></tr>`
+        ? `<tr><td class="c">${i + 1}</td><td class="d sl">${describe(l)}</td><td class="r sl">${inr(l.amount)}</td></tr>`
+        : `<tr><td class="c">${i + 1}</td><td class="d sl">${describe(l)}</td><td class="c sl">${esc(sizeOf(l))}</td><td class="c sl">${l.lumpSum ? "" : Number(l.qty || 0)}</td><td class="c sl">${esc(measureText(l))}</td><td class="r sl">${inr(l.rate)}</td><td class="r sl">${inr(l.amount)}</td></tr>`
     )
     .join("");
   const itemsTable = fees
     ? `<table class="items bos"><colgroup><col style="width:9%"><col><col style="width:24%"></colgroup>
-<thead><tr><th>Sr. No.</th><th class="sl">Description</th><th class="sl">Amount</th></tr></thead>
+<thead><tr><th>Sr. No.</th><th class="d sl">Description</th><th class="sl">Amount</th></tr></thead>
 <tbody>${rows}<tr class="fill"><td class="spacer" style="height:${Math.max(0, 19 - lines.length) * 5.6}mm"></td><td class="sl"></td><td class="sl"></td></tr></tbody></table>`
     : `<table class="items bos"><colgroup><col style="width:7%"><col style="width:27%"><col style="width:12%"><col style="width:8%"><col style="width:15%"><col style="width:15%"><col style="width:16%"></colgroup>
-<thead><tr><th>Sr. No.</th><th class="sl">Description</th><th class="sl">Size</th><th class="sl">Qty</th><th class="sl">Billed Qty</th><th class="sl">Rate</th><th class="sl">Amount</th></tr></thead>
+<thead><tr><th>Sr. No.</th><th class="d sl">Description</th><th class="sl">Size</th><th class="sl">Qty</th><th class="sl">Billed Qty</th><th class="sl">Rate</th><th class="sl">Amount</th></tr></thead>
 <tbody>${rows}<tr class="fill"><td class="spacer" style="height:${Math.max(0, 19 - lines.length) * 5.6}mm"></td><td class="sl"></td><td class="sl"></td><td class="sl"></td><td class="sl"></td><td class="sl"></td><td class="sl"></td></tr></tbody></table>`;
   const sub = Number(d.subtotal || 0);
   const disc = Number(d.discount || 0);
@@ -412,7 +412,7 @@ export function printLedger(party: PrintParty, rows: LedgerPrintRow[]) {
           run += (r.debit || 0) - (r.credit || 0);
           td += r.debit || 0;
           tc += r.credit || 0;
-          return `<tr><td>${esc(fmtDate(r.date))}</td><td>${esc(r.particulars)}</td><td class="n">${r.debit ? f(r.debit) : ""}</td><td class="n">${r.credit ? f(r.credit) : ""}</td><td class="n">${f(run)}</td></tr>`;
+          return `<tr><td>${esc(fmtDate(r.date))}</td><td class="d">${esc(r.particulars)}</td><td class="n">${r.debit ? f(r.debit) : ""}</td><td class="n">${r.credit ? f(r.credit) : ""}</td><td class="n">${f(run)}</td></tr>`;
         })
         .join("")
     : '<tr><td colspan="5" style="text-align:center;padding:14px">No transactions</td></tr>';
@@ -427,7 +427,7 @@ table.led thead{display:table-header-group}table.led tr{break-inside:avoid;page-
 </style></head><body><table class="frame"><thead><tr><td></td></tr></thead><tbody><tr><td>
 <table class="hd"><tr><td><img class="logo" width="300" height="138" src="${logoUrl()}"></td><td class="ttl"><h1>PARTY LEDGER</h1><div><b>Date:</b> ${today}</div></td></tr></table>
 <div class="party"><div class="pn">${esc(party.name)}</div>${party.phone ? `<div>Mobile: ${esc(party.phone)}</div>` : ""}${party.address ? `<div>Address: ${esc(party.address)}</div>` : ""}</div>
-<table class="led"><thead><tr><th style="width:12%">Date</th><th>Particulars</th><th class="n" style="width:16%">Debit</th><th class="n" style="width:16%">Credit</th><th class="n" style="width:17%">Balance</th></tr></thead><tbody>${body}<tr class="tot"><td colspan="2">Total / Closing Balance</td><td class="n">${f(td)}</td><td class="n">${f(tc)}</td><td class="n">${f(run)}</td></tr></tbody></table>
+<table class="led"><thead><tr><th style="width:12%">Date</th><th class="d">Particulars</th><th class="n" style="width:16%">Debit</th><th class="n" style="width:16%">Credit</th><th class="n" style="width:17%">Balance</th></tr></thead><tbody>${body}<tr class="tot"><td colspan="2">Total / Closing Balance</td><td class="n">${f(td)}</td><td class="n">${f(tc)}</td><td class="n">${f(run)}</td></tr></tbody></table>
 </td></tr></tbody><tfoot><tr><td></td></tr></tfoot></table></body></html>`;
   printHtmlInFrame(html, { title: `${party.name} Ledger`, widthMm: 210 });
 }
