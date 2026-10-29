@@ -67,7 +67,7 @@ export function keepRowsWhole(d: Document, content: HTMLElement, repeat: string,
       if (!overflow && push > 0) {
         const pad = d.createElement("tr");
         pad.className = "fill";
-        pad.innerHTML = "<td style=\"height:" + push + "px\"></td>".repeat(cols);
+        pad.innerHTML = ("<td style=\"height:" + push + "px\"></td>").repeat(cols);
         body.insertBefore(pad, row);
       }
       boundary += usable - rep;
