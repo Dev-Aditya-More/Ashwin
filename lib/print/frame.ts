@@ -44,6 +44,40 @@ export function shrinkToFit(d: Document, selector: string) {
 }
 
 /**
+ * Some browsers (iOS Safari, a few mobile Chromes) slice a table row in half at a page break whatever the CSS says.
+ * Walk the rows of the table that owns `repeat` (its header, repeated on every page) and, wherever a row would
+ * straddle a page boundary, insert an empty row that pushes it onto the next page whole.
+ */
+export function keepRowsWhole(d: Document, content: HTMLElement, repeat: string, usable: number) {
+  const head = d.querySelector(repeat) as HTMLElement | null;
+  const table = head?.closest("table") as HTMLTableElement | null;
+  const body = table?.tBodies[0];
+  if (!head || !body) return;
+  const rep = head.getBoundingClientRect().height;
+  const cols = head.querySelectorAll("th").length || 1;
+  const top0 = content.getBoundingClientRect().top;
+  let boundary = usable - 4; // a few px of safety: print layout rounds row heights differently
+  for (const row of Array.from(body.rows)) {
+    if (row.classList.contains("fill") || row.classList.contains("tot")) continue;
+    // Rows can move when a pad row is inserted, so measure each one live.
+    let r = row.getBoundingClientRect();
+    while (r.bottom - top0 > boundary) {
+      const overflow = r.top - top0 >= boundary;
+      const push = Math.max(0, boundary - (r.top - top0));
+      if (!overflow && push > 0) {
+        const pad = d.createElement("tr");
+        pad.className = "fill";
+        pad.innerHTML = "<td style=\"height:" + push + "px\"></td>".repeat(cols);
+        body.insertBefore(pad, row);
+      }
+      boundary += usable - rep;
+      r = row.getBoundingClientRect();
+      if (r.height > usable) break; // taller than a page: nothing to protect
+    }
+  }
+}
+
+/**
  * Pins the bottom section of a document to the bottom of its LAST page, however many
  * pages the document runs to: measure the content, work out how many pages it needs,
  * and stretch the spacer so the blocks after it land at the page foot.
@@ -53,12 +87,13 @@ export function fitPages(d: Document, o: FitOptions) {
   const content = d.querySelector(o.content) as HTMLElement | null;
   const spacer = d.querySelector(o.spacer) as HTMLElement | null;
   if (!content || !spacer) return;
-  if (o.shrink) shrinkToFit(d, o.shrink);
   // Measure the content at its natural size (drop the CSS one-page minimum used as the fallback).
   content.style.minHeight = "0px";
   spacer.style.flex = "0 0 auto";
   spacer.style.height = "0px";
   const usable = (o.usableMm * 96) / 25.4;
+  if (o.shrink) shrinkToFit(d, o.shrink);
+  if (o.repeat) keepRowsWhole(d, content, o.repeat, usable);
   const natural = content.getBoundingClientRect().height;
   // The small allowance covers rows that jump to the next page instead of splitting.
   const rep = o.repeat ? (d.querySelector(o.repeat) as HTMLElement | null)?.getBoundingClientRect().height ?? 0 : 0;
