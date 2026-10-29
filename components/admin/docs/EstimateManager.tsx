@@ -102,6 +102,7 @@ export function estimatePrintDoc(e: Estimate): PrintDoc {
     gstRate: Number(e.gst_rate),
     tax: Number(e.tax),
     total: Number(e.total),
+    received: Number(e.paid) || 0,
   };
 }
 
@@ -487,12 +488,20 @@ export function EstimateManager({
             <Field label="Glass Type">{catSelect("glass")}</Field>
             <Field label="Shade Type">{catSelect("shade")}</Field>
             <Field label="Unit">
-              <select className={selectCls} value={draft.unit} onChange={(e) => patchDraft({ unit: e.target.value })}>
+              <select
+                className={selectCls}
+                value={draft.unit}
+                onChange={(e) =>
+                  patchDraft(unitNeedsSize(e.target.value) ? { unit: e.target.value } : { unit: e.target.value, height: "", length: "" })
+                }
+              >
                 {UNITS.map((u) => (
                   <option key={u}>{u}</option>
                 ))}
               </select>
             </Field>
+            {unitNeedsSize(draft.unit) && (
+              <>
             <Field label={unitNeedsSize(draft.unit) && unitKind(draft.unit) !== "rft" ? "Height (Inch)" : "Height (Inch, optional)"}>
               <Input
                 type="text"
@@ -524,6 +533,8 @@ export function EstimateManager({
             <Field label="Size">
               <Input value={sizeAsWritten(d)} readOnly tabIndex={-1} className={readOnly} />
             </Field>
+              </>
+            )}
             <Field label="Qty">
               <Input type="number" min="1" value={draft.qty || ""} placeholder="1" onChange={(e) => patchDraft({ qty: Number(e.target.value) })} />
             </Field>

@@ -42,11 +42,14 @@ export function QuotationManager({
   initialNo,
   rows,
   setup,
+  converted = {},
 }: {
   initialClients: DocClient[];
   initialNo: string;
   rows: Quotation[];
   setup: boolean;
+  /** Quotation id → number of the estimate it became (those rows are struck through). */
+  converted?: Record<string, string>;
 }) {
   const [clients, setClients] = useState(initialClients);
   const [no, setNo] = useState(initialNo);
@@ -207,8 +210,13 @@ export function QuotationManager({
           {rows.map((q) => (
             <DocCard
               key={q.id}
-              title={q.client?.name}
-              subtitle={[q.no, formatDate(q.doc_date), q.site_name].filter(Boolean).join(" · ")}
+              title={<span className={converted[q.id] ? "line-through opacity-60" : ""}>{q.client?.name}</span>}
+              subtitle={
+                <span className={converted[q.id] ? "line-through opacity-60" : ""}>
+                  {[q.no, formatDate(q.doc_date), q.site_name].filter(Boolean).join(" · ")}
+                </span>
+              }
+              badge={converted[q.id] ? <span className="text-[11px] text-emerald-700">✓ Converted to Estimate {converted[q.id]}</span> : undefined}
               corner={
                 <DeleteRowButton
                   what="quotation"
@@ -242,11 +250,14 @@ export function QuotationManager({
             </TableHeader>
             <TableBody>
               {rows.map((q) => (
-                <TableRow key={q.id}>
-                  <TableCell className="text-[var(--text-muted)] whitespace-nowrap">{formatDate(q.doc_date)}</TableCell>
-                  <TableCell className="font-medium">{q.no}</TableCell>
-                  <TableCell>{q.client?.name}</TableCell>
-                  <TableCell className="text-[var(--text-muted)]">{q.site_name ?? "—"}</TableCell>
+                <TableRow key={q.id} className={converted[q.id] ? "opacity-60" : ""}>
+                  <TableCell className={`text-[var(--text-muted)] whitespace-nowrap ${converted[q.id] ? "line-through" : ""}`}>{formatDate(q.doc_date)}</TableCell>
+                  <TableCell className={`font-medium ${converted[q.id] ? "line-through" : ""}`}>{q.no}</TableCell>
+                  <TableCell className={converted[q.id] ? "line-through" : ""}>{q.client?.name}</TableCell>
+                  <TableCell className="text-[var(--text-muted)]">
+                    <span className={converted[q.id] ? "line-through" : ""}>{q.site_name ?? "—"}</span>
+                    {converted[q.id] && <span className="ml-2 text-[11px] text-emerald-700">✓ Estimate {converted[q.id]}</span>}
+                  </TableCell>
                   <TableCell>
                     <div className="flex justify-end gap-1">
                       <Button size="sm" variant="outline" onClick={() => printQuotation(q)}>

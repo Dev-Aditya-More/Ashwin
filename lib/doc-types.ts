@@ -42,6 +42,8 @@ export type Estimate = {
   source_quote_id: string | null;
   confirmed_at: string | null;
   client_work_id: string | null;
+  /** Net payments the client has made so far (advance received) — printed in the totals box. */
+  paid?: number;
   client: DocClient | null;
 };
 
@@ -79,6 +81,7 @@ export type EstimateOption = {
   taxable: number;
   subtotal: number;
   site_name: string | null;
+  work_type?: string | null;
   client: { name: string; gstin: string | null } | null;
 };
 

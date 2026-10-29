@@ -55,11 +55,14 @@ export function ClientLedgerTable({
   payments,
   clientId,
   projects,
+  bills = [],
 }: {
   work: ClientWork[];
   payments: ClientPayment[];
   clientId: string;
   projects: ProjectOption[];
+  /** Bills already issued for this client: a Detail Sheet that was billed is struck off and the bill shown instead. */
+  bills?: { no: string; doc_date: string; estimate_no: string | null; invoice_type: string; total: number }[];
 }) {
   type Row = {
     date: string;
@@ -71,7 +74,10 @@ export function ClientLedgerTable({
     credit: number;
     edit: React.ReactNode;
     del: React.ReactNode;
+    /** Billed Detail Sheet: shown struck through and left out of the running balance. */
+    struck?: boolean;
   };
+  const billedFor = new Map(bills.filter((b) => b.estimate_no).map((b) => [b.estimate_no as string, b]));
 
   const rows: Row[] = [
     ...work.map((w) => ({
@@ -82,6 +88,7 @@ export function ClientLedgerTable({
       paymentMode: null,
       debit: Number(w.amount),
       credit: 0,
+      struck: !!(w.bill_no && billedFor.has(w.bill_no)),
       edit: <EditClientWorkDialog work={w} clientId={clientId} projects={projects} />,
       del: <DeleteRowButton what="work entry" action={deleteClientWork.bind(null, w.id, clientId)} />,
     })),
@@ -96,12 +103,26 @@ export function ClientLedgerTable({
       edit: <EditClientPaymentDialog payment={p} clientId={clientId} projects={projects} />,
       del: <DeleteRowButton what="payment" action={deleteClientPayment.bind(null, p.id, clientId)} />,
     })),
+    ...bills
+      .filter((b) => b.estimate_no)
+      .map((b) => ({
+        date: b.doc_date,
+        sortKey: `${b.doc_date}T~${b.no}`,
+        billNo: b.no as string | null,
+        particulars: `${b.invoice_type === "GST" ? "Tax Invoice" : "Bill of Supply"} for Detail Sheet ${b.estimate_no}`,
+        paymentMode: null as string | null,
+        debit: Number(b.total),
+        credit: 0,
+        struck: false,
+        edit: null as React.ReactNode,
+        del: null as React.ReactNode,
+      })),
   ].sort((a, b) => a.sortKey.localeCompare(b.sortKey));
 
   const withBalance: (Row & { balance: number })[] = [];
   for (const r of rows) {
     const previous = withBalance.at(-1)?.balance ?? 0;
-    withBalance.push({ ...r, balance: previous + r.debit - r.credit });
+    withBalance.push({ ...r, balance: previous + (r.struck ? 0 : r.debit) - r.credit });
   }
 
   return (
@@ -121,12 +142,15 @@ export function ClientLedgerTable({
         </TableHeader>
         <TableBody>
           {withBalance.map((r, i) => (
-            <TableRow key={i}>
-              <TableCell className="whitespace-nowrap">{formatDate(r.date)}</TableCell>
-              <TableCell className="text-[var(--text-muted)]">{r.billNo ?? "—"}</TableCell>
-              <TableCell>{r.particulars}</TableCell>
+            <TableRow key={i} className={r.struck ? "opacity-60" : ""}>
+              <TableCell className={`whitespace-nowrap ${r.struck ? "line-through" : ""}`}>{formatDate(r.date)}</TableCell>
+              <TableCell className={`text-[var(--text-muted)] ${r.struck ? "line-through" : ""}`}>{r.billNo ?? "—"}</TableCell>
+              <TableCell>
+                <span className={r.struck ? "line-through" : ""}>{r.particulars}</span>
+                {r.struck && <span className="ml-2 text-[11px] text-emerald-700">✓ Billed</span>}
+              </TableCell>
               <TableCell className="text-[var(--text-muted)]">{r.paymentMode ?? "—"}</TableCell>
-              <TableCell className="text-right">{r.debit ? formatMoney(r.debit) : ""}</TableCell>
+              <TableCell className={`text-right ${r.struck ? "line-through" : ""}`}>{r.debit ? formatMoney(r.debit) : ""}</TableCell>
               <TableCell className="text-right text-emerald-600">{r.credit ? formatMoney(r.credit) : ""}</TableCell>
               <BalanceCell value={r.balance} />
               <TableCell>

@@ -1,11 +1,12 @@
 import { QuotationManager } from "@/components/admin/docs/QuotationManager";
-import { getNextDocNo, listDocClients, listQuotations } from "@/lib/actions/documents";
+import { getNextDocNo, getQuoteConversions, listDocClients, listQuotations } from "@/lib/actions/documents";
 
 export default async function QuotationsPage() {
-  const [clients, nextNo, { rows, setup }] = await Promise.all([
+  const [clients, nextNo, { rows, setup }, converted] = await Promise.all([
     listDocClients(),
     getNextDocNo("quotation"),
     listQuotations(),
+    getQuoteConversions(),
   ]);
 
   return (
@@ -16,7 +17,7 @@ export default async function QuotationsPage() {
           Quotation → Estimate → GST Invoice workflow. Quotations list Description, Unit and Rate only.
         </p>
       </div>
-      <QuotationManager initialClients={clients} initialNo={nextNo} rows={rows} setup={setup} />
+      <QuotationManager initialClients={clients} initialNo={nextNo} rows={rows} setup={setup} converted={converted} />
     </div>
   );
 }

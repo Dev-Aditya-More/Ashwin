@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { printInvoice } from "@/components/admin/docs/InvoiceManager";
+import { invoiceIssuer, printInvoice } from "@/components/admin/docs/InvoiceManager";
 import type { GstInvoice } from "@/lib/doc-types";
 import { formatDate, formatMoney } from "@/lib/format";
 import { SharePdfButton } from "@/components/admin/docs/SharePdfButton";
@@ -25,7 +25,7 @@ export function ClientBills({ bills }: { bills: GstInvoice[] }) {
           <DocCard
             key={b.id}
             title={b.no}
-            subtitle={`${formatDate(b.doc_date)} · ${b.invoice_type === "Non-GST" ? "ARNAV GLASS SERVICES (Non-GST)" : "ASHWIN ENTERPRISES (GST)"}`}
+            subtitle={`${formatDate(b.doc_date)} · ${invoiceIssuer(b)}`}
             amount={formatMoney(Number(b.total))}
           >
             <Button size="sm" variant="outline" onClick={() => printInvoice(b)}>
@@ -52,7 +52,7 @@ export function ClientBills({ bills }: { bills: GstInvoice[] }) {
                 <TableCell className="whitespace-nowrap">{formatDate(b.doc_date)}</TableCell>
                 <TableCell className="font-medium">{b.no}</TableCell>
                 <TableCell className="text-[var(--text-muted)]">
-                  {b.invoice_type === "Non-GST" ? "ARNAV GLASS SERVICES (Non-GST)" : "ASHWIN ENTERPRISES (GST)"}
+                  {invoiceIssuer(b)}
                 </TableCell>
                 <TableCell className="text-right">{formatMoney(Number(b.total))}</TableCell>
                 <TableCell>

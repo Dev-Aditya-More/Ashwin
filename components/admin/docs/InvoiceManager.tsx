@@ -12,6 +12,7 @@ import { DeleteRowButton } from "@/components/admin/dialogs/DeleteRowButton";
 import { DocCard, DocCardList, Field, SetupNotice, selectCls } from "@/components/admin/docs/shared";
 import { deleteDocument, getNextDocNo, saveInvoice } from "@/lib/actions/documents";
 import type { EstimateOption, GstInvoice } from "@/lib/doc-types";
+import { isFeeWork } from "@/lib/doc-calc";
 import { printInvoiceDocument } from "@/lib/print/documents";
 import { money } from "@/lib/print/frame";
 import { formatDate } from "@/lib/format";
@@ -23,6 +24,12 @@ const today = () => todayIST();
 function withPrefix(no: string, type: "GST" | "Non-GST") {
   const prefix = type === "GST" ? "AE/" : "AGS/";
   return /^(AE|AGS)\//i.test(no) ? no.replace(/^(AE|AGS)\//i, prefix) : no;
+}
+
+/** Who issued a bill: GST bills and every Civil / Interior bill are ASHWIN ENTERPRISES; other Non-GST bills are ARNAV GLASS SERVICES. */
+export function invoiceIssuer(inv: GstInvoice) {
+  if (inv.invoice_type === "GST") return "ASHWIN ENTERPRISES (GST)";
+  return isFeeWork(inv.work_type) ? "ASHWIN ENTERPRISES (Non-GST)" : "ARNAV GLASS SERVICES (Non-GST)";
 }
 
 export function printInvoice(inv: GstInvoice) {
@@ -72,6 +79,9 @@ export function InvoiceManager({
   const [pending, startTransition] = useTransition();
 
   const est = estimates.find((e) => e.id === estimateId);
+  // Civil / Interior bills of supply carry a plain 2026/27-001 number (no AGS/ prefix).
+  const plainNo = type === "Non-GST" && isFeeWork(est?.work_type);
+  const shownNo = plainNo ? no.replace(/^(AE|AGS)\//i, "") : no;
   const taxable = Number(est?.taxable ?? est?.subtotal ?? 0);
   const rate = type === "GST" ? gst : 0;
   const tax = (taxable * rate) / 100;
@@ -132,7 +142,7 @@ export function InvoiceManager({
             </select>
           </Field>
           <Field label="Invoice Number">
-            <Input value={no} onChange={(e) => setNo(e.target.value)} />
+            <Input value={shownNo} onChange={(e) => setNo(e.target.value)} />
           </Field>
           <Field label="Invoice Date">
             <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
@@ -165,6 +175,8 @@ export function InvoiceManager({
               <br />
               {type === "GST"
                 ? "Issued by ASHWIN ENTERPRISES. Payment QR will use UPI ID ashwinenterprises@icici and the invoice total."
+                : plainNo
+                ? "Bill of Supply issued by ASHWIN ENTERPRISES (no GST, no QR)."
                 : "Bill of Supply issued by ARNAV GLASS SERVICES (no GST, no QR)."}
             </>
           ) : (
@@ -192,7 +204,7 @@ export function InvoiceManager({
               subtitle={`${inv.no} · ${formatDate(inv.doc_date)}`}
               badge={
                 <span className="text-[11px] text-[var(--text-muted)]">
-                  {inv.invoice_type === "Non-GST" ? "ARNAV GLASS SERVICES (Non-GST)" : "ASHWIN ENTERPRISES (GST)"}
+                  {invoiceIssuer(inv)}
                 </span>
               }
               amount={money(inv.total)}
@@ -232,7 +244,7 @@ export function InvoiceManager({
                   <TableCell className="font-medium">{inv.no}</TableCell>
                   <TableCell>{inv.client?.name}</TableCell>
                   <TableCell className="text-[var(--text-muted)]">
-                    {inv.invoice_type === "Non-GST" ? "ARNAV GLASS SERVICES (Non-GST)" : "ASHWIN ENTERPRISES (GST)"}
+                    {invoiceIssuer(inv)}
                   </TableCell>
                   <TableCell className="text-right">{money(inv.total)}</TableCell>
                   <TableCell>

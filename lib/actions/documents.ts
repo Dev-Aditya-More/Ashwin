@@ -82,7 +82,8 @@ export async function getNextDocNo(kind: DocKind | "invoice-nongst"): Promise<st
   const isInvoice = kind === "invoice" || kind === "invoice-nongst";
   // GST (AE/…) and Non-GST (AGS/…) bills share ONE running count: after AE/2026/27-001,
   // switching the type gives AGS/2026/27-002, so no two bills ever carry the same serial.
-  const prefixes = isInvoice ? [`AE/${y}/${yy}-`, `AGS/${y}/${yy}-`] : [prefix];
+  // (Civil / Interior bills of supply use the plain 2026/27-001 form, so they are counted too.)
+  const prefixes = isInvoice ? [`AE/${y}/${yy}-`, `AGS/${y}/${yy}-`, `${y}/${yy}-`] : [prefix];
   const table = isInvoice ? TABLE.invoice : TABLE[kind as DocKind];
   const { data } = await supabase
     .from(table)
@@ -206,6 +207,18 @@ export async function listQuotations(): Promise<{ rows: Quotation[]; setup: bool
   };
 }
 
+/** Adds each estimate's client's net payments so far (printed as "Advance Received"). */
+async function withPaid(supabase: Awaited<ReturnType<typeof createClient>>, rows: Estimate[]): Promise<Estimate[]> {
+  const ids = [...new Set(rows.map((r) => r.client_id))];
+  if (!ids.length) return rows;
+  const { data } = await supabase.from("client_payments").select("client_id, amount, is_refund").in("client_id", ids);
+  const net = new Map<string, number>();
+  for (const p of (data ?? []) as { client_id: string; amount: number; is_refund?: boolean | null }[]) {
+    net.set(p.client_id, (net.get(p.client_id) ?? 0) + (p.is_refund ? -1 : 1) * Number(p.amount));
+  }
+  return rows.map((r) => ({ ...r, paid: Math.max(0, Math.round((net.get(r.client_id) ?? 0) * 100) / 100) }));
+}
+
 /** Unconfirmed estimates (the Estimate page) or confirmed ones (Detail Sheets). */
 export async function listEstimates(
   confirmed: boolean,
@@ -221,7 +234,7 @@ export async function listEstimates(
   const { data, error } = await q;
   if (error) return { rows: [], setup: isMissing(error) };
   return {
-    rows: ((data ?? []) as Joined<Omit<Estimate, "client">>[]).map(flat) as unknown as Estimate[],
+    rows: await withPaid(supabase, ((data ?? []) as Joined<Omit<Estimate, "client">>[]).map(flat) as unknown as Estimate[]),
     setup: false,
   };
 }
@@ -231,7 +244,7 @@ export async function listEstimateOptions(): Promise<EstimateOption[]> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("estimates")
-    .select("id, no, total, taxable, subtotal, site_name, clients(name, gstin)")
+    .select("id, no, total, taxable, subtotal, site_name, work_type, clients(name, gstin)")
     .not("confirmed_at", "is", null)
     .order("created_at", { ascending: false });
   return ((data ?? []) as unknown as (Omit<EstimateOption, "client"> & {
@@ -517,7 +530,34 @@ export async function listClientEstimates(clientId: string): Promise<Estimate[]>
     .select(`*, clients(${CLIENT_COLS})`)
     .eq("client_id", clientId)
     .order("created_at", { ascending: false });
-  return ((data ?? []) as Joined<Omit<Estimate, "client">>[]).map(flat) as unknown as Estimate[];
+  return withPaid(supabase, ((data ?? []) as Joined<Omit<Estimate, "client">>[]).map(flat) as unknown as Estimate[]);
+}
+
+/** Quotation id → number of the estimate made from it (so converted quotations can be struck through). */
+export async function getQuoteConversions(): Promise<Record<string, string>> {
+  const supabase = await createClient();
+  const { data } = await supabase.from("estimates").select("source_quote_id, no").not("source_quote_id", "is", null);
+  const out: Record<string, string> = {};
+  for (const r of (data ?? []) as { source_quote_id: string; no: string }[]) out[r.source_quote_id] = r.no;
+  return out;
+}
+
+/** Per client: how many quotations, estimates / detail sheets and bills exist (for the client list). */
+export async function getClientDocCounts(): Promise<Record<string, { quotes: number; estimates: number; bills: number }>> {
+  const supabase = await createClient();
+  const [q, e, b] = await Promise.all([
+    supabase.from("quotations").select("client_id"),
+    supabase.from("estimates").select("client_id"),
+    supabase.from("gst_invoices").select("client_id"),
+  ]);
+  const out: Record<string, { quotes: number; estimates: number; bills: number }> = {};
+  const bump = (rows: { client_id: string }[] | null, k: "quotes" | "estimates" | "bills") => {
+    for (const r of rows ?? []) (out[r.client_id] ??= { quotes: 0, estimates: 0, bills: 0 })[k]++;
+  };
+  bump(q.data, "quotes");
+  bump(e.data, "estimates");
+  bump(b.data, "bills");
+  return out;
 }
 
 /** Confirms an estimate as the client's Detail Sheet and books its total as a Due entry in their ledger. */
@@ -584,7 +624,11 @@ export async function saveInvoice(input: {
   }
   // The prefix always follows the type: AE/… = GST (ASHWIN ENTERPRISES), AGS/… = Non-GST (ARNAV GLASS SERVICES).
   const typedNo = input.no.trim();
-  const no = /^(AE|AGS)\//i.test(typedNo)
+  // Civil / Interior bills of supply are issued by ASHWIN ENTERPRISES with a plain 2026/27-001 number (no AGS/).
+  const civilBill = input.type === "Non-GST" && isFeeWork(est.work_type);
+  const no = civilBill
+    ? typedNo.replace(/^(AE|AGS)\//i, "")
+    : /^(AE|AGS)\//i.test(typedNo)
     ? typedNo.replace(/^(AE|AGS)\//i, input.type === "GST" ? "AE/" : "AGS/")
     : typedNo;
   if (!no) return { ok: false, error: "Invoice number missing." };
