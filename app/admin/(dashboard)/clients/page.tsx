@@ -25,17 +25,19 @@ export default async function ClientsPage({
   const { q = "" } = await searchParams;
   const term = q.trim().toLowerCase();
   const [allClients, ctx, docs] = await Promise.all([listClients(), getContactContext(), getClientDocCounts()]);
-  // Quotation-only clients are highlighted; clients with no paperwork or ledger entries at all are dimmed.
+  // Clients with no paperwork or ledger entries at all are dimmed; quotation-only clients are left out below.
   const docState = (c: (typeof allClients)[number]) => {
     const d = docs[c.id] ?? { quotes: 0, estimates: 0, bills: 0 };
     if (d.estimates || d.bills || c.totalWork || c.totalPaid) return "active" as const;
     return d.quotes ? ("quote-only" as const) : ("empty" as const);
   };
+  // Clients who only have a quotation (no estimate, bill or ledger entry yet) stay off this list.
+  const visible = allClients.filter((c) => docState(c) !== "quote-only");
   const clients = term
-    ? allClients.filter((c) =>
+    ? visible.filter((c) =>
         `${c.name} ${c.phone ?? ""} ${c.gstin ?? ""}`.toLowerCase().includes(term)
       )
-    : allClients;
+    : visible;
   const totals = clients.reduce(
     (acc, c) => ({
       totalWork: acc.totalWork + c.totalWork,
