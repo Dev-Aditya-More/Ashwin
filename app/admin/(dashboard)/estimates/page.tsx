@@ -2,6 +2,7 @@ import { EstimateManager } from "@/components/admin/docs/EstimateManager";
 import {
   getEstimate,
   getItemCatalog,
+  getQuoteConversions,
   getNextDocNo,
   listDocClients,
   listEstimates,
@@ -14,12 +15,13 @@ export default async function EstimatesPage({
   searchParams: Promise<{ edit?: string }>;
 }) {
   const { edit } = await searchParams;
-  const [clients, nextNo, catalog, { rows, setup }, quotes, editing] = await Promise.all([
+  const [clients, nextNo, catalog, { rows, setup }, quotes, converted, editing] = await Promise.all([
     listDocClients(),
     getNextDocNo("estimate"),
     getItemCatalog(),
     listEstimates(false),
     listQuotations(),
+    getQuoteConversions(),
     edit ? getEstimate(edit) : Promise.resolve(null),
   ]);
 
@@ -39,7 +41,7 @@ export default async function EstimatesPage({
         initialNo={nextNo}
         catalog={catalog}
         rows={rows}
-        quotations={quotes.rows}
+        quotations={quotes.rows.filter((q) => !converted[q.id])}
         setup={setup}
         editing={editing}
       />

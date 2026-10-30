@@ -62,6 +62,22 @@ function describe(l: Pick<EstimateLine, "productType" | "note">) {
   return esc(l.productType || "") + (note ? `<div style="font-size:.88em;color:#555;font-style:italic;margin-top:1px">${esc(note)}</div>` : "");
 }
 
+/** One professional sans-serif stack for every printed document (falls back by platform). */
+const FONT = "'Segoe UI',Calibri,'Helvetica Neue',Helvetica,Arial,sans-serif";
+
+/**
+ * Letterhead details per brand. Glass & Aluminium documents go out as ASHWIN ENTERPRISES (wordmark logo) or
+ * ARNAV GLASS SERVICES (Non-GST bills); Civil / Interior documents carry the blue-and-gold ASHWIN mark.
+ */
+const GHOLE = "Ghole Complex, Near Mhaske Petrol Pump, Beed Bypass Road";
+const COMPANY = {
+  enterprises: { shop: "Shop No. 10", address: `${GHOLE}, Satara Parisar, Chh. Sambhajinagar - 431010`, phone: "9822990577", email: "ashwin.enterrprises@gmail.com" },
+  arnav: { shop: "Shop No. 8-9", address: `${GHOLE}, Chh. Sambhajinagar - 431002`, phone: "9665343737", email: "arnavglassservices@gmail.com" },
+  ashwin: { shop: "Shop No. 10", address: `${GHOLE}, Satara Parisar, Chh. Sambhajinagar - 431010`, phone: "9822990577", email: "vikas@ashwin.world" },
+};
+const companyFor = (workType: unknown) => (isFeeWork(workType) ? COMPANY.ashwin : COMPANY.enterprises);
+const GSTIN = "27AEGPT6645A1ZF";
+
 /** A4 height minus the 12.7 mm margin spacers repeated on every page. */
 const PIN_PAGE = { content: ".page", spacer: ".spacer", usableMm: 297 - 25.4, repeat: ".items thead", widthMm: 210 };
 
@@ -70,7 +86,10 @@ const FRAME_CSS = `.frame{width:100%;border-collapse:collapse;border:0;font-size
 const QUOTE_TERMS = `<h3 class="terms-heading">Terms & Conditions</h3><div class="terms"><div>• Payment: 75% advance payment required. Remaining 25% payable upon completion of work.</div><div>• Work Commencement: Work will commence within 1 day after receipt of advance payment.</div><div>• Completion Period: 15 working days from the date of work order.</div><div>• Taxes & Charges: GST @18% and transportation charges shall be extra as applicable.</div><div>• Rate Variation: Rates may vary depending on final material selection.</div><div>• Quotation Validity: This quotation is valid for 3 days from the date of issue.</div><div>• Scaffolding: Scaffolding shall be arranged by the client. If provided by us, it will be charged separately.</div></div>`;
 
 // ------------------------------------------------------------ Quotation / Estimate
-const COMPANY_ADDRESS = `Shop No. 10, Ghole Complex, Near Mhaske Petrol Pump, Beed Bypass Road, Satara Parisar, Chh. Sambhajinagar - 431010<br>Phone: 9822990577 · vikas@ashwin.world · GSTIN: 27AEGPT6645A1ZF`;
+function companyAddress(workType: unknown) {
+  const c = companyFor(workType);
+  return `${c.shop}, ${c.address}<br>Phone: ${c.phone} · ${c.email} · GSTIN: ${GSTIN}`;
+}
 
 /**
  * Last row of an items table: one empty row with the column lines, stretched by `fitPages` so the table runs
@@ -102,9 +121,8 @@ function chargesTable(d: PrintDoc) {
       row("Taxable Amount", money(taxable)) +
       row(`GST (${Number(d.gstRate) || 0}%)`, money(tax)) +
       row("Total Amount", money(total), "grand") +
-      (Number(d.received) > 0
-        ? row("Advance Received", money(Number(d.received))) + row("Balance Due", money(Math.max(0, Math.round((total - Number(d.received)) * 100) / 100)), "grand")
-        : "") +
+      row("Advance Received", money(Number(d.received) || 0)) +
+      row("Balance Due", money(Math.max(0, Math.round((total - (Number(d.received) || 0)) * 100) / 100)), "grand") +
       `</tbody></table>`,
   };
 }
@@ -170,14 +188,14 @@ export function printQuotationOrEstimate(
     ? `<div class="summary"><div class="words"><b>Amount in Words:</b><br>${esc(amountInWords(charges.total))}</div>${charges.html}</div>`
     : "";
   const sign = `<div class="forco"><b>For</b> ${brandLogo(d.workType, "forlogo")}<div class="signgap"></div>Authorised Signatory</div>`;
-  const footer = `<div class="address">${COMPANY_ADDRESS}</div>`;
+  const footer = `<div class="address">${companyAddress(d.workType)}</div>`;
   const estimateBottom = quote
     ? ""
     : `<div class="tail">${summary}<div class="esign"><div class="receiver">Client’s Signature: ______________________</div>${sign}</div>${footer}</div>`;
   const toExtra = !quote && d.workType ? [`Work: ${esc(d.workType)}`] : [];
 
   const title = docTitle(d.client, (quote ? "Q-" : "E-") + d.no);
-  const html = `<html><head><title>${esc(title)}</title><style>@page{size:A4 ${quote ? "portrait" : "landscape"};margin:0}${FRAME_CSS}${ITEMS_CSS}*{box-sizing:border-box}:root{--fs:9px;--ink:#333;--c-title:#000;--c-client:#1B2A6B;--c-co:#000}body{font:var(--fs) Arial,sans-serif;color:var(--ink);margin:0}
+  const html = `<html><head><title>${esc(title)}</title><style>@page{size:A4 ${quote ? "portrait" : "landscape"};margin:0}${FRAME_CSS}${ITEMS_CSS}*{box-sizing:border-box}:root{--fs:9px;--ink:#333;--c-title:#000;--c-client:#1B2A6B;--c-co:#000}body{font:var(--fs) ${FONT};color:var(--ink);margin:0}
 .page{min-height:264mm;display:flex;flex-direction:column}.isq .page{min-height:0}.ise .page{min-height:183mm}.ise .frame>thead>tr>td{height:8mm}.ise .frame>tfoot>tr>td{height:11mm}.ise .top{margin:0 0 6px}.ise .logo{margin-top:0}.ise .logo.sq{margin-top:0}.ise .to{margin:0 0 8px}
 .top{display:flex;justify-content:space-between;align-items:flex-start;margin:3mm 0 12px}.logo{width:140px;height:auto;object-fit:contain;margin-top:5mm}.logo.sq{width:auto;height:96px;margin-top:2mm}
 .meta{text-align:right;line-height:1.7}.isq .meta h2{font-size:16px}.isq .meta b{min-width:30px}.meta b{display:inline-block;min-width:66px;text-align:left}.meta h2{font-size:21px;margin:0 0 5px;text-decoration:underline;color:var(--c-title)}
@@ -217,13 +235,13 @@ export function printDetailSheet(d: PrintDoc, saved: EstimateLine[]) {
     : `<table class="it items fit"><thead><tr><th class="c">Sr.</th><th>Product / Type</th><th>Material</th><th>Glass Type</th><th>Shade</th><th>Floor</th><th>Size (inches)</th><th class="c">Qty</th><th class="r">Billed Qty</th><th class="num">Rate (₹)</th><th class="num">Amount (₹)</th></tr></thead><tbody>${rows}${fillerRow(11)}</tbody></table>`;
 
   const title = docTitle(d.client, "D-" + d.no);
-  const html = `<html><head><title>${esc(title)}</title><style>@page{size:A4 landscape;margin:0}${FRAME_CSS}${ITEMS_CSS}*{box-sizing:border-box}:root{--fs:9px;--ink:#333;--c-title:#000;--c-client:#1B2A6B}body{font:var(--fs) Arial,sans-serif;color:var(--ink);margin:0}
+  const html = `<html><head><title>${esc(title)}</title><style>@page{size:A4 landscape;margin:0}${FRAME_CSS}${ITEMS_CSS}*{box-sizing:border-box}:root{--fs:9px;--ink:#333;--c-title:#000;--c-client:#1B2A6B}body{font:var(--fs) ${FONT};color:var(--ink);margin:0}
 .frame>thead>tr>td{height:8mm}.frame>tfoot>tr>td{height:11mm}.page{min-height:183mm;display:flex;flex-direction:column}
 h2{font-size:18px;margin:4px 0 4px;color:var(--c-title)}.cl{line-height:1.6;color:var(--c-client)}.cl{font-size:10px}.cl b.pn{font-size:14px;line-height:1.5}.head{display:flex;justify-content:space-between;margin-bottom:6px}.logo{width:150px;height:auto;object-fit:contain}.logo.sq{display:block;width:auto;height:80px}.meta{text-align:right;line-height:1.7}
 .sz{display:block;white-space:nowrap;margin:0 -3px;padding:2px 3px}.sz+.sz{border-top:1px solid #999}.sz:first-child{padding-top:0}.sz i{font-style:normal;color:#666}
 .tail{margin-top:auto;break-inside:avoid}.summary{display:flex;gap:10px}.summary .words{flex:1;border:1px solid #777;border-top:0;padding:6px;line-height:1.5}
 .charges{width:320px;border-collapse:collapse;flex:0 0 320px}.charges td{border:1px solid #777;border-top:0;padding:4px 6px;vertical-align:middle}.charges .num{text-align:center;white-space:nowrap}.charges .grand td{font-weight:bold;font-size:10px;background:#f3f4f7}
-.address{text-align:center;border-top:1px solid #aaa;padding-top:5px;margin-top:8px;line-height:1.4}</style></head><body><table class="frame"><thead><tr><td></td></tr></thead><tbody><tr><td><div class="page"><div class="head"><div>${brandLogo(d.workType, "logo")}<h2>DETAIL SHEET</h2><div class="cl">${partyBlock(d, undefined, d.workType ? [`Work Type: ${esc(d.workType)}`] : [])}</div></div><div class="meta"><b>Detail Sheet No.:</b> ${esc(d.no)}<br><b>Date:</b> ${esc(fmtDate(d.date))}</div></div>${table}<div class="tail"><div class="summary"><div class="words"><b>Amount in Words:</b><br>${esc(amountInWords(charges.total))}</div>${charges.html}</div><div class="address">${COMPANY_ADDRESS}</div></div></div></td></tr></tbody><tfoot><tr><td></td></tr></tfoot></table></body></html>`;
+.address{text-align:center;border-top:1px solid #aaa;padding-top:5px;margin-top:8px;line-height:1.4}</style></head><body><table class="frame"><thead><tr><td></td></tr></thead><tbody><tr><td><div class="page"><div class="head"><div>${brandLogo(d.workType, "logo")}<h2>DETAIL SHEET</h2><div class="cl">${partyBlock(d, undefined, d.workType ? [`Work Type: ${esc(d.workType)}`] : [])}</div></div><div class="meta"><b>Detail Sheet No.:</b> ${esc(d.no)}<br><b>Date:</b> ${esc(fmtDate(d.date))}</div></div>${table}<div class="tail"><div class="summary"><div class="words"><b>Amount in Words:</b><br>${esc(amountInWords(charges.total))}</div>${charges.html}</div><div class="address">${companyAddress(d.workType)}</div></div></div></td></tr></tbody><tfoot><tr><td></td></tr></tfoot></table></body></html>`;
   printHtmlInFrame(html, {
     title,
     widthMm: 297,
@@ -234,6 +252,7 @@ h2{font-size:18px;margin:4px 0 4px;color:var(--c-title)}.cl{line-height:1.6;colo
 // ------------------------------------------------------------ GST tax invoice
 export function buildTaxInvoice(d: PrintDoc, saved: EstimateLine[], party: PrintParty) {
   const lines = mergeForPrint(saved);
+  const co = companyFor(d.workType);
   const inr = (n: number) => Number(n || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const fees = isFeeBill(d.workType, lines);
   const cols = fees ? 4 : 8;
@@ -303,7 +322,7 @@ export function buildTaxInvoice(d: PrintDoc, saved: EstimateLine[], party: Print
     })
     .join("");
 
-  const html = `<!doctype html><html><head><title>${esc(docTitle(d.client, d.no))}</title><style>@page{size:A4 portrait;margin:0}.frame{width:100%;border-collapse:collapse;border:0}.frame>thead>tr>td,.frame>tfoot>tr>td{height:12.7mm;padding:0;border:0}.frame>tbody>tr>td{padding:0 12.7mm;border:0;vertical-align:top}*{box-sizing:border-box}body{font:10px Arial,sans-serif;color:#222;margin:0}.page{display:flex;flex-direction:column;min-height:260mm}.spacer{flex:1 1 auto;min-height:0}.page{width:100%;margin:auto}.title{text-align:center;font-weight:bold;font-size:15px;border:1px solid #444;padding:4px;margin-bottom:5px}.head,.bill,.items,.taxbox,.terms{width:100%;border-collapse:collapse}.head td,.bill td,.items td,.items th,.taxbox td,.taxbox th,.terms td{border:1px solid #555;padding:4px;vertical-align:middle;text-align:center}.head td,.bill td{text-align:left}.head td.meta{text-align:center;vertical-align:middle}.metab{display:inline-block;text-align:left}.head td[style*="center"]{text-align:center}.terms td:first-child{text-align:left}.head .logo{width:135px;height:auto;max-height:75px;object-fit:contain}.head .logo.sq{width:auto;height:80px;max-height:80px}.company{line-height:1.45}.meta{line-height:1.7}.bill{margin-top:4px}.billtitle{font-weight:bold}.items{margin-top:5px;table-layout:fixed}.items th{background:#f1f3f8;font-size:9px}.items .c{text-align:center}.items td{padding:3px 3px;overflow-wrap:anywhere}.items .r{text-align:center}.items tr.fill td{padding:0;border-top:0;border-bottom:0}.items tr.tot td{border-top:1px solid #555}.items thead{display:table-header-group}.items tr{break-inside:avoid}.items tr.fill{break-inside:auto}.num{text-align:center;white-space:nowrap}.summary{margin-top:12px;display:grid;grid-template-columns:56% 44%;gap:14px;align-items:start}.taxbox{margin-top:14px}.taxbox th{background:#f1f3f8}.taxbox td,.taxbox th{font-size:7px;text-align:center;vertical-align:middle;padding:2px 1px;line-height:1.15;overflow-wrap:anywhere}.taxbox th{font-size:6.7px}.taxbox{table-layout:fixed}.taxbox th:nth-child(1){width:10%}.taxbox th:nth-child(2){width:18%}.taxbox th:nth-child(3),.taxbox th:nth-child(5){width:10%}.taxbox th:nth-child(4),.taxbox th:nth-child(6){width:16%}.taxbox th:nth-child(7){width:20%}.totals{width:100%;border-collapse:collapse}.totals td{border:1px solid #555;padding:5px 6px}.totals td:last-child{text-align:center;white-space:nowrap}.grand{font-size:13px;font-weight:bold;border-top:2px solid #333!important}.words{font-size:9px;font-weight:bold}.terms{margin-top:3px}.terms td{line-height:1.2;padding:5px}.preterms{margin-top:auto;padding-top:5px}.preterms .words{margin:3px 0 5px;line-height:1.35}.signspace{height:25px;line-height:12px}.bottom{display:grid;grid-template-columns:50% 50%;page-break-inside:avoid;gap:8px;margin-top:5px}.bank,.sign{border:0;border-top:1px solid #777;padding:5px 2px;min-height:74px}.bank{line-height:1.5}.bankrow{display:flex;gap:6px;align-items:center}.bankrow div{font-size:8px;line-height:1.35}.qr{width:64px;height:64px;object-fit:contain}.sign{display:flex;flex-direction:column;justify-content:space-between;font-weight:normal;min-width:0}.auth{text-align:right;margin-top:0;font-weight:normal;font-size:9px}.thanks{text-align:center;font-weight:bold;border-top:1px solid #555;padding:5px;margin-top:0}@media print{body{print-color-adjust:exact;-webkit-print-color-adjust:exact}.page{break-inside:avoid}.bottom,.terms,.summary,.sign{break-inside:avoid}}</style></head><body><table class="frame"><thead><tr><td></td></tr></thead><tbody><tr><td><div class="page"><div class="title">TAX INVOICE</div><table class="head"><tr><td style="width:24%;text-align:center">${brandLogo(d.workType, "logo")}</td><td style="width:43%"><div class="company">SHOP NO. 10, GHOLE COMPLEX, NEAR MHASKE PETROL PUMP,<br>BEED BYPASS ROAD, SATARA PARISAR,<br>CHH. SAMBHAJINAGAR - 431010<br>Phone: 9822990577<br>Email: vikas@ashwin.world<br><b>GSTIN: 27AEGPT6645A1ZF</b><br>State: 27-Maharashtra</div></td><td class="meta"><div class="metab"><b>Invoice No.:</b> ${esc(d.no)}<br><b>Date:</b> ${esc(fmtDate(d.date))}<br><b>Place of Supply:</b> 27-Maharashtra</div></td></tr></table><table class="bill"><tr><td><div class="billtitle">Bill To:</div>${billTo}</td></tr></table><table class="items"><thead>${itemsHead}</thead><tbody>${rowsHtml}${filler}${itemsTotal}</tbody></table><div class="summary"><table class="taxbox"><tr><th>HSN Code</th><th>Taxable Amount (₹)</th><th>CGST Rate</th><th>CGST Amt (₹)</th><th>SGST Rate</th><th>SGST Amt (₹)</th><th>Total Tax (₹)</th></tr>${hsnRows}<tr><th>TOTAL</th><th>${taxable.toFixed(2)}</th><th></th><th>${half.toFixed(2)}</th><th></th><th>${(tax - half).toFixed(2)}</th><th>${tax.toFixed(2)}</th></tr></table><table class="totals"><tr><td>Sub Total</td><td>${money(d.subtotal)}</td></tr>${Number(d.discount || 0) ? `<tr><td>Discount</td><td>− ${money(d.discount)}</td></tr>` : ""}${Number(d.hamali || 0) ? `<tr><td>Hamali</td><td>${money(d.hamali)}</td></tr>` : ""}${Number(d.transport || 0) ? `<tr><td>Transport</td><td>${money(d.transport)}</td></tr>` : ""}<tr><td>Taxable Amount</td><td>${money(taxable)}</td></tr><tr><td>Tax (${rate}%)</td><td>${money(tax)}</td></tr><tr><td>Round Off</td><td>${money(roundOff)}</td></tr><tr class="grand"><td>Total</td><td>${money(total)}</td></tr><tr><td>Received</td><td>${money(received)}</td></tr><tr><td><b>Balance</b></td><td><b>${money(balance)}</b></td></tr></table></div><div class="preterms"><div class="words"><b>Invoice Amount in Words:</b><br>${amountInWords(total)}</div><table class="terms"><tr><td style="width:58%"><b>Terms & Conditions:</b><br>Please make the payment within 3 days of the bill date.<br>Thanks for doing business with us!</td><td style="width:42%;vertical-align:middle;text-align:center"><b>Receiver’s Signature:</b><br><br>____________________________</td></tr></table></div><div class="bottom"><div class="bank"><b>Bank Details / Scan to Pay:</b><div class="bankrow"><img class="qr" src="${qr}" alt="UPI payment QR"><div>Bank: ICICI BANK LIMITED, AURANGABAD<br>Account No.: 110505002754<br>IFSC: ICIC0006970<br>Account Name: ASHWIN ENTERPRISES<br>UPI ID: ashwinenterprises@icici<br><b>QR Amount: ${money(total)}</b></div></div></div><div class="sign"><div style="text-align:right;margin-top:auto"><div style="font-weight:bold">For ASHWIN ENTERPRISES</div><div class="signspace">&nbsp;<br>&nbsp;</div><div class="auth">Authorised Signatory</div></div></div></div><div class="thanks">THANK YOU FOR DOING BUSINESS WITH US!</div></div></td></tr></tbody><tfoot><tr><td></td></tr></tfoot></table></body></html>`;
+  const html = `<!doctype html><html><head><title>${esc(docTitle(d.client, d.no))}</title><style>@page{size:A4 portrait;margin:0}.frame{width:100%;border-collapse:collapse;border:0}.frame>thead>tr>td,.frame>tfoot>tr>td{height:12.7mm;padding:0;border:0}.frame>tbody>tr>td{padding:0 12.7mm;border:0;vertical-align:top}*{box-sizing:border-box}body{font:10px ${FONT};color:#222;margin:0}.page{display:flex;flex-direction:column;min-height:260mm}.spacer{flex:1 1 auto;min-height:0}.page{width:100%;margin:auto}.title{text-align:center;font-weight:bold;font-size:15px;border:1px solid #444;padding:4px;margin-bottom:5px}.head,.bill,.items,.taxbox,.terms{width:100%;border-collapse:collapse}.head td,.bill td,.items td,.items th,.taxbox td,.taxbox th,.terms td{border:1px solid #555;padding:4px;vertical-align:middle;text-align:center}.head td,.bill td{text-align:left}.head td.meta{text-align:center;vertical-align:middle}.metab{display:inline-block;text-align:left}.head td[style*="center"]{text-align:center}.terms td:first-child{text-align:left}.head .logo{width:135px;height:auto;max-height:75px;object-fit:contain}.head .logo.sq{width:auto;height:80px;max-height:80px}.company{line-height:1.5;padding:4px 12px}.company .caddr{width:80%;min-width:230px;margin-bottom:2px}.head td.co{padding:6px 8px}.meta{line-height:1.7}.bill{margin-top:4px}.billtitle{font-weight:bold}.items{margin-top:5px;table-layout:fixed}.items th{background:#f1f3f8;font-size:9px}.items .c{text-align:center}.items td{padding:3px 3px;overflow-wrap:anywhere}.items .r{text-align:center}.items tr.fill td{padding:0;border-top:0;border-bottom:0}.items tr.tot td{border-top:1px solid #555}.items thead{display:table-header-group}.items tr{break-inside:avoid}.items tr.fill{break-inside:auto}.num{text-align:center;white-space:nowrap}.summary{margin-top:12px;display:grid;grid-template-columns:56% 44%;gap:14px;align-items:start}.taxbox{margin-top:14px}.taxbox th{background:#f1f3f8}.taxbox td,.taxbox th{font-size:7px;text-align:center;vertical-align:middle;padding:2px 1px;line-height:1.15;overflow-wrap:anywhere}.taxbox th{font-size:6.7px}.taxbox{table-layout:fixed}.taxbox th:nth-child(1){width:10%}.taxbox th:nth-child(2){width:18%}.taxbox th:nth-child(3),.taxbox th:nth-child(5){width:10%}.taxbox th:nth-child(4),.taxbox th:nth-child(6){width:16%}.taxbox th:nth-child(7){width:20%}.totals{width:100%;border-collapse:collapse}.totals td{border:1px solid #555;padding:5px 6px}.totals td:last-child{text-align:center;white-space:nowrap}.grand{font-size:13px;font-weight:bold;border-top:2px solid #333!important}.words{font-size:9px;font-weight:bold}.terms{margin-top:3px}.terms td{line-height:1.2;padding:5px}.preterms{margin-top:auto;padding-top:5px}.preterms .words{margin:3px 0 5px;line-height:1.35}.signspace{height:25px;line-height:12px}.bottom{display:grid;grid-template-columns:50% 50%;page-break-inside:avoid;gap:8px;margin-top:5px}.bank,.sign{border:0;border-top:1px solid #777;padding:5px 2px;min-height:74px}.bank{line-height:1.5}.bankrow{display:flex;gap:6px;align-items:center}.bankrow div{font-size:8px;line-height:1.35}.qr{width:64px;height:64px;object-fit:contain}.sign{display:flex;flex-direction:column;justify-content:space-between;font-weight:normal;min-width:0}.auth{text-align:right;margin-top:0;font-weight:normal;font-size:9px}.thanks{text-align:center;font-weight:bold;border-top:1px solid #555;padding:5px;margin-top:0}@media print{body{print-color-adjust:exact;-webkit-print-color-adjust:exact}.page{break-inside:avoid}.bottom,.terms,.summary,.sign{break-inside:avoid}}</style></head><body><table class="frame"><thead><tr><td></td></tr></thead><tbody><tr><td><div class="page"><div class="title">TAX INVOICE</div><table class="head"><tr><td style="width:24%;text-align:center">${brandLogo(d.workType, "logo")}</td><td class="co" style="width:46%"><div class="company"><div class="caddr">${esc(co.shop)}, ${esc(co.address)}</div>Phone: ${esc(co.phone)}<br>Email: ${esc(co.email)}<br><b>GSTIN: ${GSTIN}</b></div></td><td class="meta"><div class="metab"><b>Invoice No.:</b> ${esc(d.no)}<br><b>Date:</b> ${esc(fmtDate(d.date))}<br><b>Place of Supply:</b> 27-Maharashtra</div></td></tr></table><table class="bill"><tr><td><div class="billtitle">Bill To:</div>${billTo}</td></tr></table><table class="items"><thead>${itemsHead}</thead><tbody>${rowsHtml}${filler}${itemsTotal}</tbody></table><div class="summary"><table class="taxbox"><tr><th>HSN Code</th><th>Taxable Amount (₹)</th><th>CGST Rate</th><th>CGST Amt (₹)</th><th>SGST Rate</th><th>SGST Amt (₹)</th><th>Total Tax (₹)</th></tr>${hsnRows}<tr><th>TOTAL</th><th>${taxable.toFixed(2)}</th><th></th><th>${half.toFixed(2)}</th><th></th><th>${(tax - half).toFixed(2)}</th><th>${tax.toFixed(2)}</th></tr></table><table class="totals"><tr><td>Sub Total</td><td>${money(d.subtotal)}</td></tr>${Number(d.discount || 0) ? `<tr><td>Discount</td><td>− ${money(d.discount)}</td></tr>` : ""}${Number(d.hamali || 0) ? `<tr><td>Hamali</td><td>${money(d.hamali)}</td></tr>` : ""}${Number(d.transport || 0) ? `<tr><td>Transport</td><td>${money(d.transport)}</td></tr>` : ""}<tr><td>Taxable Amount</td><td>${money(taxable)}</td></tr><tr><td>Tax (${rate}%)</td><td>${money(tax)}</td></tr><tr><td>Round Off</td><td>${money(roundOff)}</td></tr><tr class="grand"><td>Total</td><td>${money(total)}</td></tr><tr><td>Advance Received</td><td>${money(received)}</td></tr><tr><td><b>Balance</b></td><td><b>${money(balance)}</b></td></tr></table></div><div class="preterms"><div class="words"><b>Invoice Amount in Words:</b><br>${amountInWords(total)}</div><table class="terms"><tr><td style="width:58%"><b>Terms & Conditions:</b><br>Please make the payment within 3 days of the bill date.<br>Thanks for doing business with us!</td><td style="width:42%;vertical-align:middle;text-align:center"><b>Receiver’s Signature:</b><br><br>____________________________</td></tr></table></div><div class="bottom"><div class="bank"><b>Bank Details / Scan to Pay:</b><div class="bankrow"><img class="qr" src="${qr}" alt="UPI payment QR"><div>Bank: ICICI BANK LIMITED, AURANGABAD<br>Account No.: 110505002754<br>IFSC: ICIC0006970<br>Account Name: ASHWIN ENTERPRISES<br>UPI ID: ashwinenterprises@icici<br><b>QR Amount: ${money(total)}</b></div></div></div><div class="sign"><div style="text-align:right;margin-top:auto"><div style="font-weight:bold">For ASHWIN ENTERPRISES</div><div class="signspace">&nbsp;<br>&nbsp;</div><div class="auth">Authorised Signatory</div></div></div></div><div class="thanks">THANK YOU FOR DOING BUSINESS WITH US!</div></div></td></tr></tbody><tfoot><tr><td></td></tr></tfoot></table></body></html>`;
   return { html, title: docTitle(d.client, d.no), opts: { widthMm: 210, fit: PIN_PAGE } as PrintOptions };
 }
 
@@ -316,6 +335,7 @@ export function printTaxInvoice(d: PrintDoc, lines: EstimateLine[], party: Print
 // ------------------------------------------------------------ Bill of Supply (Non-GST, ARNAV GLASS SERVICES)
 export function buildBillOfSupply(d: PrintDoc, saved: EstimateLine[], party?: PrintParty) {
   const lines = mergeForPrint(saved);
+  const co = companyFor(d.workType) === COMPANY.ashwin ? COMPANY.ashwin : COMPANY.arnav;
   const inr = (n: unknown) => "₹ " + Number(n || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const dmy = (x: unknown) => String(x ?? "").split("-").reverse().join("-");
   const sizeOf = (l: EstimateLine) => sizeInFeet(l);
@@ -348,7 +368,7 @@ export function buildBillOfSupply(d: PrintDoc, saved: EstimateLine[], party?: Pr
     (ha ? trow("Hamali", inr(ha)) : "") +
     (tr ? trow("Transport", inr(tr)) : "") +
     trow("Total", inr(total), true) +
-    (adv ? trow("Advance", inr(adv)) : "") +
+    trow("Advance Received", inr(adv)) +
     trow("Balance", inr(bal), true);
   // Civil / Interior bills go out under ASHWIN (square logo, paid into Vikas Thokal's SBI account);
   // Glass & Aluminium bills stay ARNAV GLASS SERVICES with its HDFC account.
@@ -364,9 +384,9 @@ export function buildBillOfSupply(d: PrintDoc, saved: EstimateLine[], party?: Pr
 
   const html = `<!doctype html><html><head><meta charset="utf-8"><title>${esc((d.client ? d.client + " " : "") + d.no)}</title><style>
 @page{size:A4 portrait;margin:0}*{box-sizing:border-box}html,body{margin:0;padding:0}:root{--fs:10px;--ink:#222}
-body{font:var(--fs) Georgia,'Times New Roman',serif;color:var(--ink)}
+body{font:var(--fs) ${FONT};color:var(--ink)}
 .frame{width:100%;border-collapse:collapse;border:0}.frame>thead>tr>td,.frame>tfoot>tr>td{height:12.7mm;padding:0;border:0}.frame>tbody>tr>td{padding:0 12.7mm;border:0;vertical-align:top}
-.hd{width:100%;border-collapse:collapse;border-bottom:1.5px solid #222}.hd td{padding:0 0 4px;vertical-align:bottom}.addr{font-size:11px;line-height:1.5}.hd img{width:150px;height:auto;display:block;margin-left:auto}.hd img.sq{width:auto;height:84px}
+.hd{width:100%;border-collapse:collapse;border-bottom:1.5px solid #222}.hd td{padding:0 0 4px;vertical-align:bottom}.addr{font-size:11px;line-height:1.5;padding-right:12px!important}.addr .caddr{width:80%;min-width:230px}.wd{border:1px solid #222;border-top:0;padding:5px 6px;font-size:11px;line-height:1.5;break-inside:avoid}.hd img{width:150px;height:auto;display:block;margin-left:auto}.hd img.sq{width:auto;height:84px}
 .ttl{text-align:right;font-size:13px;letter-spacing:.6px;margin:14px 0 8px;font-weight:bold}
 .to{line-height:1.5;margin-top:4px}.to .nm{font-size:13px;font-weight:bold;margin-left:14px}.to .st{margin-left:14px}.to .st b{font-weight:normal;color:#555}
 .meta{text-align:right;line-height:1.5;margin:8px 0 3px}
@@ -376,12 +396,13 @@ table.items{width:100%;border-collapse:separate;border-spacing:0;border:1px soli
 .tot{width:100%;border-collapse:collapse}.tot td{border:1px solid #222;padding:2px 6px;font-size:11px;text-align:center;vertical-align:middle}.tot td:first-child{text-align:left}.tot tr:first-child td{border-top:0}.tot td:first-child{border-left:1px solid #222}.tot td:last-child{border-right:0}.tot tr.b td{font-weight:bold}.tot tr:last-child td{border-bottom:0}
 .sign{margin-top:16px;text-align:right;break-inside:avoid}.sign img{height:34px;width:auto;vertical-align:middle;margin-left:6px}.sign img.sq{height:44px}.sign .gap{height:46px}.sign b{font-size:11px}
 </style></head><body><table class="frame"><thead><tr><td></td></tr></thead><tbody><tr><td><div class="page">
-<table class="hd"><tr><td class="addr">Shop No. 8-9, Ghole Complex, Near<br>Mhaske Petrol Pump, Beed Bypass Road,<br>Chh. Sambhajinagar - 431002. 09665343737<br>ashwin.enterprises@gmail.com</td><td style="width:170px">${logoImg}</td></tr></table>
+<table class="hd"><tr><td class="addr"><div class="caddr">${esc(co.shop)}, ${esc(co.address)}</div>Phone: ${esc(co.phone)}<br>${esc(co.email)}</td><td style="width:170px">${logoImg}</td></tr></table>
 <div class="ttl">BILL OF SUPPLY</div>
 <div class="to">To,<div class="nm">${esc(d.client)}</div>${mobile ? `<div class="st"><b>Mobile:</b> ${esc(mobile)}</div>` : ""}${address ? `<div class="st"><b>Address:</b> ${esc(address)}</div>` : ""}${d.siteName ? `<div class="st"><b>Site:</b> ${esc(d.siteName)}</div>` : ""}</div>
 <div class="meta">Bill No.:- <b>${esc(civil ? d.no.replace(/^AGS\//i, "") : d.no)}</b><br>Date:- <b>${esc(dmy(d.date))}</b></div>
 ${itemsTable}
 <table class="bot"><tr><td class="acc" style="width:62%">${account}</td><td><table class="tot">${totals}</table></td></tr></table>
+<div class="wd"><b>Amount in Words:</b> ${esc(amountInWords(total))}</div>
 <div class="sign"><b>For</b> ${logoImg}<div class="gap"></div><b>Authorised Signatory</b></div>
 </div></td></tr></tbody><tfoot><tr><td></td></tr></tfoot></table></body></html>`;
   return { html, title: (d.client ? d.client + " " : "") + d.no, opts: { widthMm: 210, fit: PIN_PAGE } as PrintOptions };
@@ -419,7 +440,7 @@ export function printLedger(party: PrintParty, rows: LedgerPrintRow[]) {
     : '<tr><td colspan="5" style="text-align:center;padding:14px">No transactions</td></tr>';
 
   const html = `<!doctype html><html><head><meta charset="utf-8"><title>${esc(party.name)} Ledger</title><style>
-@page{size:A4 portrait;margin:0}*{box-sizing:border-box}html,body{margin:0;padding:0}body{font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#111}
+@page{size:A4 portrait;margin:0}*{box-sizing:border-box}html,body{margin:0;padding:0}body{font-family:${FONT};font-size:12px;color:#111}
 .frame{width:100%;border-collapse:collapse;border:0}.frame>thead>tr>td,.frame>tfoot>tr>td{height:12.7mm;padding:0;border:0}.frame>tbody>tr>td{padding:0 12.7mm;border:0;vertical-align:top}
 .hd{width:100%;border-collapse:collapse}.hd td{padding:0;border:0;vertical-align:top}.logo{width:150px;height:auto;display:block}.ttl{text-align:right}.ttl h1{margin:2mm 0 8px;font-size:20px;text-decoration:underline;letter-spacing:.3px}.ttl div{margin-top:3px;font-size:12px}
 .party{margin-top:14px;line-height:1.55}.party .pn{font-size:15px;font-weight:bold}

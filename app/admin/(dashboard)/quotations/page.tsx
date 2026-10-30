@@ -17,7 +17,7 @@ export default async function QuotationsPage() {
           Quotation → Estimate → GST Invoice workflow. Quotations list Description, Unit and Rate only.
         </p>
       </div>
-      <QuotationManager initialClients={clients} initialNo={nextNo} rows={rows} setup={setup} converted={converted} />
+      <QuotationManager initialClients={clients} initialNo={nextNo} rows={rows.filter((q) => !converted[q.id])} setup={setup} converted={converted} />
     </div>
   );
 }
