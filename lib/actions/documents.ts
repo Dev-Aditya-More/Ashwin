@@ -533,12 +533,29 @@ export async function listClientEstimates(clientId: string): Promise<Estimate[]>
   return withPaid(supabase, ((data ?? []) as Joined<Omit<Estimate, "client">>[]).map(flat) as unknown as Estimate[]);
 }
 
-/** Quotation id → number of the estimate made from it (so converted quotations can be struck through). */
+/**
+ * Quotation id → number of the estimate made from it (so converted quotations drop out of the lists).
+ * Estimates created without picking the quotation are matched by client: each unlinked quotation pairs with
+ * that client's earliest unused estimate dated on or after it.
+ */
 export async function getQuoteConversions(): Promise<Record<string, string>> {
   const supabase = await createClient();
-  const { data } = await supabase.from("estimates").select("source_quote_id, no").not("source_quote_id", "is", null);
+  const [est, quo] = await Promise.all([
+    supabase.from("estimates").select("client_id, no, doc_date, source_quote_id"),
+    supabase.from("quotations").select("id, client_id, doc_date"),
+  ]);
   const out: Record<string, string> = {};
-  for (const r of (data ?? []) as { source_quote_id: string; no: string }[]) out[r.source_quote_id] = r.no;
+  type E = { client_id: string; no: string; doc_date: string; source_quote_id: string | null };
+  const estimates = (est.data ?? []) as E[];
+  for (const e of estimates) if (e.source_quote_id) out[e.source_quote_id] = e.no;
+  const free = estimates.filter((e) => !e.source_quote_id).sort((a, b) => a.doc_date.localeCompare(b.doc_date));
+  const quotes = ((quo.data ?? []) as { id: string; client_id: string; doc_date: string }[])
+    .filter((q) => !out[q.id])
+    .sort((a, b) => a.doc_date.localeCompare(b.doc_date));
+  for (const q of quotes) {
+    const i = free.findIndex((e) => e.client_id === q.client_id && e.doc_date >= q.doc_date);
+    if (i >= 0) out[q.id] = free.splice(i, 1)[0].no;
+  }
   return out;
 }
 
