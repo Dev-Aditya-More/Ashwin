@@ -386,14 +386,14 @@ export function buildBillOfSupply(d: PrintDoc, saved: EstimateLine[], party?: Pr
 @page{size:A4 portrait;margin:0}*{box-sizing:border-box}html,body{margin:0;padding:0}:root{--fs:10px;--ink:#222}
 body{font:var(--fs) ${FONT};color:var(--ink)}
 .frame{width:100%;border-collapse:collapse;border:0}.frame>thead>tr>td,.frame>tfoot>tr>td{height:12.7mm;padding:0;border:0}.frame>tbody>tr>td{padding:0 12.7mm;border:0;vertical-align:top}
-.hd{width:100%;border-collapse:collapse;border-bottom:1.5px solid #222}.hd td{padding:0 0 4px;vertical-align:bottom}.addr{font-size:11px;line-height:1.5;padding-right:12px!important}.addr .caddr{width:80%;min-width:230px}.wd{border:1px solid #222;border-top:0;padding:5px 6px;font-size:11px;line-height:1.5;break-inside:avoid}.hd img{width:150px;height:auto;display:block;margin-left:auto}.hd img.sq{width:auto;height:84px}
+.hd{width:100%;border-collapse:collapse;border-bottom:1.5px solid #222}.hd td{padding:0 0 4px;vertical-align:bottom}.addr{font-size:11px;line-height:1.5;padding-right:12px!important}.addr .caddr{width:62%;min-width:230px}.wd{border:1px solid #222;border-top:0;padding:5px 6px;font-size:11px;line-height:1.5;break-inside:avoid}.hd img{width:150px;height:auto;display:block;margin-left:auto}.hd img.sq{width:auto;height:84px}
 .ttl{text-align:right;font-size:13px;letter-spacing:.6px;margin:14px 0 8px;font-weight:bold}
 .to{line-height:1.5;margin-top:4px}.to .nm{font-size:13px;font-weight:bold;margin-left:14px}.to .st{margin-left:14px}.to .st b{font-weight:normal;color:#555}
-.meta{text-align:right;line-height:1.5;margin:8px 0 3px}
+.meta{text-align:right;line-height:1.5;margin:8px 0 8px}
 table.items{width:100%;border-collapse:separate;border-spacing:0;border:1px solid #222;table-layout:fixed}.items th{border-bottom:1px solid #222;padding:4px 3px;font-weight:normal;font-size:12px}.items td{padding:2.5px 4px;border:0;vertical-align:middle;text-align:center;overflow-wrap:anywhere}.items tr{break-inside:avoid}.items tr.fill{break-inside:auto}
 .items .sl{border-left:1px solid #222}.c{text-align:center}.r{text-align:center;white-space:nowrap}.items tr.fill td{padding:0}
 .bot{width:100%;border-collapse:collapse;border:1px solid #222;border-top:0;break-inside:avoid}.bot>tbody>tr>td{vertical-align:top;padding:0}.acc{padding:3px 4px!important;line-height:1.5;font-size:11px}.aw{margin-bottom:6px}
-.tot{width:100%;border-collapse:collapse}.tot td{border:1px solid #222;padding:2px 6px;font-size:11px;text-align:center;vertical-align:middle}.tot td:first-child{text-align:left}.tot tr:first-child td{border-top:0}.tot td:first-child{border-left:1px solid #222}.tot td:last-child{border-right:0}.tot tr.b td{font-weight:bold}.tot tr:last-child td{border-bottom:0}
+.tot{width:100%;border-collapse:collapse;table-layout:fixed}.tot td:last-child{width:${fees ? 63 : 52}%}.tot td{border:1px solid #222;padding:2px 6px;font-size:11px;text-align:center;vertical-align:middle}.tot td:first-child{text-align:left}.tot tr:first-child td{border-top:0}.tot td:first-child{border-left:1px solid #222}.tot td:last-child{border-right:0}.tot tr.b td{font-weight:bold}.tot tr:last-child td{border-bottom:0}
 .sign{margin-top:16px;text-align:right;break-inside:avoid}.sign img{height:34px;width:auto;vertical-align:middle;margin-left:6px}.sign img.sq{height:44px}.sign .gap{height:46px}.sign b{font-size:11px}
 </style></head><body><table class="frame"><thead><tr><td></td></tr></thead><tbody><tr><td><div class="page">
 <table class="hd"><tr><td class="addr"><div class="caddr">${esc(co.shop)}, ${esc(co.address)}</div>Phone: ${esc(co.phone)}<br>${esc(co.email)}</td><td style="width:170px">${logoImg}</td></tr></table>
@@ -401,7 +401,7 @@ table.items{width:100%;border-collapse:separate;border-spacing:0;border:1px soli
 <div class="to">To,<div class="nm">${esc(d.client)}</div>${mobile ? `<div class="st"><b>Mobile:</b> ${esc(mobile)}</div>` : ""}${address ? `<div class="st"><b>Address:</b> ${esc(address)}</div>` : ""}${d.siteName ? `<div class="st"><b>Site:</b> ${esc(d.siteName)}</div>` : ""}</div>
 <div class="meta">Bill No.:- <b>${esc(civil ? d.no.replace(/^AGS\//i, "") : d.no)}</b><br>Date:- <b>${esc(dmy(d.date))}</b></div>
 ${itemsTable}
-<table class="bot"><tr><td class="acc" style="width:62%"><div class="aw"><b>Amount in Words:</b> ${esc(amountInWords(total))}</div>${account}</td><td><table class="tot">${totals}</table></td></tr></table>
+<table class="bot"><tr><td class="acc" style="width:${fees ? 62 : 69}%"><div class="aw"><b>Amount in Words:</b> ${esc(amountInWords(total))}</div>${account}</td><td><table class="tot">${totals}</table></td></tr></table>
 <div class="sign"><b>For</b> ${logoImg}<div class="gap"></div><b>Authorised Signatory</b></div>
 </div></td></tr></tbody><tfoot><tr><td></td></tr></tfoot></table></body></html>`;
   return { html, title: (d.client ? d.client + " " : "") + d.no, opts: { widthMm: 210, fit: PIN_PAGE } as PrintOptions };

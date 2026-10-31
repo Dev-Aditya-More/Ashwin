@@ -209,14 +209,19 @@ export async function listQuotations(): Promise<{ rows: Quotation[]; setup: bool
 
 /** Adds each estimate's client's net payments so far (printed as "Advance Received"). */
 async function withPaid(supabase: Awaited<ReturnType<typeof createClient>>, rows: Estimate[]): Promise<Estimate[]> {
-  const ids = [...new Set(rows.map((r) => r.client_id))];
-  if (!ids.length) return rows;
-  const { data } = await supabase.from("client_payments").select("client_id, amount, is_refund").in("client_id", ids);
+  const net = await netPaidByClient(supabase, [...new Set(rows.map((r) => r.client_id))]);
+  return rows.map((r) => ({ ...r, paid: Math.max(0, Math.round((net.get(r.client_id) ?? 0) * 100) / 100) }));
+}
+
+/** Net payments per client (refunds subtracted), the source of every document's "Advance Received". */
+async function netPaidByClient(supabase: Awaited<ReturnType<typeof createClient>>, clientIds: string[]) {
   const net = new Map<string, number>();
+  if (!clientIds.length) return net;
+  const { data } = await supabase.from("client_payments").select("client_id, amount, is_refund").in("client_id", clientIds);
   for (const p of (data ?? []) as { client_id: string; amount: number; is_refund?: boolean | null }[]) {
     net.set(p.client_id, (net.get(p.client_id) ?? 0) + (p.is_refund ? -1 : 1) * Number(p.amount));
   }
-  return rows.map((r) => ({ ...r, paid: Math.max(0, Math.round((net.get(r.client_id) ?? 0) * 100) / 100) }));
+  return net;
 }
 
 /** Unconfirmed estimates (the Estimate page) or confirmed ones (Detail Sheets). */
@@ -259,8 +264,15 @@ export async function listInvoices(): Promise<{ rows: GstInvoice[]; setup: boole
     .select(`*, clients(${CLIENT_COLS})`)
     .order("created_at", { ascending: false });
   if (error) return { rows: [], setup: isMissing(error) };
+  // "received" was only a figure typed when the bill was issued (usually 0), so advances that arrived later
+  // never showed. Use the client's live net payments, like estimates do, keeping the typed figure if larger.
+  const invoices = ((data ?? []) as Joined<Omit<GstInvoice, "client">>[]).map(flat) as unknown as GstInvoice[];
+  const net = await netPaidByClient(supabase, [...new Set(invoices.map((r) => r.client_id))]);
   return {
-    rows: ((data ?? []) as Joined<Omit<GstInvoice, "client">>[]).map(flat) as unknown as GstInvoice[],
+    rows: invoices.map((r) => ({
+      ...r,
+      received: Math.max(Number(r.received) || 0, Math.round((net.get(r.client_id) ?? 0) * 100) / 100),
+    })),
     setup: false,
   };
 }
