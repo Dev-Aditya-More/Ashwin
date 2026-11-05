@@ -77,18 +77,21 @@ export function ScanBillButton({ onScanned }: { onScanned: (bill: ScannedBill, n
 
   return (
     <div className="rounded-lg border border-dashed border-[var(--border)] bg-[var(--bg-2)] p-3 space-y-2">
-      <div className="flex items-center gap-2 text-sm font-medium">
-        <ScanLine className="size-4" /> Scan Bill
-        <span className="text-xs font-normal text-[var(--text-muted)]">fills in what it can read; you can edit everything</span>
+      <div className="flex items-start gap-2">
+        <ScanLine className="size-4 mt-0.5 shrink-0" />
+        <div className="min-w-0">
+          <p className="text-sm font-medium leading-tight">Scan Bill</p>
+          <p className="text-xs text-[var(--text-muted)]">Fills in what it can read. You can edit everything.</p>
+        </div>
       </div>
-      <div className="flex flex-wrap gap-2">
+      <div className={touch ? "grid grid-cols-2 gap-2" : "flex flex-wrap gap-2"}>
         {touch ? (
           <>
-            <Button type="button" size="sm" variant="outline" disabled={busy} onClick={() => cameraRef.current?.click()}>
+            <Button type="button" size="sm" variant="outline" className="w-full" disabled={busy} onClick={() => cameraRef.current?.click()}>
               <Camera className="size-4" /> Take Photo
             </Button>
-            <Button type="button" size="sm" variant="outline" disabled={busy} onClick={() => fileRef.current?.click()}>
-              <ImageIcon className="size-4" /> Choose from Gallery
+            <Button type="button" size="sm" variant="outline" className="w-full" disabled={busy} onClick={() => fileRef.current?.click()}>
+              <ImageIcon className="size-4" /> Gallery
             </Button>
           </>
         ) : (
@@ -96,12 +99,12 @@ export function ScanBillButton({ onScanned }: { onScanned: (bill: ScannedBill, n
             <Upload className="size-4" /> Upload Bill Photo
           </Button>
         )}
-        {busy && (
-          <span className="inline-flex items-center gap-1.5 text-sm text-[var(--text-muted)]">
-            <Loader2 className="size-4 animate-spin" /> Reading bill…
-          </span>
-        )}
       </div>
+      {busy && (
+        <p className="flex items-center gap-1.5 text-sm text-[var(--text-muted)]">
+          <Loader2 className="size-4 animate-spin" /> Reading bill…
+        </p>
+      )}
       {/* `capture` opens the rear camera directly on phones; the gallery input has none, so it opens the photo picker. */}
       <input ref={cameraRef} type="file" accept="image/*" capture="environment" hidden onChange={(e) => handle(e.target.files?.[0])} />
       <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/*" hidden onChange={(e) => handle(e.target.files?.[0])} />
