@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import { hasRecentDuplicate, duplicateWarning } from "@/lib/actions/duplicate-check";
 import { currentUserEmail, insertWithActor, updateSafely } from "@/lib/actions/audit-helper";
 import { applyOpeningBalance } from "@/lib/actions/import";
+import { GSTIN_RE } from "@/lib/doc-calc";
 import { isAfterCurrentMonth, FUTURE_MONTH_WARNING } from "@/lib/date-limits";
 import type { Vendor, VendorBalance, VendorBill, VendorPayment } from "@/lib/types";
 
@@ -104,6 +105,21 @@ export async function deleteVendorRecord(id: string) {
   redirect("/admin/vendors");
 }
 
+/** Supplier GST details from the bill form. GSTIN must be 15 letters/numbers, else it is dropped. */
+function gstFields(formData: FormData) {
+  const gstin = String(formData.get("vendor_gstin") ?? "").trim().toUpperCase();
+  const money = (k: string) => {
+    const raw = String(formData.get(k) ?? "").trim();
+    const n = Number(raw);
+    return raw && Number.isFinite(n) && n >= 0 ? Math.round(n * 100) / 100 : null;
+  };
+  return {
+    vendor_gstin: GSTIN_RE.test(gstin) ? gstin : null,
+    taxable_amount: money("taxable_amount"),
+    gst_amount: money("gst_amount"),
+  };
+}
+
 export async function addVendorBill(
   vendorId: string,
   formData: FormData
@@ -147,7 +163,7 @@ export async function addVendorBill(
       financial_year_id: fy.data?.id ?? null,
     },
     actorEmail,
-    { bill_no }
+    { bill_no, ...gstFields(formData) }
   );
   revalidatePath(`/admin/vendors/${vendorId}`);
   revalidatePath("/admin");
@@ -167,7 +183,7 @@ export async function updateVendorBill(id: string, vendorId: string, formData: F
     "vendor_bills",
     id,
     { description, amount, bill_date, project_id },
-    { bill_no }
+    { bill_no, ...gstFields(formData) }
   );
   revalidatePath(`/admin/vendors/${vendorId}`);
   revalidatePath("/admin");

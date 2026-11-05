@@ -22,6 +22,7 @@ export function DocumentRegister() {
   const [type, setType] = useState<RegType>("all");
   const [rows, setRows] = useState<RegisterRow[]>([]);
   const [invoiceGst, setInvoiceGst] = useState(0);
+  const [purchaseGst, setPurchaseGst] = useState(0);
   const [loadedKey, setLoadedKey] = useState("");
 
   useEffect(() => {
@@ -30,6 +31,7 @@ export function DocumentRegister() {
       if (!live) return;
       setRows(r.rows);
       setInvoiceGst(r.invoiceGst);
+      setPurchaseGst(r.purchaseGst);
       setLoadedKey(`${month}|${type}`);
     });
     return () => {
@@ -86,7 +88,7 @@ export function DocumentRegister() {
             ["Documents Issued", String(documents.length), "Quotations, estimates & invoices"],
             ["Sales (Invoices)", formatMoney(sales), `${salesCount} GST / Non-GST invoice${salesCount === 1 ? "" : "s"}`],
             ["Invoice GST", formatMoney(invoiceGst), "Tax on GST invoices"],
-            ["Purchases", formatMoney(purchases), "Vendor bills received"],
+            ["Purchases", formatMoney(purchases), purchaseGst ? `Incl. GST ${formatMoney(purchaseGst)} (input credit)` : "Vendor bills received"],
           ].map(([label, value, hint]) => (
             <div key={label} className="rounded-lg border border-[var(--border)] p-3">
               <p className="text-xs text-[var(--text-muted)]">{label}</p>

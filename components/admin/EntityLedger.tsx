@@ -172,11 +172,13 @@ export function VendorLedgerTable({
   bills,
   payments,
   vendorId,
+  vendorName,
   projects,
 }: {
   bills: VendorBill[];
   payments: VendorPayment[];
   vendorId: string;
+  vendorName?: string;
   projects: ProjectOption[];
 }) {
   type Row = {
@@ -200,7 +202,7 @@ export function VendorLedgerTable({
       paymentMode: null,
       billAmount: Number(b.amount),
       payment: 0,
-      edit: <EditVendorBillDialog bill={b} vendorId={vendorId} projects={projects} />,
+      edit: <EditVendorBillDialog bill={b} vendorId={vendorId} vendorName={vendorName} projects={projects} />,
       del: <DeleteRowButton what="bill" action={deleteVendorBill.bind(null, b.id, vendorId)} />,
     })),
     ...payments.map((p) => ({

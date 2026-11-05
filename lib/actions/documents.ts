@@ -781,21 +781,28 @@ export async function getDocumentRegister(
       }
     }
   }
+  let purchaseGst = 0;
   if (type === "all" || type === "purchase") {
-    // Purchases = bills received from vendors (no GST split is recorded on those).
-    const { data } = await supabase
+    // Purchases = bills received from vendors. GST is included when the bill carries it (migration 0012);
+    // older databases without those columns fall back to the plain amount.
+    type P = { bill_no: string | null; bill_date: string; amount: number; taxable_amount?: number | null; gst_amount?: number | null; vendors: Named };
+    let res: { data: unknown; error: unknown } = await supabase
       .from("vendor_bills")
-      .select("bill_no, bill_date, amount, vendors(name)")
+      .select("bill_no, bill_date, amount, taxable_amount, gst_amount, vendors(name)")
       .gte("bill_date", from)
       .lt("bill_date", to);
-    for (const r of (data ?? []) as unknown as {
-      bill_no: string | null; bill_date: string; amount: number; vendors: Named;
-    }[]) {
-      rows.push({ group: "purchase", inSales: false, kind: "Purchase", no: r.bill_no ?? "—", date: r.bill_date, party: r.vendors?.name ?? "", taxable: Number(r.amount), gst: 0, total: Number(r.amount) });
+    if (res.error) {
+      res = await supabase.from("vendor_bills").select("bill_no, bill_date, amount, vendors(name)").gte("bill_date", from).lt("bill_date", to);
+    }
+    for (const r of (res.data ?? []) as unknown as P[]) {
+      const gst = Number(r.gst_amount) || 0;
+      purchaseGst += gst;
+      const total = Number(r.amount);
+      rows.push({ group: "purchase", inSales: false, kind: "Purchase", no: r.bill_no ?? "—", date: r.bill_date, party: r.vendors?.name ?? "", taxable: r.taxable_amount != null ? Number(r.taxable_amount) : total, gst, total });
     }
   }
   rows.sort((a, b) => a.date.localeCompare(b.date));
-  return { rows, invoiceGst, purchaseGst: 0 };
+  return { rows, invoiceGst, purchaseGst };
 }
 
 // ---------------------------------------------------------------- internals

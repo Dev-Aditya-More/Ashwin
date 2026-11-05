@@ -82,7 +82,7 @@ export default async function VendorDetailPage({
 
         <TabsContent value="overview">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <Section title="Bills" action={<AddVendorBillDialog vendorId={id} projects={projects} />}>
+            <Section title="Bills" action={<AddVendorBillDialog vendorId={id} vendorName={vendor.name} projects={projects} />}>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -99,7 +99,7 @@ export default async function VendorDetailPage({
                       <TableCell>{b.description}</TableCell>
                       <TableCell className="text-right font-medium">{formatMoney(b.amount)}</TableCell>
                       <TableCell>
-                        <EditVendorBillDialog bill={b} vendorId={id} projects={projects} />
+                        <EditVendorBillDialog bill={b} vendorId={id} vendorName={vendor.name} projects={projects} />
                       </TableCell>
                     </TableRow>
                   ))}
@@ -156,7 +156,7 @@ export default async function VendorDetailPage({
         </TabsContent>
 
         <TabsContent value="ledger">
-          <VendorLedgerTable bills={bills} payments={payments} vendorId={id} projects={projects} />
+          <VendorLedgerTable bills={bills} payments={payments} vendorId={id} vendorName={vendor.name} projects={projects} />
         </TabsContent>
       </Tabs>
     </div>

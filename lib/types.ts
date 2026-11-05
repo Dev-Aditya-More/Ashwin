@@ -123,6 +123,10 @@ export type VendorBill = {
   description: string;
   amount: number;
   bill_date: string;
+  /** Supplier GST details (migration 0012); amount stays the bill total. */
+  vendor_gstin?: string | null;
+  taxable_amount?: number | null;
+  gst_amount?: number | null;
   created_at: string;
 };
 

@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { PaymentModeSelect, ProjectSelect } from "@/components/admin/dialogs/shared";
+import { VendorBillFields } from "@/components/admin/dialogs/VendorBillFields";
 import {
   createVendorRecord,
   updateVendorRecord,
@@ -86,9 +87,11 @@ export function EditVendorDialog({ vendor }: { vendor: Vendor }) {
 
 export function AddVendorBillDialog({
   vendorId,
+  vendorName = "",
   projects,
 }: {
   vendorId: string;
+  vendorName?: string;
   projects: ProjectOption[];
 }) {
   return (
@@ -102,26 +105,7 @@ export function AddVendorBillDialog({
       action={(fd) => addVendorBill(vendorId, fd)}
       submitLabel="Add Bill"
     >
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div className="space-y-1.5">
-          <Label htmlFor="description">Item / Material</Label>
-          <Input id="description" name="description" placeholder="e.g. 12mm toughened glass, 40 sqft" />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="bill_no">Bill No.</Label>
-          <Input id="bill_no" name="bill_no" placeholder="e.g. INV-2381" />
-        </div>
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div className="space-y-1.5">
-          <Label htmlFor="amount">Bill Amount (₹)</Label>
-          <Input id="amount" name="amount" type="number" min="0" step="0.01" />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="bill_date">Date</Label>
-          <Input id="bill_date" name="bill_date" type="date" defaultValue={today()} max={endOfCurrentMonth()} />
-        </div>
-      </div>
+      <VendorBillFields today={today()} vendorName={vendorName} />
       <ProjectSelect projects={projects} />
     </FormDialog>
   );
@@ -130,10 +114,12 @@ export function AddVendorBillDialog({
 export function EditVendorBillDialog({
   bill,
   vendorId,
+  vendorName = "",
   projects,
 }: {
   bill: VendorBill;
   vendorId: string;
+  vendorName?: string;
   projects: ProjectOption[];
 }) {
   return (
@@ -146,26 +132,7 @@ export function EditVendorBillDialog({
       title="Edit Vendor Bill"
       action={(fd) => updateVendorBill(bill.id, vendorId, fd)}
     >
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div className="space-y-1.5">
-          <Label htmlFor="description">Item / Material</Label>
-          <Input id="description" name="description" defaultValue={bill.description} />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="bill_no">Bill No.</Label>
-          <Input id="bill_no" name="bill_no" defaultValue={bill.bill_no ?? ""} />
-        </div>
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div className="space-y-1.5">
-          <Label htmlFor="amount">Bill Amount (₹)</Label>
-          <Input id="amount" name="amount" type="number" min="0" step="0.01" defaultValue={bill.amount} />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="bill_date">Date</Label>
-          <Input id="bill_date" name="bill_date" type="date" defaultValue={bill.bill_date} max={endOfCurrentMonth()} />
-        </div>
-      </div>
+      <VendorBillFields bill={bill} vendorName={vendorName} />
       <ProjectSelect projects={projects} defaultValue={bill.project_id ?? ""} />
     </FormDialog>
   );
