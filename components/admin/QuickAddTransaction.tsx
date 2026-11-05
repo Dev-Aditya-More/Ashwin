@@ -4,7 +4,7 @@ import { todayIST } from "@/lib/today";
 
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
-import { Download, Loader2 } from "lucide-react";
+import { Download, Loader2, TriangleAlert } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,8 @@ import { Label } from "@/components/ui/label";
 import { addClientPayment, addClientWork } from "@/lib/actions/clients";
 import { addLabourPayment, addLabourWork } from "@/lib/actions/labour";
 import { addVendorBill, addVendorPayment } from "@/lib/actions/vendors";
+import { ScanBillButton } from "@/components/admin/ScanBillButton";
+import type { ScannedBill } from "@/lib/scan-bill";
 import { updateClientGstin } from "@/lib/actions/month-view";
 import { GSTIN_RE } from "@/lib/doc-calc";
 import { endOfCurrentMonth } from "@/lib/date-limits";
@@ -23,6 +25,22 @@ export type QuickParty = { id: string; name: string; gstin?: string | null };
 const MODES = ["Cash", "PhonePe", "GPay", "NEFT", "RTGS", "Cheque", "Other"];
 const selectCls = "h-9 w-full rounded-md border border-[var(--border)] bg-background px-2 text-sm";
 const today = () => todayIST();
+const words = (t: string) => t.toLowerCase().replace(/[^a-z0-9 ]/g, " ").split(/\s+/).filter((w) => w.length > 2);
+
+/** The vendor whose name shares the most words with the scanned supplier name (null when none is close). */
+function matchVendor(vendors: QuickParty[], scanned: string) {
+  const a = words(scanned);
+  let best: QuickParty | null = null;
+  let top = 0;
+  for (const v of vendors) {
+    const score = words(v.name).filter((w) => a.includes(w)).length;
+    if (score > top) {
+      top = score;
+      best = v;
+    }
+  }
+  return best;
+}
 
 const KINDS: Record<PartyType, { value: Kind; label: string }[]> = {
   Client: [
@@ -60,15 +78,42 @@ export function QuickAddTransaction({
   const [mode, setMode] = useState("Cash");
   const [note, setNote] = useState("");
   const [gstin, setGstin] = useState("");
+  const [billNo, setBillNo] = useState("");
+  const [taxable, setTaxable] = useState("");
+  const [gstAmt, setGstAmt] = useState("");
+  const [scanNotes, setScanNotes] = useState<string[]>([]);
   const [pending, startTransition] = useTransition();
 
   const parties = type === "Client" ? clients : type === "Labour" ? labourers : vendors;
   const party = useMemo(() => parties.find((p) => p.id === partyId), [parties, partyId]);
+  /** A vendor bill carries the supplier's GST details; every other kind of entry doesn't. */
+  const vendorBill = type === "Vendor" && kind === "due";
+
+  /** Scan Bill reads a supplier's purchase bill, so it always lands as a Vendor "Due / payable added". */
+  function applyScan(b: ScannedBill, notes: string[]) {
+    const out = [...notes];
+    setType("Vendor");
+    setKind("due");
+    setGstin(b.vendorGstin);
+    setBillNo(b.billNo);
+    setTaxable(b.taxable != null ? String(b.taxable) : "");
+    setGstAmt(b.gst != null ? String(b.gst) : "");
+    if (b.total != null) setAmount(String(b.total));
+    if (b.billDate) setDate(b.billDate);
+    setNote(b.description);
+    const v = b.vendorName ? matchVendor(vendors, b.vendorName) : null;
+    setPartyId(v?.id ?? "");
+    if (v) out.unshift(`Vendor matched: ${v.name}.`);
+    else out.unshift(b.vendorName ? `Couldn't match "${b.vendorName}" to a saved vendor. Please choose the vendor (or add them first).` : "Please choose the vendor.");
+    out.unshift("Bill scanned. Please check the filled-in details before saving.");
+    setScanNotes(out);
+  }
 
   function changeType(t: PartyType) {
     setType(t);
     setPartyId("");
     setGstin("");
+    setScanNotes([]);
     if (!KINDS[t].some((k) => k.value === kind)) setKind("due");
   }
 
@@ -88,6 +133,12 @@ export function QuickAddTransaction({
       fd.set("description", desc);
       fd.set("bill_date", date);
       fd.set("work_date", date);
+      if (vendorBill) {
+        fd.set("bill_no", billNo.trim());
+        fd.set("vendor_gstin", gstin.trim().toUpperCase());
+        fd.set("taxable_amount", taxable);
+        fd.set("gst_amount", gstAmt);
+      }
       if (type === "Labour") {
         fd.set("quantity", "1");
         fd.set("rate", amount);
@@ -115,7 +166,7 @@ export function QuickAddTransaction({
       return;
     }
     const g = gstin.trim().toUpperCase();
-    if (type === "Client" && g && !GSTIN_RE.test(g)) {
+    if ((type === "Client" || vendorBill) && g && !GSTIN_RE.test(g)) {
       toast.error("GSTIN must contain exactly 15 letters/numbers.");
       return;
     }
@@ -135,6 +186,10 @@ export function QuickAddTransaction({
       setNote("");
       setPartyId("");
       setGstin("");
+      setBillNo("");
+      setTaxable("");
+      setGstAmt("");
+      setScanNotes([]);
     });
   }
 
@@ -149,6 +204,16 @@ export function QuickAddTransaction({
         </Button>
       </div>
       <div className="p-4 space-y-4">
+        <ScanBillButton onScanned={applyScan} />
+        {scanNotes.length > 0 && (
+          <ul className="space-y-1 rounded-lg border border-amber-200 bg-amber-50 p-2.5 text-xs text-amber-900">
+            {scanNotes.map((n, i) => (
+              <li key={i} className="flex gap-1.5">
+                <TriangleAlert className="size-3.5 shrink-0 mt-px" /> {n}
+              </li>
+            ))}
+          </ul>
+        )}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <div className="space-y-1.5">
             <Label>Party Type</Label>
@@ -200,15 +265,31 @@ export function QuickAddTransaction({
             <Input placeholder="Site, bill number, details" value={note} onChange={(e) => setNote(e.target.value)} />
           </div>
           <div className="space-y-1.5">
-            <Label>Client GSTIN (auto-filled)</Label>
+            <Label>{vendorBill ? "Vendor GSTIN" : "Client GSTIN (auto-filled)"}</Label>
             <Input
-              placeholder="Client GSTIN"
+              placeholder={vendorBill ? "Vendor GSTIN (optional)" : "Client GSTIN"}
               maxLength={15}
               value={gstin}
-              disabled={type !== "Client"}
+              disabled={type !== "Client" && !vendorBill}
               onChange={(e) => setGstin(e.target.value.toUpperCase())}
             />
           </div>
+          {vendorBill && (
+            <>
+              <div className="space-y-1.5">
+                <Label>Bill No.</Label>
+                <Input placeholder="Supplier bill number" value={billNo} onChange={(e) => setBillNo(e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Taxable (₹)</Label>
+                <Input type="number" min="0" step="0.01" placeholder="Optional" value={taxable} onChange={(e) => setTaxable(e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>GST (₹)</Label>
+                <Input type="number" min="0" step="0.01" placeholder="CGST+SGST / IGST" value={gstAmt} onChange={(e) => setGstAmt(e.target.value)} />
+              </div>
+            </>
+          )}
         </div>
         <Button onClick={save} disabled={pending}>
           {pending && <Loader2 className="size-4 animate-spin" />} Save Transaction
