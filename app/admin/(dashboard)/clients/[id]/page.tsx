@@ -49,7 +49,7 @@ export default async function ClientDetailPage({
     listClientEstimates(id),
     listInvoices(),
     listQuotations(),
-    getQuoteConversions(),
+    getQuoteConversions(true),
   ]);
   const quotes = allQuotes.filter((q) => q.client_id === id);
   const bills = allBills.filter((b) => b.client_id === id);

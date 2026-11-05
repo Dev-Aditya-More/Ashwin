@@ -6,7 +6,7 @@ export default async function QuotationsPage() {
     listDocClients(),
     getNextDocNo("quotation"),
     listQuotations(),
-    getQuoteConversions(),
+    getQuoteConversions(true),
   ]);
 
   return (

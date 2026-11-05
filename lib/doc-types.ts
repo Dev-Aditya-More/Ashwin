@@ -16,6 +16,8 @@ export type Quotation = {
   site_name: string | null;
   work_type: string | null;
   note: string | null;
+  /** Custom Terms & Conditions, one per line. null = the default terms. */
+  terms?: string | null;
   lines: QuoteLine[];
   client: DocClient | null;
 };

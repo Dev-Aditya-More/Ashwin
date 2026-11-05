@@ -9,6 +9,7 @@ import {
   isFeeWork,
   mergeSameLines,
   CATALOG_KEYS,
+  DEFAULT_QUOTE_TERMS,
   GSTIN_RE,
   type EstimateLineInput,
   type QuoteLine,
@@ -291,7 +292,15 @@ type Header = {
   siteName: string;
   workType: string;
   note: string;
+  /** Quotation only: custom Terms & Conditions; empty or identical to the default = use the default. */
+  terms?: string;
 };
+
+/** null when the text is empty or still the default, so quotations keep following the default. */
+function customTerms(t?: string) {
+  const v = String(t ?? "").replace(/\r\n/g, "\n").trim();
+  return !v || v === DEFAULT_QUOTE_TERMS ? null : v;
+}
 
 async function checkClient(supabase: SupabaseClient, clientId: string) {
   if (!clientId) return "Please select a Client.";
@@ -317,18 +326,19 @@ export async function updateQuotation(id: string, h: Header, lines: QuoteLine[])
   if (!no) return { ok: false, error: "Document number required." };
   const clean = cleanQuoteLines(lines);
   if (!clean) return { ok: false, error: "Enter a Description for every line." };
-  const { error } = await supabase
-    .from("quotations")
-    .update({
-      no,
-      doc_date: h.date || undefined,
-      client_id: h.clientId,
-      site_name: h.siteName.trim() || null,
-      work_type: h.workType || null,
-      note: h.note.trim() || null,
-      lines: clean,
-    })
-    .eq("id", id);
+  const patch = {
+    no,
+    doc_date: h.date || undefined,
+    client_id: h.clientId,
+    site_name: h.siteName.trim() || null,
+    work_type: h.workType || null,
+    note: h.note.trim() || null,
+    lines: clean,
+  };
+  const terms = customTerms(h.terms);
+  let { error } = await supabase.from("quotations").update({ ...patch, terms }).eq("id", id);
+  // Migration 0011 (terms column) not run yet: only a quotation without custom terms can still be saved.
+  if (error && isMissing(error) && !terms) ({ error } = await supabase.from("quotations").update(patch).eq("id", id));
   if (error) return fail(error);
   revalidatePath("/admin/quotations");
   revalidatePath("/admin");
@@ -344,22 +354,20 @@ export async function saveQuotation(h: Header, lines: QuoteLine[]): Promise<Acti
   const clean = cleanQuoteLines(lines);
   if (!clean) return { ok: false, error: "Enter a Description for every line." };
   const [fy, actor] = await Promise.all([activeFy(supabase), currentUserEmail(supabase)]);
+  const row = {
+    no,
+    doc_date: h.date || undefined,
+    client_id: h.clientId,
+    financial_year_id: fy?.id ?? null,
+    site_name: h.siteName.trim() || null,
+    work_type: h.workType || null,
+    note: h.note.trim() || null,
+    lines: clean,
+  };
+  const terms = customTerms(h.terms);
   try {
-    const { data } = await insertStrict(
-      supabase,
-      "quotations",
-      {
-        no,
-        doc_date: h.date || undefined,
-        client_id: h.clientId,
-        financial_year_id: fy?.id ?? null,
-        site_name: h.siteName.trim() || null,
-        work_type: h.workType || null,
-        note: h.note.trim() || null,
-        lines: clean,
-      },
-      actor
-    );
+    // `terms` is only sent when customised, so quotations still save before migration 0011 is run.
+    const { data } = await insertStrict(supabase, "quotations", terms ? { ...row, terms } : row, actor);
     revalidatePath("/admin/quotations");
     revalidatePath("/admin");
     return { ok: true, id: data?.[0]?.id };
@@ -546,14 +554,17 @@ export async function listClientEstimates(clientId: string): Promise<Estimate[]>
 }
 
 /**
- * Quotation id → number of the estimate made from it (so converted quotations drop out of the lists).
+ * Quotation id → number of the estimate made from it. `confirmedOnly` counts only estimates already turned into a
+ * Detail Sheet: that is when a quotation is considered converted (struck through, dropped from the quotation list).
  * Estimates created without picking the quotation are matched by client: each unlinked quotation pairs with
  * that client's earliest unused estimate dated on or after it.
  */
-export async function getQuoteConversions(): Promise<Record<string, string>> {
+export async function getQuoteConversions(confirmedOnly = false): Promise<Record<string, string>> {
   const supabase = await createClient();
   const [est, quo] = await Promise.all([
-    supabase.from("estimates").select("client_id, no, doc_date, source_quote_id"),
+    (confirmedOnly
+      ? supabase.from("estimates").select("client_id, no, doc_date, source_quote_id").not("confirmed_at", "is", null)
+      : supabase.from("estimates").select("client_id, no, doc_date, source_quote_id")),
     supabase.from("quotations").select("id, client_id, doc_date"),
   ]);
   const out: Record<string, string> = {};
@@ -621,6 +632,7 @@ export async function convertToDetailSheet(id: string): Promise<ActionResult> {
   revalidatePath("/admin/estimates");
   revalidatePath(`/admin/clients/${est.client_id}`);
   revalidatePath("/admin");
+  revalidatePath("/admin/quotations");
   return { ok: true, message: "Detail Sheet created and Estimate Due saved in Client Ledger." };
 }
 

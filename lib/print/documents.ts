@@ -1,7 +1,7 @@
 // Print templates ported 1:1 from the ASHWIN starter (A4 with 12.7 mm margins, pinned
 // quotation footer, landscape detail sheet, GST tax invoice with UPI QR, party ledger).
 
-import { amountInWords, hsnFor, isFeeWork, measureText, mergeForPrint, sizeAsWritten, sizeInFeet, unitKind } from "@/lib/doc-calc";
+import { DEFAULT_QUOTE_TERMS, amountInWords, hsnFor, isFeeWork, measureText, mergeForPrint, sizeAsWritten, sizeInFeet, unitKind } from "@/lib/doc-calc";
 import type { EstimateLine, QuoteLine } from "@/lib/doc-calc";
 import { arnavLogoUrl, civilLogoUrl, esc, fmt, fmtDate, logoUrl, money, printHtmlInFrame } from "@/lib/print/frame";
 import type { PrintOptions } from "@/lib/print/frame";
@@ -28,6 +28,8 @@ export type PrintDoc = {
   total?: number;
   received?: number;
   type?: string;
+  /** Quotation only: custom Terms & Conditions (one per line). */
+  terms?: string | null;
 };
 
 /**
@@ -83,7 +85,12 @@ const PIN_PAGE = { content: ".page", spacer: ".spacer", usableMm: 297 - 25.4, re
 
 const FRAME_CSS = `.frame{width:100%;border-collapse:collapse;border:0;font-size:var(--fs)}.frame>thead>tr>td,.frame>tfoot>tr>td{height:12.7mm;padding:0;border:0}.frame>tbody>tr>td{padding:0 12.7mm;border:0;vertical-align:top}`;
 
-const QUOTE_TERMS = `<h3 class="terms-heading">Terms & Conditions</h3><div class="terms"><div>• Payment: 75% advance payment required. Remaining 25% payable upon completion of work.</div><div>• Work Commencement: Work will commence within 1 day after receipt of advance payment.</div><div>• Completion Period: 15 working days from the date of work order.</div><div>• Taxes & Charges: GST @18% and transportation charges shall be extra as applicable.</div><div>• Rate Variation: Rates may vary depending on final material selection.</div><div>• Quotation Validity: This quotation is valid for 3 days from the date of issue.</div><div>• Scaffolding: Scaffolding shall be arranged by the client. If provided by us, it will be charged separately.</div></div>`;
+/** Terms & Conditions block: one bullet per non-empty line of `terms` (the default text when none is given). */
+function quoteTerms(terms?: string | null) {
+  const items = String(terms ?? "").split(/\r?\n/).map((t) => t.replace(/^\s*[•\-*]\s*/, "").trim()).filter(Boolean);
+  const list = items.length ? items : DEFAULT_QUOTE_TERMS.split("\n");
+  return `<h3 class="terms-heading">Terms & Conditions</h3><div class="terms">${list.map((t) => `<div>• ${esc(t)}</div>`).join("")}</div>`;
+}
 
 // ------------------------------------------------------------ Quotation / Estimate
 function companyAddress(workType: unknown) {
@@ -109,6 +116,8 @@ function chargesTable(d: PrintDoc) {
   const taxable = Number(d.taxable ?? after + transport + hamali);
   const tax = Number(d.tax) || 0;
   const total = Number(d.total) || taxable + tax;
+  // The advance shown can never exceed the document total (extra payments belong to other work / later bills).
+  const adv = Math.min(Math.max(0, Number(d.received) || 0), total);
   const row = (a: string, b: string, cls = "") => `<tr${cls ? ` class="${cls}"` : ""}><td>${a}</td><td class="num">${b}</td></tr>`;
   return {
     total,
@@ -121,8 +130,8 @@ function chargesTable(d: PrintDoc) {
       row("Taxable Amount", money(taxable)) +
       row(`GST (${Number(d.gstRate) || 0}%)`, money(tax)) +
       row("Total Amount", money(total), "grand") +
-      row("Advance Received", money(Number(d.received) || 0)) +
-      row("Balance Due", money(Math.max(0, Math.round((total - (Number(d.received) || 0)) * 100) / 100)), "grand") +
+      row("Advance Received", money(adv)) +
+      row("Balance Due", money(Math.max(0, Math.round((total - adv) * 100) / 100)), "grand") +
       `</tbody></table>`,
   };
 }
@@ -208,7 +217,7 @@ export function printQuotationOrEstimate(
 .bottom{display:flex;flex-direction:column}.isq .frame>tfoot>tr>td{height:68mm}.isq .bottom{position:fixed;left:12.7mm;right:12.7mm;bottom:12.7mm;background:#fff}
 .quoteFooterTerms{position:relative}.quoteFooterTerms .forco{position:absolute;right:0;top:0}.terms-heading{display:inline-block;padding-bottom:2px;border-bottom:1px solid #888;margin:0 0 5px;font-size:13px}.terms{font-size:10px;line-height:1.35}
 .quoteSignatures{margin-top:6px;min-height:30px;display:flex;align-items:flex-end}.thankyou{text-align:center;margin:6px 0 7px;font-weight:600}
-@media print{.tail,.bottom,.summary{break-inside:avoid}}</style></head><body class="${quote ? "isq" : "ise"}"><table class="frame"><thead><tr><td></td></tr></thead><tbody><tr><td><div class="page"><div class="top">${brandLogo(d.workType, "logo")}<div class="meta"><h2>${quote ? "QUOTATION" : "ESTIMATE"}</h2><b>${quote ? "Q." : "Estimate"} No.:</b> ${esc(d.no)}<br><b>Date:</b> ${esc(fmtDate(d.date))}</div></div><div class="to">To,<br>${partyBlock(d, party, toExtra)}</div>${quote ? `<p class="intro">With reference to your requirement, we are pleased to submit our quotation for the proposed work at the above-mentioned site. This quotation includes supply and installation with all necessary materials as per the agreed terms.</p>` : ""}${itemsTable}${estimateBottom}</div></td></tr></tbody><tfoot><tr><td></td></tr></tfoot></table>${quote ? `<div class="bottom"><div class="quoteFooterTerms">${QUOTE_TERMS}${sign}</div><div class="quoteSignatures"><div class="receiver">Receiver’s Signature: __________________________</div></div><div class="thankyou">Thank you for your business. We look forward to working with you.</div>${footer}</div>` : ""}</body></html>`;
+@media print{.tail,.bottom,.summary{break-inside:avoid}}</style></head><body class="${quote ? "isq" : "ise"}"><table class="frame"><thead><tr><td></td></tr></thead><tbody><tr><td><div class="page"><div class="top">${brandLogo(d.workType, "logo")}<div class="meta"><h2>${quote ? "QUOTATION" : "ESTIMATE"}</h2><b>${quote ? "Q." : "Estimate"} No.:</b> ${esc(d.no)}<br><b>Date:</b> ${esc(fmtDate(d.date))}</div></div><div class="to">To,<br>${partyBlock(d, party, toExtra)}</div>${quote ? `<p class="intro">With reference to your requirement, we are pleased to submit our quotation for the proposed work at the above-mentioned site. This quotation includes supply and installation with all necessary materials as per the agreed terms.</p>` : ""}${itemsTable}${estimateBottom}</div></td></tr></tbody><tfoot><tr><td></td></tr></tfoot></table>${quote ? `<div class="bottom"><div class="quoteFooterTerms">${quoteTerms(d.terms)}${sign}</div><div class="quoteSignatures"><div class="receiver">Receiver’s Signature: __________________________</div></div><div class="thankyou">Thank you for your business. We look forward to working with you.</div>${footer}</div>` : ""}</body></html>`;
   // Quotation: its fixed footer takes 68 mm of every page; estimate: the footer is part of the page flow.
   printHtmlInFrame(html, {
     title,
@@ -270,7 +279,7 @@ export function buildTaxInvoice(d: PrintDoc, saved: EstimateLine[], party: Print
   const tax = Number(d.tax ?? (taxable * rate) / 100);
   const total = Number(d.total ?? Math.round(taxable + tax));
   const half = Math.round((tax / 2) * 100) / 100;
-  const received = Number(d.received || 0);
+  const received = Math.min(Math.max(0, Number(d.received || 0)), total);
   const balance = Math.max(0, total - received);
   const roundOff = Math.round((total - (taxable + tax)) * 100) / 100;
   const upi = `upi://pay?pa=ashwinenterprises@icici&pn=ASHWIN%20ENTERPRISES&am=${total.toFixed(2)}&cu=INR&tn=${encodeURIComponent("Invoice " + d.no)}`;
@@ -359,7 +368,7 @@ export function buildBillOfSupply(d: PrintDoc, saved: EstimateLine[], party?: Pr
   const tr = Number(d.transport || 0);
   const ha = Number(d.hamali || 0);
   const total = Number(d.total ?? d.taxable ?? sub);
-  const adv = Number(d.received || 0);
+  const adv = Math.min(Math.max(0, Number(d.received || 0)), total);
   const bal = Math.max(0, Math.round((total - adv) * 100) / 100);
   const trow = (a: string, b: string, bold?: boolean) => `<tr${bold ? ' class="b"' : ""}><td>${a}</td><td class="r">${b}</td></tr>`;
   const totals =

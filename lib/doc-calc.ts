@@ -432,3 +432,14 @@ export function sizeInFeet(l: Pick<EstimateLine, "heightFt" | "lengthFt" | "lump
   if (!l.heightFt || !l.lengthFt) return l.heightFt || l.lengthFt ? `${Number(l.heightFt || l.lengthFt)}′` : "";
   return `${Number(l.heightFt)}′ × ${Number(l.lengthFt)}′`;
 }
+
+/** Default quotation Terms & Conditions, one per line. A quotation can replace these with its own text. */
+export const DEFAULT_QUOTE_TERMS = [
+  "Payment: 75% advance payment required. Remaining 25% payable upon completion of work.",
+  "Work Commencement: Work will commence within 1 day after receipt of advance payment.",
+  "Completion Period: 15 working days from the date of work order.",
+  "Taxes & Charges: GST @18% and transportation charges shall be extra as applicable.",
+  "Rate Variation: Rates may vary depending on final material selection.",
+  "Quotation Validity: This quotation is valid for 3 days from the date of issue.",
+  "Scaffolding: Scaffolding shall be arranged by the client. If provided by us, it will be charged separately.",
+].join("\n");

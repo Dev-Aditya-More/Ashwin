@@ -7,11 +7,12 @@ import { Loader2, Pencil, Plus, Printer, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DeleteRowButton } from "@/components/admin/dialogs/DeleteRowButton";
 import { ClientPicker, DocCard, DocCardList, Field, SetupNotice, WORK_TYPES, selectCls } from "@/components/admin/docs/shared";
 import { deleteDocument, getNextDocNo, saveQuotation, updateQuotation } from "@/lib/actions/documents";
-import { UNITS, type QuoteLine } from "@/lib/doc-calc";
+import { DEFAULT_QUOTE_TERMS, UNITS, type QuoteLine } from "@/lib/doc-calc";
 import type { DocClient, Quotation } from "@/lib/doc-types";
 import { printQuotationOrEstimate } from "@/lib/print/documents";
 import { formatDate } from "@/lib/format";
@@ -31,6 +32,7 @@ export function printQuotation(q: Quotation) {
       clientAddress: q.client?.address,
       siteName: q.site_name,
       workType: q.work_type,
+      terms: q.terms,
     },
     q.lines,
     { name: q.client?.name ?? "", phone: q.client?.phone, address: q.client?.address }
@@ -48,7 +50,7 @@ export function QuotationManager({
   initialNo: string;
   rows: Quotation[];
   setup: boolean;
-  /** Quotation id → number of the estimate it became (those rows are struck through). */
+  /** Quotation id → number of the Detail Sheet it became (a Detail Sheet exists; the row is hidden from the list). */
   converted?: Record<string, string>;
 }) {
   const [clients, setClients] = useState(initialClients);
@@ -58,6 +60,7 @@ export function QuotationManager({
   const [site, setSite] = useState("");
   const [workType, setWorkType] = useState(WORK_TYPES[0]);
   const [note, setNote] = useState("");
+  const [terms, setTerms] = useState(DEFAULT_QUOTE_TERMS);
   const [lines, setLines] = useState<QuoteLine[]>([blank()]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -71,6 +74,7 @@ export function QuotationManager({
     setLines([blank()]);
     setSite("");
     setNote("");
+    setTerms(DEFAULT_QUOTE_TERMS);
     setNo(await getNextDocNo("quotation"));
   }
 
@@ -83,13 +87,14 @@ export function QuotationManager({
     setSite(q.site_name ?? "");
     setWorkType(q.work_type ?? WORK_TYPES[0]);
     setNote(q.note ?? "");
+    setTerms(q.terms?.trim() ? q.terms : DEFAULT_QUOTE_TERMS);
     setLines(q.lines?.length ? q.lines.map((l) => ({ ...l })) : [blank()]);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function save() {
     startTransition(async () => {
-      const header = { no, date, clientId, siteName: site, workType, note };
+      const header = { no, date, clientId, siteName: site, workType, note, terms };
       const res = editingId ? await updateQuotation(editingId, header, lines) : await saveQuotation(header, lines);
       if (!res.ok) {
         toast.error(res.error);
@@ -140,6 +145,17 @@ export function QuotationManager({
           </Field>
           <Field label="Notes / Terms" className="sm:col-span-2 lg:col-span-3">
             <Input value={note} placeholder="Notes / Terms" onChange={(e) => setNote(e.target.value)} />
+          </Field>
+          <Field label="Terms & Conditions (one per line)" className="sm:col-span-2 lg:col-span-3">
+            <Textarea rows={7} value={terms} onChange={(e) => setTerms(e.target.value)} />
+            <button
+              type="button"
+              className="mt-1 text-xs text-[var(--accent-blue)] hover:underline disabled:opacity-40 disabled:no-underline"
+              disabled={terms.trim() === DEFAULT_QUOTE_TERMS}
+              onClick={() => setTerms(DEFAULT_QUOTE_TERMS)}
+            >
+              Reset to default terms
+            </button>
           </Field>
         </div>
 
@@ -216,7 +232,7 @@ export function QuotationManager({
                   {[q.no, formatDate(q.doc_date), q.site_name].filter(Boolean).join(" · ")}
                 </span>
               }
-              badge={converted[q.id] ? <span className="text-[11px] text-emerald-700">✓ Converted to Estimate {converted[q.id]}</span> : undefined}
+              badge={converted[q.id] ? <span className="text-[11px] text-emerald-700">✓ Converted to Detail Sheet {converted[q.id]}</span> : undefined}
               corner={
                 <DeleteRowButton
                   what="quotation"
@@ -256,7 +272,7 @@ export function QuotationManager({
                   <TableCell className={converted[q.id] ? "line-through" : ""}>{q.client?.name}</TableCell>
                   <TableCell className="text-[var(--text-muted)]">
                     <span className={converted[q.id] ? "line-through" : ""}>{q.site_name ?? "—"}</span>
-                    {converted[q.id] && <span className="ml-2 text-[11px] text-emerald-700">✓ Estimate {converted[q.id]}</span>}
+                    {converted[q.id] && <span className="ml-2 text-[11px] text-emerald-700">✓ Detail Sheet {converted[q.id]}</span>}
                   </TableCell>
                   <TableCell>
                     <div className="flex justify-end gap-1">

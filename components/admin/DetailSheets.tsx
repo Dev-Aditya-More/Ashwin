@@ -38,7 +38,7 @@ export function DetailSheets({
             subtitle={[formatDate(q.doc_date), q.site_name].filter(Boolean).join(" · ")}
             badge={
               <Badge className="bg-amber-50 text-amber-800 border-amber-200">
-                {converted[q.id] ? `Quotation → Estimate ${converted[q.id]}` : "Quotation"}
+                {converted[q.id] ? `Quotation → Detail Sheet ${converted[q.id]}` : "Quotation"}
               </Badge>
             }
           >
@@ -106,7 +106,7 @@ export function DetailSheets({
               </TableCell>
               <TableCell>
                 <Badge className="bg-amber-50 text-amber-800 border-amber-200">
-                  {converted[q.id] ? `Quotation → Estimate ${converted[q.id]}` : "Quotation"}
+                  {converted[q.id] ? `Quotation → Detail Sheet ${converted[q.id]}` : "Quotation"}
                 </Badge>
               </TableCell>
               <TableCell className="text-right text-[var(--text-muted)]">—</TableCell>
