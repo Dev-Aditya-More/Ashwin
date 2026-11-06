@@ -214,7 +214,9 @@ export function printQuotationOrEstimate(
   const toExtra = !quote && d.workType ? [`Work: ${esc(d.workType)}`] : [];
 
   const title = docTitle(d.client, (quote ? "Q-" : "E-") + d.no);
-  const divine = getPrintTheme().invoiceLayout === "divine";
+  // Divine layout is for the Tax Invoice only for now. To bring it back here, restore the next line and delete the one after it.
+  // const divine = getPrintTheme().invoiceLayout === "divine";
+  const divine = false;
   const html = `<html><head><title>${esc(title)}</title><style>@page{size:A4 ${quote ? "portrait" : "landscape"};margin:0}${divine ? divineHeaderCss() : ""}${FRAME_CSS}${ITEMS_CSS}*{box-sizing:border-box}:root{--fs:9px;--ink:#333;--c-title:#000;--c-client:#1B2A6B;--c-co:#000}body{font:var(--fs) ${FONT};color:var(--ink);margin:0}
 .page{min-height:264mm;display:flex;flex-direction:column}.isq .page{min-height:0}.ise .page{min-height:183mm}.ise .frame>thead>tr>td{height:8mm}.ise .frame>tfoot>tr>td{height:11mm}.ise .top{margin:0 0 6px}.ise .logo{margin-top:0}.ise .logo.sq{margin-top:0}.ise .to{margin:0 0 8px}
 .top{display:flex;justify-content:space-between;align-items:flex-start;margin:3mm 0 12px}.logo{width:140px;height:auto;object-fit:contain;margin-top:5mm}.logo.sq{width:auto;height:96px;margin-top:2mm}
@@ -259,7 +261,9 @@ export function printDetailSheet(d: PrintDoc, saved: EstimateLine[]) {
     : `<table class="it items fit"><thead><tr><th class="c">Sr.</th><th>Product / Type</th><th>Material</th><th>Glass Type</th><th>Shade</th><th>Floor</th><th>Size (inches)</th><th class="c">Qty</th><th class="r">Billed Qty</th><th class="num">Rate (₹)</th><th class="num">Amount (₹)</th></tr></thead><tbody>${rows}${fillerRow(11)}</tbody></table>`;
 
   const title = docTitle(d.client, "D-" + d.no);
-  const divine = getPrintTheme().invoiceLayout === "divine";
+  // Divine layout is for the Tax Invoice only for now. To bring it back here, restore the next line and delete the one after it.
+  // const divine = getPrintTheme().invoiceLayout === "divine";
+  const divine = false;
   const html = `<html><head><title>${esc(title)}</title><style>@page{size:A4 landscape;margin:0}${divine ? divineHeaderCss() : ""}${FRAME_CSS}${ITEMS_CSS}*{box-sizing:border-box}:root{--fs:9px;--ink:#333;--c-title:#000;--c-client:#1B2A6B}body{font:var(--fs) ${FONT};color:var(--ink);margin:0}
 .frame>thead>tr>td{height:8mm}.frame>tfoot>tr>td{height:11mm}.page{min-height:183mm;display:flex;flex-direction:column}
 h2{font-size:18px;margin:4px 0 4px;color:var(--c-title)}.cl{line-height:1.6;color:var(--c-client)}.cl{font-size:10px}.cl b.pn{font-size:14px;line-height:1.5}.head{display:flex;justify-content:space-between;margin-bottom:6px}.logo{width:150px;height:auto;object-fit:contain}.logo.sq{display:block;width:auto;height:80px}.meta{text-align:right;line-height:1.7}
@@ -528,7 +532,9 @@ export function buildBillOfSupply(d: PrintDoc, saved: EstimateLine[], party?: Pr
   const mobile = String(d.clientMobile || party?.phone || "").trim();
   const address = String(d.clientAddress || party?.address || "").trim();
 
-  const divine = getPrintTheme().invoiceLayout === "divine";
+  // Divine layout is for the Tax Invoice only for now. To bring it back here, restore the next line and delete the one after it.
+  // const divine = getPrintTheme().invoiceLayout === "divine";
+  const divine = false;
   const html = `<!doctype html><html><head><meta charset="utf-8"><title>${esc((d.client ? d.client + " " : "") + d.no)}</title><style>
 ${divine ? divineHeaderCss() : ""}@page{size:A4 portrait;margin:0}*{box-sizing:border-box}html,body{margin:0;padding:0}:root{--fs:10px;--ink:#222}
 body{font:var(--fs) ${FONT};color:var(--ink)}
@@ -591,7 +597,9 @@ export function printLedger(party: PrintParty, rows: LedgerPrintRow[]) {
         .join("")
     : '<tr><td colspan="5" style="text-align:center;padding:14px">No transactions</td></tr>';
 
-  const divine = getPrintTheme().invoiceLayout === "divine";
+  // Divine layout is for the Tax Invoice only for now. To bring it back here, restore the next line and delete the one after it.
+  // const divine = getPrintTheme().invoiceLayout === "divine";
+  const divine = false;
   const partyHtml = `<div class="pn">${esc(party.name)}</div>${party.phone ? `<div>Mobile: ${esc(party.phone)}</div>` : ""}${party.address ? `<div>Address: ${esc(party.address)}</div>` : ""}`;
   const header = divine
     ? `${divineHeaderHtml(COMPANY.enterprises, null, "Party Ledger")}<div class="qrow"><div class="party">${partyHtml}</div><div class="qmeta"><b>Date:</b> ${today}</div></div>`

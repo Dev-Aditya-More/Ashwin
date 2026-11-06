@@ -91,7 +91,7 @@ export function PrintSettings({ initial }: { initial: PrintTheme }) {
     <div className="rounded-xl border border-[var(--border)] bg-white p-4 space-y-4 lg:col-span-2">
       <div>
         <p className="font-semibold text-sm">Print Layout</p>
-        <p className="text-xs text-[var(--text-muted)]">How your Tax Invoice and Quotation look when printed or shared as PDF.</p>
+        <p className="text-xs text-[var(--text-muted)]">How your Tax Invoice looks when printed or shared as PDF.</p>
       </div>
 
       <div className="grid grid-cols-2 gap-3 max-w-md">

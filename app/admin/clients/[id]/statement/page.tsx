@@ -57,7 +57,9 @@ export default async function ClientStatementPage({
 
   const today = formatDate(new Date());
   const theme = await getPrintTheme();
-  const divine = theme.invoiceLayout === "divine";
+  // Divine layout is for the Tax Invoice only for now. To bring it back here, restore the next line and delete the one after it.
+  // const divine = theme.invoiceLayout === "divine";
+  const divine = false;
 
   return (
     <div className="max-w-3xl mx-auto p-6 sm:p-10 print:p-0">
