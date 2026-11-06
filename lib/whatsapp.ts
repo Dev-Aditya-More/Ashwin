@@ -58,6 +58,21 @@ export function buildWhatsappMessage(contact: WhatsappContact): string | null {
   return null;
 }
 
+/** Payment reminder that says how much is pending and for how long (used by the Receivables page). */
+export function buildReminderMessage(r: {
+  name: string;
+  brand: string;
+  outstanding: number;
+  oldestDays: number;
+  overdue30: number;
+}): string {
+  const lines = [`Hello ${r.name},`, `This is a gentle reminder that ₹${moneyText(r.outstanding)} is pending in your account.`];
+  if (r.overdue30 > 0.009) lines.push(`₹${moneyText(r.overdue30)} of this has been pending for more than 30 days.`);
+  else if (r.oldestDays > 0) lines.push(`Your oldest pending bill is ${r.oldestDays} day${r.oldestDays === 1 ? "" : "s"} old.`);
+  lines.push("Kindly arrange the payment at the earliest.", "Thank you,", r.brand);
+  return lines.join("\n");
+}
+
 function normaliseNumber(phone: string | null | undefined): string {
   let digits = String(phone ?? "").replace(/[^\d]/g, "");
   if (digits.length === 10) digits = `91${digits}`;

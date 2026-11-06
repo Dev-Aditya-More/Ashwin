@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { savePrintTheme } from "@/lib/actions/print-settings";
 import { printTaxInvoice } from "@/lib/print/documents";
-import { DEFAULT_PRINT_THEME, THEME_PRESETS, getPrintTheme, setPrintTheme, type InvoiceLayout, type PrintTheme } from "@/lib/print/theme";
+import { DEFAULT_PRINT_THEME, THEME_PRESETS, TOGGLE_LABELS, getPrintTheme, setPrintTheme, type InvoiceLayout, type PrintTheme } from "@/lib/print/theme";
 import type { EstimateLine } from "@/lib/doc-calc";
 
 const SAMPLE_LINES = [
@@ -82,7 +82,8 @@ export function PrintSettings({ initial }: { initial: PrintTheme }) {
       if (res.ok) {
         setPrintTheme(theme);
         setSaved(theme);
-        toast.success("Print look saved");
+        if (res.warning) toast.warning(res.warning);
+        else toast.success("Print look saved");
       } else toast.error(res.error);
     });
   }
@@ -147,6 +148,26 @@ export function PrintSettings({ initial }: { initial: PrintTheme }) {
             <input type="color" value={theme.accent2} onChange={(e) => setTheme({ ...theme, accent2: e.target.value })} className="h-8 w-10 rounded border border-[var(--border)] bg-white p-0.5" />
             Second colour (logo panel)
           </label>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <p className="text-sm font-medium">Show on Tax Invoice</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1 max-w-2xl">
+          {TOGGLE_LABELS.map(({ key, label, hint }) => (
+            <label key={key} className="flex items-start gap-2.5 rounded-md px-2 py-1.5 hover:bg-[var(--bg-2)] cursor-pointer">
+              <input
+                type="checkbox"
+                className="mt-0.5 size-4 accent-blue-600"
+                checked={theme.invoice[key]}
+                onChange={(e) => setTheme({ ...theme, invoice: { ...theme.invoice, [key]: e.target.checked } })}
+              />
+              <span>
+                <span className="block text-sm">{label}</span>
+                <span className="block text-xs text-[var(--text-muted)]">{hint}</span>
+              </span>
+            </label>
+          ))}
         </div>
       </div>
 
