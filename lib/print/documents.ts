@@ -5,6 +5,7 @@ import { DEFAULT_QUOTE_TERMS, amountInWords, hsnFor, isFeeWork, measureText, mer
 import type { EstimateLine, QuoteLine } from "@/lib/doc-calc";
 import { arnavLogoUrl, civilLogoUrl, esc, fmt, fmtDate, logoUrl, money, printHtmlInFrame } from "@/lib/print/frame";
 import type { PrintOptions } from "@/lib/print/frame";
+import { getPrintTheme } from "@/lib/print/theme";
 
 export type PrintParty = { name: string; phone?: string | null; address?: string | null; gstin?: string | null };
 
@@ -259,6 +260,95 @@ h2{font-size:18px;margin:4px 0 4px;color:var(--c-title)}.cl{line-height:1.6;colo
 }
 
 // ------------------------------------------------------------ GST tax invoice
+type DivineCtx = {
+  d: PrintDoc;
+  co: { shop: string; address: string; phone: string; email: string };
+  fees: boolean;
+  billTo: string;
+  itemsHead: string;
+  rowsHtml: string;
+  filler: string;
+  itemsTotal: string;
+  hsnRows: string;
+  taxable: number;
+  half: number;
+  tax: number;
+  rate: number;
+  total: number;
+  roundOff: number;
+  received: number;
+  balance: number;
+  qr: string;
+};
+
+/**
+ * "Divine" Tax Invoice: coloured header (logo panel + contact bar), accent table header, Pay To / words / terms
+ * on the left and a boxed totals block on the right. Colours come from Settings → Print.
+ */
+function divineInvoiceHtml(c: DivineCtx) {
+  const { d, co } = c;
+  const { accent, accent2 } = getPrintTheme();
+  const site = String(d.siteName || "").trim();
+  const work = String(d.workType || "").trim();
+  const row = (a: string, b: string, cls = "") => `<tr${cls ? ` class="${cls}"` : ""}><td>${a}</td><td>${b}</td></tr>`;
+  const totals =
+    row("Sub Total", money(d.subtotal)) +
+    (Number(d.discount || 0) ? row("Discount", "− " + money(d.discount)) : "") +
+    (Number(d.hamali || 0) ? row("Hamali", money(d.hamali)) : "") +
+    (Number(d.transport || 0) ? row("Transport", money(d.transport)) : "") +
+    row("Taxable Amount", money(c.taxable)) +
+    row(`CGST @${(c.rate / 2).toFixed(1)}%`, money(c.half)) +
+    row(`SGST @${(c.rate / 2).toFixed(1)}%`, money(c.tax - c.half)) +
+    (c.roundOff ? row("Round off", money(c.roundOff)) : "") +
+    row("Total", money(c.total), "grand") +
+    row("Received", money(c.received)) +
+    row("Balance", money(c.balance), "bal");
+  const css = `@page{size:A4 portrait;margin:0}*{box-sizing:border-box}html,body{margin:0;padding:0}:root{--ac:${accent};--ac2:${accent2};--fs:10px}
+body{font:var(--fs) ${FONT};color:#222;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+${FRAME_CSS}
+.page{display:flex;flex-direction:column;min-height:260mm;width:100%}.spacer{flex:1 1 auto;min-height:0}
+.dvh{position:relative;height:36mm;margin-bottom:3mm}
+.dvb{position:absolute;left:0;top:0;width:54%;height:100%;background:var(--ac2);border-radius:0 0 14mm 0}
+.dvl{position:absolute;left:3.5mm;top:3.5mm;width:36mm;height:17mm;background:#fff;border-radius:2.5mm;display:flex;align-items:center;justify-content:center;padding:1.5mm}.dvl img{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain}
+.dvg{position:absolute;left:3.5mm;bottom:3.5mm;color:#fff;font-size:9px;line-height:1.55}
+.dvo{position:absolute;left:30%;right:0;top:0;height:21mm;background:var(--ac);border-radius:11mm 0 0 11mm;color:#fff;display:flex;align-items:center;gap:3.5mm;padding:0 5mm 0 9mm;font-size:8.5px;line-height:1.35}
+.dvo .i{font-size:11px}.dvo .sep{width:1px;align-self:stretch;margin:5mm 0;background:rgba(255,255,255,.65)}.dvo .ad{flex:1;min-width:0}
+.dvt{position:absolute;right:0;bottom:2mm;font-size:23px;font-weight:300;letter-spacing:.3px;color:#111}
+.info{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:6mm;margin-bottom:4mm}.info h4{margin:0 0 2px;font-size:12px;font-weight:400;color:var(--ac)}.info .bt{line-height:1.5;font-size:9.5px}.info .mt td{padding:1.5px 0;font-size:9.5px;vertical-align:top}.info .mt td:first-child{font-weight:bold;width:46%}
+.items{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;font-size:9.5px}
+.items th{background:var(--ac);color:#fff;font-size:9px;padding:5px 3px;border:0;font-weight:bold}.items thead th:first-child{border-top-left-radius:2.5mm}.items thead th:last-child{border-top-right-radius:2.5mm}
+.items td{border:1px solid #888;border-top:0;padding:4px 3px;text-align:center;vertical-align:middle;overflow-wrap:anywhere;line-height:1.3}.items tbody tr:first-child td{border-top:1px solid #888}
+.items td.d,.items th.d{text-align:left;padding-left:5px}.items .num{white-space:nowrap}
+.items tr.fill td{padding:0;border-top:0;border-bottom:0}.items tr.tot td{background:var(--ac);color:#fff;font-weight:bold;border-color:var(--ac)}.items tr.tot td:first-child{border-bottom-left-radius:2.5mm}.items tr.tot td:last-child{border-bottom-right-radius:2.5mm}
+.items thead{display:table-header-group}.items tr{break-inside:avoid}.items tr.fill{break-inside:auto}
+.low{display:grid;grid-template-columns:1fr 43%;column-gap:6mm;margin-top:3mm;break-inside:avoid;align-items:start}
+.low h4{margin:0 0 2px;font-size:12px;font-weight:400;color:var(--ac)}.low .blk{margin-bottom:3.5mm;line-height:1.5;font-size:9px}
+.pay{display:flex;gap:3mm;align-items:flex-start}.pay img{width:22mm;height:22mm;object-fit:contain;flex:none}.pay div{line-height:1.5}
+.tt{width:100%;border-collapse:collapse;table-layout:fixed}.tt td{border:1px solid #666;padding:3.5px 6px;font-size:9.5px}.tt td:last-child{text-align:right;white-space:nowrap;width:46%}
+.tt tr.grand td{background:var(--ac);color:#fff;font-weight:bold;border-color:var(--ac)}.tt tr.bal td{font-weight:bold}
+.tax{width:100%;border-collapse:collapse;table-layout:fixed;margin-top:3mm}.tax th,.tax td{border:1px solid #666;font-size:6.8px;text-align:center;padding:2px 1px;line-height:1.15;overflow-wrap:anywhere}.tax th{background:#f1f3f8}
+.sg{margin-top:5mm;text-align:right;font-size:9px;break-inside:avoid}.sg b{font-size:10px}.sg .gap{height:13mm}
+.thx{margin-top:3mm;text-align:center;font-weight:bold;font-size:9px;border-top:2px solid var(--ac);padding-top:3px;color:var(--ac2)}
+.rs{margin-top:4mm}.rs span{display:block;width:60%;border-top:1px solid #777;padding-top:2px;font-size:8.5px}`;
+  const html = `<!doctype html><html><head><meta charset="utf-8"><title>${esc(docTitle(d.client, d.no))}</title><style>${css}</style></head><body><table class="frame"><thead><tr><td></td></tr></thead><tbody><tr><td><div class="page">
+<div class="dvh"><div class="dvb"></div><div class="dvl">${brandLogo(d.workType, "lg")}</div><div class="dvg"><b>GSTIN:</b> ${GSTIN}<br><b>State:</b> 27-Maharashtra</div>
+<div class="dvo"><span><span class="i">☎</span> ${esc(co.phone)}</span><span class="sep"></span><span><span class="i">✉</span> ${esc(co.email)}</span><span class="sep"></span><span class="ad"><span class="i">⌖</span> ${esc(co.shop)}, ${esc(co.address)}</span></div>
+<div class="dvt">Tax Invoice</div></div>
+<div class="info"><div><h4>Bill To:</h4><div class="bt">${c.billTo}</div></div><div><h4>${site || work ? "Site Details:" : ""}</h4><div class="bt">${site ? `<b>Site:</b> ${esc(site)}<br>` : ""}${work ? `<b>Work:</b> ${esc(work)}` : ""}</div></div>
+<div><table class="mt"><tr><td>Invoice No.:</td><td>${esc(d.no)}</td></tr><tr><td>Invoice Date:</td><td>${esc(fmtDate(d.date))}</td></tr><tr><td>Place of Supply:</td><td>27-Maharashtra</td></tr></table></div></div>
+<table class="items"><thead>${c.itemsHead}</thead><tbody>${c.rowsHtml}${c.filler}${c.itemsTotal}</tbody></table>
+<div class="low"><div>
+<div class="blk"><h4>Pay To:</h4><div class="pay"><img src="${c.qr}" alt="UPI payment QR"><div>Bank: ICICI BANK LIMITED, AURANGABAD<br>Account No.: 110505002754<br>IFSC: ICIC0006970<br>Account Name: ASHWIN ENTERPRISES<br>UPI ID: ashwinenterprises@icici</div></div></div>
+<div class="blk"><h4>Invoice Amount In Words</h4>${amountInWords(c.total)}</div>
+<div class="blk"><h4>Terms And Conditions</h4>Please make the payment within 3 days of the bill date.<br>Thanks for doing business with us!</div>
+<div class="rs"><span>Receiver’s Signature</span></div>
+</div><div><table class="tt">${totals}</table><table class="tax"><tr><th>HSN</th><th>Taxable (₹)</th><th>CGST %</th><th>CGST (₹)</th><th>SGST %</th><th>SGST (₹)</th><th>Tax (₹)</th></tr>${c.hsnRows}<tr><th>TOTAL</th><th>${c.taxable.toFixed(2)}</th><th></th><th>${c.half.toFixed(2)}</th><th></th><th>${(c.tax - c.half).toFixed(2)}</th><th>${c.tax.toFixed(2)}</th></tr></table>
+<div class="sg"><b>For ASHWIN ENTERPRISES</b><div class="gap"></div>Authorised Signatory</div></div></div>
+<div class="thx">THANK YOU FOR DOING BUSINESS WITH US!</div>
+</div></td></tr></tbody><tfoot><tr><td></td></tr></tfoot></table></body></html>`;
+  return html;
+}
+
 export function buildTaxInvoice(d: PrintDoc, saved: EstimateLine[], party: PrintParty) {
   const lines = mergeForPrint(saved);
   const co = companyFor(d.workType);
@@ -330,6 +420,13 @@ export function buildTaxInvoice(d: PrintDoc, saved: EstimateLine[], party: Print
       return `<tr><td>${esc(code)}</td><td>${t.toFixed(2)}</td><td>${(rate / 2).toFixed(1)}%</td><td>${c.toFixed(2)}</td><td>${(rate / 2).toFixed(1)}%</td><td>${s.toFixed(2)}</td><td>${(c + s).toFixed(2)}</td></tr>`;
     })
     .join("");
+
+  if (getPrintTheme().invoiceLayout === "divine") {
+    const html = divineInvoiceHtml({
+      d, co, fees, billTo, itemsHead, rowsHtml, filler, itemsTotal, hsnRows, taxable, half, tax, rate, total, roundOff, received, balance, qr,
+    });
+    return { html, title: docTitle(d.client, d.no), opts: { widthMm: 210, fit: PIN_PAGE } as PrintOptions };
+  }
 
   const html = `<!doctype html><html><head><title>${esc(docTitle(d.client, d.no))}</title><style>@page{size:A4 portrait;margin:0}.frame{width:100%;border-collapse:collapse;border:0}.frame>thead>tr>td,.frame>tfoot>tr>td{height:12.7mm;padding:0;border:0}.frame>tbody>tr>td{padding:0 12.7mm;border:0;vertical-align:top}*{box-sizing:border-box}body{font:10px ${FONT};color:#222;margin:0}.page{display:flex;flex-direction:column;min-height:260mm}.spacer{flex:1 1 auto;min-height:0}.page{width:100%;margin:auto}.title{text-align:center;font-weight:bold;font-size:15px;border:1px solid #444;padding:4px;margin-bottom:5px}.head,.bill,.items,.taxbox,.terms{width:100%;border-collapse:collapse}.head td,.bill td,.items td,.items th,.taxbox td,.taxbox th,.terms td{border:1px solid #555;padding:4px;vertical-align:middle;text-align:center}.head td,.bill td{text-align:left}.head td.meta{text-align:center;vertical-align:middle}.metab{display:inline-block;text-align:left}.head td[style*="center"]{text-align:center}.terms td:first-child{text-align:left}.head .logo{width:135px;height:auto;max-height:75px;object-fit:contain}.head .logo.sq{width:auto;height:80px;max-height:80px}.company{line-height:1.5;padding:4px 12px}.company .caddr{width:80%;min-width:230px;margin-bottom:2px}.head td.co{padding:6px 8px}.meta{line-height:1.7}.bill{margin-top:4px}.billtitle{font-weight:bold}.items{margin-top:5px;table-layout:fixed}.items th{background:#f1f3f8;font-size:9px}.items .c{text-align:center}.items td{padding:3px 3px;overflow-wrap:anywhere}.items .r{text-align:center}.items tr.fill td{padding:0;border-top:0;border-bottom:0}.items tr.tot td{border-top:1px solid #555}.items thead{display:table-header-group}.items tr{break-inside:avoid}.items tr.fill{break-inside:auto}.num{text-align:center;white-space:nowrap}.summary{margin-top:12px;display:grid;grid-template-columns:1fr 44%;column-gap:14px;align-items:start}.taxbox{margin-top:14px}.taxbox th{background:#f1f3f8}.taxbox td,.taxbox th{font-size:7px;text-align:center;vertical-align:middle;padding:2px 1px;line-height:1.15;overflow-wrap:anywhere}.taxbox th{font-size:6.7px}.taxbox{table-layout:fixed}.taxbox th:nth-child(1){width:10%}.taxbox th:nth-child(2){width:18%}.taxbox th:nth-child(3),.taxbox th:nth-child(5){width:10%}.taxbox th:nth-child(4),.taxbox th:nth-child(6){width:16%}.taxbox th:nth-child(7){width:20%}.totals{width:100%;border-collapse:collapse;table-layout:fixed}.totals td:last-child{width:${fees ? 50 : 39}%}.totals td{border:1px solid #555;padding:5px 6px}.totals td:last-child{text-align:center;white-space:nowrap}.grand{font-size:13px;font-weight:bold;border-top:2px solid #333!important}.words{font-size:9px;font-weight:bold}.terms{margin-top:3px}.terms td{line-height:1.2;padding:5px}.preterms{margin-top:auto;padding-top:5px}.preterms .words{margin:3px 0 5px;line-height:1.35}.signspace{height:25px;line-height:12px}.bottom{display:grid;grid-template-columns:50% 50%;page-break-inside:avoid;gap:8px;margin-top:5px}.bank,.sign{border:0;border-top:1px solid #777;padding:5px 2px;min-height:74px}.bank{line-height:1.5}.bankrow{display:flex;gap:6px;align-items:center}.bankrow div{font-size:8px;line-height:1.35}.qr{width:64px;height:64px;object-fit:contain}.sign{display:flex;flex-direction:column;justify-content:space-between;font-weight:normal;min-width:0}.auth{text-align:right;margin-top:0;font-weight:normal;font-size:9px}.thanks{text-align:center;font-weight:bold;border-top:1px solid #555;padding:5px;margin-top:0}@media print{body{print-color-adjust:exact;-webkit-print-color-adjust:exact}.page{break-inside:avoid}.bottom,.terms,.summary,.sign{break-inside:avoid}}</style></head><body><table class="frame"><thead><tr><td></td></tr></thead><tbody><tr><td><div class="page"><div class="title">TAX INVOICE</div><table class="head"><tr><td style="width:24%;text-align:center">${brandLogo(d.workType, "logo")}</td><td class="co" style="width:46%"><div class="company"><div class="caddr">${esc(co.shop)}, ${esc(co.address)}</div>Phone: ${esc(co.phone)}<br>Email: ${esc(co.email)}<br><b>GSTIN: ${GSTIN}</b></div></td><td class="meta"><div class="metab"><b>Invoice No.:</b> ${esc(d.no)}<br><b>Date:</b> ${esc(fmtDate(d.date))}<br><b>Place of Supply:</b> 27-Maharashtra</div></td></tr></table><table class="bill"><tr><td><div class="billtitle">Bill To:</div>${billTo}</td></tr></table><table class="items"><thead>${itemsHead}</thead><tbody>${rowsHtml}${filler}${itemsTotal}</tbody></table><div class="summary"><table class="taxbox"><tr><th>HSN Code</th><th>Taxable Amount (₹)</th><th>CGST Rate</th><th>CGST Amt (₹)</th><th>SGST Rate</th><th>SGST Amt (₹)</th><th>Total Tax (₹)</th></tr>${hsnRows}<tr><th>TOTAL</th><th>${taxable.toFixed(2)}</th><th></th><th>${half.toFixed(2)}</th><th></th><th>${(tax - half).toFixed(2)}</th><th>${tax.toFixed(2)}</th></tr></table><table class="totals"><tr><td>Sub Total</td><td>${money(d.subtotal)}</td></tr>${Number(d.discount || 0) ? `<tr><td>Discount</td><td>− ${money(d.discount)}</td></tr>` : ""}${Number(d.hamali || 0) ? `<tr><td>Hamali</td><td>${money(d.hamali)}</td></tr>` : ""}${Number(d.transport || 0) ? `<tr><td>Transport</td><td>${money(d.transport)}</td></tr>` : ""}<tr><td>Taxable Amount</td><td>${money(taxable)}</td></tr><tr><td>Tax (${rate}%)</td><td>${money(tax)}</td></tr><tr><td>Round Off</td><td>${money(roundOff)}</td></tr><tr class="grand"><td>Total</td><td>${money(total)}</td></tr><tr><td>Advance Received</td><td>${money(received)}</td></tr><tr><td><b>Balance</b></td><td><b>${money(balance)}</b></td></tr></table></div><div class="preterms"><div class="words"><b>Invoice Amount in Words:</b><br>${amountInWords(total)}</div><table class="terms"><tr><td style="width:58%"><b>Terms & Conditions:</b><br>Please make the payment within 3 days of the bill date.<br>Thanks for doing business with us!</td><td style="width:42%;vertical-align:middle;text-align:center"><b>Receiver’s Signature:</b><br><br>____________________________</td></tr></table></div><div class="bottom"><div class="bank"><b>Bank Details / Scan to Pay:</b><div class="bankrow"><img class="qr" src="${qr}" alt="UPI payment QR"><div>Bank: ICICI BANK LIMITED, AURANGABAD<br>Account No.: 110505002754<br>IFSC: ICIC0006970<br>Account Name: ASHWIN ENTERPRISES<br>UPI ID: ashwinenterprises@icici<br><b>QR Amount: ${money(total)}</b></div></div></div><div class="sign"><div style="text-align:right;margin-top:auto"><div style="font-weight:bold">For ASHWIN ENTERPRISES</div><div class="signspace">&nbsp;<br>&nbsp;</div><div class="auth">Authorised Signatory</div></div></div></div><div class="thanks">THANK YOU FOR DOING BUSINESS WITH US!</div></div></td></tr></tbody><tfoot><tr><td></td></tr></tfoot></table></body></html>`;
   return { html, title: docTitle(d.client, d.no), opts: { widthMm: 210, fit: PIN_PAGE } as PrintOptions };

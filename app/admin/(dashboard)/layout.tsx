@@ -4,6 +4,8 @@ import { NavProgress } from "@/components/admin/NavProgress";
 import Topbar from "@/components/admin/Topbar";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveFinancialYear } from "@/lib/actions/financial-years";
+import { getPrintTheme } from "@/lib/actions/print-settings";
+import { PrintThemeProvider } from "@/components/admin/PrintThemeProvider";
 
 export default async function DashboardLayout({
   children,
@@ -16,13 +18,15 @@ export default async function DashboardLayout({
   // authoritative supabase.auth.getUser() for this request (and would
   // have redirected to /admin/login if it failed), so re-verifying here
   // would just be a second, redundant call to the Supabase Auth server.
-  const [{ data }, activeFy] = await Promise.all([
+  const [{ data }, activeFy, printTheme] = await Promise.all([
     supabase.auth.getSession(),
     getActiveFinancialYear(),
+    getPrintTheme(),
   ]);
 
   return (
     <div className="flex min-h-screen">
+      <PrintThemeProvider theme={printTheme} />
       <Suspense fallback={null}>
         <NavProgress />
       </Suspense>

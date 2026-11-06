@@ -4,13 +4,15 @@ import { getPinLockStatus } from "@/lib/actions/pin-lock";
 import { formatDate } from "@/lib/format";
 import { ResetDataSettings } from "@/components/admin/ResetDataSettings";
 import { PinLockSettings } from "@/components/admin/PinLockSettings";
+import { PrintSettings } from "@/components/admin/PrintSettings";
+import { getPrintTheme } from "@/lib/actions/print-settings";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 
 export default async function SettingsPage() {
-  const [years, pinLock] = await Promise.all([listFinancialYears(), getPinLockStatus()]);
+  const [years, pinLock, printTheme] = await Promise.all([listFinancialYears(), getPinLockStatus(), getPrintTheme()]);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start max-w-6xl">
@@ -69,6 +71,8 @@ export default async function SettingsPage() {
           </div>
         </form>
       </div>
+
+      <PrintSettings initial={printTheme} />
 
       <PinLockSettings enabled={pinLock.enabled} secretConfigured={pinLock.secretConfigured} />
 
