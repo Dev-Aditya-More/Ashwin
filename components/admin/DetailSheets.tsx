@@ -30,7 +30,7 @@ export function DetailSheets({
   return (
     <div className="rounded-xl border border-[var(--border)] bg-white overflow-hidden">
       <div className="px-4 py-3 border-b border-[var(--border)] font-semibold text-sm">Quotations, Estimates &amp; Detail Sheets</div>
-      <DocCardList empty={nothing && "No quotations or estimates for this client yet."}>
+      <DocCardList empty={nothing && "No Detail Sheets yet. A quotation and estimate appear here once the Estimate is converted to a Detail Sheet."}>
         {quotations.map((q) => (
           <DocCard
             key={q.id}
@@ -165,7 +165,7 @@ export function DetailSheets({
           {nothing && (
             <TableRow>
               <TableCell colSpan={5} className="text-center text-[var(--text-muted)] py-6">
-                No quotations or estimates for this client yet.
+                No Detail Sheets yet. A quotation and estimate appear here once the Estimate is converted to a Detail Sheet.
               </TableCell>
             </TableRow>
           )}

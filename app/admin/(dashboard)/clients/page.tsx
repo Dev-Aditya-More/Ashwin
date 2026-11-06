@@ -25,14 +25,13 @@ export default async function ClientsPage({
   const { q = "" } = await searchParams;
   const term = q.trim().toLowerCase();
   const [allClients, ctx, docs] = await Promise.all([listClients(), getContactContext(), getClientDocCounts()]);
-  // Clients with no paperwork or ledger entries at all are dimmed; quotation-only clients are left out below.
-  const docState = (c: (typeof allClients)[number]) => {
-    const d = docs[c.id] ?? { quotes: 0, estimates: 0, bills: 0 };
-    if (d.estimates || d.bills || c.totalWork || c.totalPaid) return "active" as const;
-    return d.quotes ? ("quote-only" as const) : ("empty" as const);
+  // A client appears here once a Detail Sheet exists for them. Anyone who already has bills or ledger money
+  // stays visible too, so existing records never disappear.
+  const isActive = (c: (typeof allClients)[number]) => {
+    const d = docs[c.id];
+    return !!(d?.detailSheets || d?.bills || c.totalWork || c.totalPaid);
   };
-  // Clients who only have a quotation (no estimate, bill or ledger entry yet) stay off this list.
-  const visible = allClients.filter((c) => docState(c) !== "quote-only");
+  const visible = allClients.filter(isActive);
   const clients = term
     ? visible.filter((c) =>
         `${c.name} ${c.phone ?? ""} ${c.gstin ?? ""}`.toLowerCase().includes(term)
@@ -78,22 +77,12 @@ export default async function ClientsPage({
           </TableHeader>
           <TableBody>
             {clients.map((c) => {
-              const state = docState(c);
               return (
-              <TableRow
-                key={c.id}
-                className={state === "quote-only" ? "bg-amber-50/70" : state === "empty" ? "opacity-60" : ""}
-              >
+              <TableRow key={c.id}>
                 <TableCell className="font-medium">
                   <Link href={`/admin/clients/${c.id}`} className="hover:underline">
                     {c.name}
                   </Link>
-                  {state === "quote-only" && (
-                    <Badge className="ml-2 bg-amber-100 text-amber-800 border-amber-200">Quotation only</Badge>
-                  )}
-                  {state === "empty" && (
-                    <Badge variant="secondary" className="ml-2">No documents yet</Badge>
-                  )}
                 </TableCell>
                 <TableCell className="text-[var(--text-muted)]">{c.phone ?? "—"}</TableCell>
                 <TableCell className="text-[var(--text-muted)] font-mono text-xs">{c.gstin ?? "—"}</TableCell>
@@ -137,7 +126,7 @@ export default async function ClientsPage({
             {clients.length === 0 && (
               <TableRow>
                 <TableCell colSpan={9} className="text-center text-[var(--text-muted)] py-10">
-                  {term ? "No matching party records." : "No clients yet. Use the Add button above to get started."}
+                  {term ? "No matching party records." : "No clients yet. A client appears here once their Estimate is converted to a Detail Sheet."}
                 </TableCell>
               </TableRow>
             )}

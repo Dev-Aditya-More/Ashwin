@@ -582,21 +582,24 @@ export async function getQuoteConversions(confirmedOnly = false): Promise<Record
   return out;
 }
 
-/** Per client: how many quotations, estimates / detail sheets and bills exist (for the client list). */
-export async function getClientDocCounts(): Promise<Record<string, { quotes: number; estimates: number; bills: number }>> {
+type DocCounts = { quotes: number; estimates: number; detailSheets: number; bills: number };
+
+/** Per client: how many quotations, estimates, Detail Sheets (confirmed estimates) and bills exist (for the client list). */
+export async function getClientDocCounts(): Promise<Record<string, DocCounts>> {
   const supabase = await createClient();
   const [q, e, b] = await Promise.all([
     supabase.from("quotations").select("client_id"),
-    supabase.from("estimates").select("client_id"),
+    supabase.from("estimates").select("client_id, confirmed_at"),
     supabase.from("gst_invoices").select("client_id"),
   ]);
-  const out: Record<string, { quotes: number; estimates: number; bills: number }> = {};
-  const bump = (rows: { client_id: string }[] | null, k: "quotes" | "estimates" | "bills") => {
-    for (const r of rows ?? []) (out[r.client_id] ??= { quotes: 0, estimates: 0, bills: 0 })[k]++;
-  };
-  bump(q.data, "quotes");
-  bump(e.data, "estimates");
-  bump(b.data, "bills");
+  const out: Record<string, DocCounts> = {};
+  const row = (id: string) => (out[id] ??= { quotes: 0, estimates: 0, detailSheets: 0, bills: 0 });
+  for (const r of q.data ?? []) row(r.client_id).quotes++;
+  for (const r of (e.data ?? []) as { client_id: string; confirmed_at: string | null }[]) {
+    row(r.client_id).estimates++;
+    if (r.confirmed_at) row(r.client_id).detailSheets++;
+  }
+  for (const r of b.data ?? []) row(r.client_id).bills++;
   return out;
 }
 

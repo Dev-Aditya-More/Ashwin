@@ -156,6 +156,15 @@ function partyBlock(d: PrintDoc, party?: PrintParty, extra: string[] = []) {
 /** Item tables: fixed column widths, and every value wraps inside its cell instead of spilling past it. */
 const ITEMS_CSS = `table{font-size:var(--fs)}.it{width:100%;border-collapse:collapse;table-layout:fixed}.it th,.it td{border:1px solid #777;padding:4px 3px;text-align:center;vertical-align:middle;overflow-wrap:anywhere;line-height:1.3}.it th{background:#f3f4f7;font-weight:bold}.it .r{text-align:center}.it .c{text-align:center}.it .num{text-align:center;white-space:nowrap}.it tr.fill td{padding:0;border-top:0}.it tr{break-inside:avoid}.it tr.fill{break-inside:auto}.it.fit{table-layout:auto}.it.fit th,.it.fit td{white-space:nowrap;overflow-wrap:normal}.it thead{display:table-header-group}@media print{body{print-color-adjust:exact;-webkit-print-color-adjust:exact}}`;
 
+/** Quotation overrides for the Divine look: accent table header, accent headings, accent footer line. */
+const DIVINE_QUOTE_CSS = `.dvq .qrow{display:flex;justify-content:space-between;align-items:flex-start;gap:8mm;margin-bottom:2mm}.dvq .qrow .to{margin:0;flex:1}.dvq .qmeta{line-height:1.7;font-size:10px;text-align:left;min-width:48mm}.dvq .qmeta b{display:inline-block;min-width:25mm}
+.dvq .it{border-collapse:separate;border-spacing:0}.dvq .it th{background:var(--ac);color:#fff;border-color:var(--ac)}.dvq .it thead th:first-child{border-top-left-radius:2.5mm}.dvq .it thead th:last-child{border-top-right-radius:2.5mm}
+.dvq .it td{border:0;border-right:1px solid #888;border-bottom:1px solid #888}.dvq .it td:first-child{border-left:1px solid #888}
+.dvq .terms-heading{color:var(--ac);border-bottom-color:var(--ac)}.dvq .address{border-top:2px solid var(--ac)}.dvq .thankyou{color:var(--ac2)}.dvq .to{line-height:1.6;font-size:10px}.dvq .to b.pn{color:var(--ac2);font-size:14px;line-height:1.5}
+.ise .dvh{height:27mm;margin-bottom:2mm}.ise .dvb{border-radius:0 0 10mm 0}.ise .dvl{width:30mm;height:13mm;left:3mm;top:3mm}.ise .dvg{left:3mm;bottom:2.5mm;font-size:8.5px;line-height:1.4}.ise .dvo{height:16mm;border-radius:8mm 0 0 8mm;left:26%}.ise .dvt{font-size:20px;bottom:1mm}
+.ise .qrow{margin-bottom:3mm}.ise .qmeta{font-size:9.5px}
+.ise .charges td,.ise .summary .words{border-color:#888}.ise .charges .grand td{background:var(--ac);color:#fff}.ise .address{margin-top:6px}`;
+
 export function printQuotationOrEstimate(
   kind: "quotation" | "estimate",
   d: PrintDoc,
@@ -205,7 +214,8 @@ export function printQuotationOrEstimate(
   const toExtra = !quote && d.workType ? [`Work: ${esc(d.workType)}`] : [];
 
   const title = docTitle(d.client, (quote ? "Q-" : "E-") + d.no);
-  const html = `<html><head><title>${esc(title)}</title><style>@page{size:A4 ${quote ? "portrait" : "landscape"};margin:0}${FRAME_CSS}${ITEMS_CSS}*{box-sizing:border-box}:root{--fs:9px;--ink:#333;--c-title:#000;--c-client:#1B2A6B;--c-co:#000}body{font:var(--fs) ${FONT};color:var(--ink);margin:0}
+  const divine = getPrintTheme().invoiceLayout === "divine";
+  const html = `<html><head><title>${esc(title)}</title><style>@page{size:A4 ${quote ? "portrait" : "landscape"};margin:0}${divine ? divineHeaderCss() : ""}${FRAME_CSS}${ITEMS_CSS}*{box-sizing:border-box}:root{--fs:9px;--ink:#333;--c-title:#000;--c-client:#1B2A6B;--c-co:#000}body{font:var(--fs) ${FONT};color:var(--ink);margin:0}
 .page{min-height:264mm;display:flex;flex-direction:column}.isq .page{min-height:0}.ise .page{min-height:183mm}.ise .frame>thead>tr>td{height:8mm}.ise .frame>tfoot>tr>td{height:11mm}.ise .top{margin:0 0 6px}.ise .logo{margin-top:0}.ise .logo.sq{margin-top:0}.ise .to{margin:0 0 8px}
 .top{display:flex;justify-content:space-between;align-items:flex-start;margin:3mm 0 12px}.logo{width:140px;height:auto;object-fit:contain;margin-top:5mm}.logo.sq{width:auto;height:96px;margin-top:2mm}
 .meta{text-align:right;line-height:1.7}.isq .meta h2{font-size:16px}.isq .meta b{min-width:30px}.meta b{display:inline-block;min-width:66px;text-align:left}.meta h2{font-size:21px;margin:0 0 5px;text-decoration:underline;color:var(--c-title)}
@@ -218,7 +228,11 @@ export function printQuotationOrEstimate(
 .bottom{display:flex;flex-direction:column}.isq .frame>tfoot>tr>td{height:68mm}.isq .bottom{position:fixed;left:12.7mm;right:12.7mm;bottom:12.7mm;background:#fff}
 .quoteFooterTerms{position:relative}.quoteFooterTerms .forco{position:absolute;right:0;top:0}.terms-heading{display:inline-block;padding-bottom:2px;border-bottom:1px solid #888;margin:0 0 5px;font-size:13px}.terms{font-size:10px;line-height:1.35}
 .quoteSignatures{margin-top:6px;min-height:30px;display:flex;align-items:flex-end}.thankyou{text-align:center;margin:6px 0 7px;font-weight:600}
-@media print{.tail,.bottom,.summary{break-inside:avoid}}</style></head><body class="${quote ? "isq" : "ise"}"><table class="frame"><thead><tr><td></td></tr></thead><tbody><tr><td><div class="page"><div class="top">${brandLogo(d.workType, "logo")}<div class="meta"><h2>${quote ? "QUOTATION" : "ESTIMATE"}</h2><b>${quote ? "Q." : "Estimate"} No.:</b> ${esc(d.no)}<br><b>Date:</b> ${esc(fmtDate(d.date))}</div></div><div class="to">To,<br>${partyBlock(d, party, toExtra)}</div>${quote ? `<p class="intro">With reference to your requirement, we are pleased to submit our quotation for the proposed work at the above-mentioned site. This quotation includes supply and installation with all necessary materials as per the agreed terms.</p>` : ""}${itemsTable}${estimateBottom}</div></td></tr></tbody><tfoot><tr><td></td></tr></tfoot></table>${quote ? `<div class="bottom"><div class="quoteFooterTerms">${quoteTerms(d.terms)}${sign}</div><div class="quoteSignatures"><div class="receiver">Receiver’s Signature: __________________________</div></div><div class="thankyou">Thank you for your business. We look forward to working with you.</div>${footer}</div>` : ""}</body></html>`;
+${divine ? DIVINE_QUOTE_CSS : ""}@media print{.tail,.bottom,.summary{break-inside:avoid}}</style></head><body class="${quote ? "isq" : "ise"}${divine ? " dvq" : ""}"><table class="frame"><thead><tr><td></td></tr></thead><tbody><tr><td><div class="page">${
+    divine
+      ? `${divineHeaderHtml(companyFor(d.workType), d.workType, quote ? "Quotation" : "Estimate")}<div class="qrow"><div class="to">To,<br>${partyBlock(d, party, toExtra)}</div><div class="qmeta"><div><b>${quote ? "Quotation" : "Estimate"} No.:</b> ${esc(d.no)}</div><div><b>Date:</b> ${esc(fmtDate(d.date))}</div></div></div>`
+      : `<div class="top">${brandLogo(d.workType, "logo")}<div class="meta"><h2>${quote ? "QUOTATION" : "ESTIMATE"}</h2><b>${quote ? "Q." : "Estimate"} No.:</b> ${esc(d.no)}<br><b>Date:</b> ${esc(fmtDate(d.date))}</div></div><div class="to">To,<br>${partyBlock(d, party, toExtra)}</div>`
+  }${quote ? `<p class="intro">With reference to your requirement, we are pleased to submit our quotation for the proposed work at the above-mentioned site. This quotation includes supply and installation with all necessary materials as per the agreed terms.</p>` : ""}${itemsTable}${estimateBottom}</div></td></tr></tbody><tfoot><tr><td></td></tr></tfoot></table>${quote ? `<div class="bottom"><div class="quoteFooterTerms">${quoteTerms(d.terms)}${sign}</div><div class="quoteSignatures"><div class="receiver">Receiver’s Signature: __________________________</div></div><div class="thankyou">Thank you for your business. We look forward to working with you.</div>${footer}</div>` : ""}</body></html>`;
   // Quotation: its fixed footer takes 68 mm of every page; estimate: the footer is part of the page flow.
   printHtmlInFrame(html, {
     title,
@@ -245,13 +259,18 @@ export function printDetailSheet(d: PrintDoc, saved: EstimateLine[]) {
     : `<table class="it items fit"><thead><tr><th class="c">Sr.</th><th>Product / Type</th><th>Material</th><th>Glass Type</th><th>Shade</th><th>Floor</th><th>Size (inches)</th><th class="c">Qty</th><th class="r">Billed Qty</th><th class="num">Rate (₹)</th><th class="num">Amount (₹)</th></tr></thead><tbody>${rows}${fillerRow(11)}</tbody></table>`;
 
   const title = docTitle(d.client, "D-" + d.no);
-  const html = `<html><head><title>${esc(title)}</title><style>@page{size:A4 landscape;margin:0}${FRAME_CSS}${ITEMS_CSS}*{box-sizing:border-box}:root{--fs:9px;--ink:#333;--c-title:#000;--c-client:#1B2A6B}body{font:var(--fs) ${FONT};color:var(--ink);margin:0}
+  const divine = getPrintTheme().invoiceLayout === "divine";
+  const html = `<html><head><title>${esc(title)}</title><style>@page{size:A4 landscape;margin:0}${divine ? divineHeaderCss() : ""}${FRAME_CSS}${ITEMS_CSS}*{box-sizing:border-box}:root{--fs:9px;--ink:#333;--c-title:#000;--c-client:#1B2A6B}body{font:var(--fs) ${FONT};color:var(--ink);margin:0}
 .frame>thead>tr>td{height:8mm}.frame>tfoot>tr>td{height:11mm}.page{min-height:183mm;display:flex;flex-direction:column}
 h2{font-size:18px;margin:4px 0 4px;color:var(--c-title)}.cl{line-height:1.6;color:var(--c-client)}.cl{font-size:10px}.cl b.pn{font-size:14px;line-height:1.5}.head{display:flex;justify-content:space-between;margin-bottom:6px}.logo{width:150px;height:auto;object-fit:contain}.logo.sq{display:block;width:auto;height:80px}.meta{text-align:right;line-height:1.7}
 .sz{display:block;white-space:nowrap;margin:0 -3px;padding:2px 3px}.sz+.sz{border-top:1px solid #999}.sz:first-child{padding-top:0}.sz i{font-style:normal;color:#666}
 .tail{margin-top:auto;break-inside:avoid}.summary{display:flex;gap:10px}.summary .words{flex:1;border:1px solid #777;border-top:0;padding:6px;line-height:1.5}
 .charges{width:320px;border-collapse:collapse;flex:0 0 320px}.charges td{border:1px solid #777;border-top:0;padding:4px 6px;vertical-align:middle}.charges .num{text-align:center;white-space:nowrap}.charges .grand td{font-weight:bold;font-size:10px;background:#f3f4f7}
-.address{text-align:center;border-top:1px solid #aaa;padding-top:5px;margin-top:8px;line-height:1.4}</style></head><body><table class="frame"><thead><tr><td></td></tr></thead><tbody><tr><td><div class="page"><div class="head"><div>${brandLogo(d.workType, "logo")}<h2>DETAIL SHEET</h2><div class="cl">${partyBlock(d, undefined, d.workType ? [`Work Type: ${esc(d.workType)}`] : [])}</div></div><div class="meta"><b>Detail Sheet No.:</b> ${esc(d.no)}<br><b>Date:</b> ${esc(fmtDate(d.date))}</div></div>${table}<div class="tail"><div class="summary"><div class="words"><b>Amount in Words:</b><br>${esc(amountInWords(charges.total))}</div>${charges.html}</div><div class="address">${companyAddress(d.workType)}</div></div></div></td></tr></tbody><tfoot><tr><td></td></tr></tfoot></table></body></html>`;
+.address{text-align:center;border-top:1px solid #aaa;padding-top:5px;margin-top:8px;line-height:1.4}${divine ? DIVINE_QUOTE_CSS : ""}</style></head><body class="${divine ? "ise dvq" : ""}"><table class="frame"><thead><tr><td></td></tr></thead><tbody><tr><td><div class="page">${
+    divine
+      ? `${divineHeaderHtml(companyFor(d.workType), d.workType, "Detail Sheet")}<div class="qrow"><div class="to">To,<br>${partyBlock(d, undefined, d.workType ? [`Work Type: ${esc(d.workType)}`] : [])}</div><div class="qmeta"><div><b>Detail Sheet No.:</b> ${esc(d.no)}</div><div><b>Date:</b> ${esc(fmtDate(d.date))}</div></div></div>`
+      : `<div class="head"><div>${brandLogo(d.workType, "logo")}<h2>DETAIL SHEET</h2><div class="cl">${partyBlock(d, undefined, d.workType ? [`Work Type: ${esc(d.workType)}`] : [])}</div></div><div class="meta"><b>Detail Sheet No.:</b> ${esc(d.no)}<br><b>Date:</b> ${esc(fmtDate(d.date))}</div></div>`
+  }${table}<div class="tail"><div class="summary"><div class="words"><b>Amount in Words:</b><br>${esc(amountInWords(charges.total))}</div>${charges.html}</div><div class="address">${companyAddress(d.workType)}</div></div></div></td></tr></tbody><tfoot><tr><td></td></tr></tfoot></table></body></html>`;
   printHtmlInFrame(html, {
     title,
     widthMm: 297,
@@ -281,13 +300,37 @@ type DivineCtx = {
   qr: string;
 };
 
+/** Colour variables + header styles shared by every "Divine" document (Tax Invoice, Quotation). */
+function divineHeaderCss() {
+  const { accent, accent2 } = getPrintTheme();
+  return `:root{--ac:${accent};--ac2:${accent2}}
+.dvh{position:relative;height:36mm;margin-bottom:3mm}
+.dvb{position:absolute;left:0;top:0;width:54%;height:100%;background:var(--ac2);border-radius:0 0 14mm 0}
+.dvl{position:absolute;left:3.5mm;top:3.5mm;width:36mm;height:17mm;background:#fff;border-radius:2.5mm;display:flex;align-items:center;justify-content:center;padding:1.5mm}.dvl img{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;margin:0}
+.dvg{position:absolute;left:3.5mm;bottom:3.5mm;color:#fff;font-size:9px;line-height:1.55}
+.dvo{position:absolute;left:30%;right:0;top:0;height:21mm;background:var(--ac);border-radius:11mm 0 0 11mm;color:#fff;display:flex;align-items:center;gap:3.5mm;padding:0 5mm 0 9mm;font-size:8.5px;line-height:1.35}
+.dvo .i{font-size:11px}.dvo .sep{width:1px;align-self:stretch;margin:5mm 0;background:rgba(255,255,255,.65)}.dvo .ad{flex:1;min-width:0}
+.dvt{position:absolute;right:0;bottom:2mm;font-size:23px;font-weight:300;letter-spacing:.3px;color:#111}`;
+}
+
+function divineHeaderHtml(
+  co: { shop: string; address: string; phone: string; email: string },
+  workType: unknown,
+  title: string,
+  o: { logoHtml?: string; gstin?: boolean } = {}
+) {
+  const gstin = o.gstin !== false;
+  return `<div class="dvh"><div class="dvb"></div><div class="dvl">${o.logoHtml ?? brandLogo(workType, "lg")}</div><div class="dvg">${gstin ? `<b>GSTIN:</b> ${GSTIN}<br>` : ""}<b>State:</b> 27-Maharashtra</div>
+<div class="dvo"><span><span class="i">☎</span> ${esc(co.phone)}</span><span class="sep"></span><span><span class="i">✉</span> ${esc(co.email)}</span><span class="sep"></span><span class="ad"><span class="i">⌖</span> ${esc(co.shop)}, ${esc(co.address)}</span></div>
+<div class="dvt">${esc(title)}</div></div>`;
+}
+
 /**
  * "Divine" Tax Invoice: coloured header (logo panel + contact bar), accent table header, Pay To / words / terms
  * on the left and a boxed totals block on the right. Colours come from Settings → Print.
  */
 function divineInvoiceHtml(c: DivineCtx) {
   const { d, co } = c;
-  const { accent, accent2 } = getPrintTheme();
   const site = String(d.siteName || "").trim();
   const work = String(d.workType || "").trim();
   const row = (a: string, b: string, cls = "") => `<tr${cls ? ` class="${cls}"` : ""}><td>${a}</td><td>${b}</td></tr>`;
@@ -303,17 +346,11 @@ function divineInvoiceHtml(c: DivineCtx) {
     row("Total", money(c.total), "grand") +
     row("Received", money(c.received)) +
     row("Balance", money(c.balance), "bal");
-  const css = `@page{size:A4 portrait;margin:0}*{box-sizing:border-box}html,body{margin:0;padding:0}:root{--ac:${accent};--ac2:${accent2};--fs:10px}
+  const css = `@page{size:A4 portrait;margin:0}*{box-sizing:border-box}html,body{margin:0;padding:0}:root{--fs:10px}
 body{font:var(--fs) ${FONT};color:#222;print-color-adjust:exact;-webkit-print-color-adjust:exact}
 ${FRAME_CSS}
 .page{display:flex;flex-direction:column;min-height:260mm;width:100%}.spacer{flex:1 1 auto;min-height:0}
-.dvh{position:relative;height:36mm;margin-bottom:3mm}
-.dvb{position:absolute;left:0;top:0;width:54%;height:100%;background:var(--ac2);border-radius:0 0 14mm 0}
-.dvl{position:absolute;left:3.5mm;top:3.5mm;width:36mm;height:17mm;background:#fff;border-radius:2.5mm;display:flex;align-items:center;justify-content:center;padding:1.5mm}.dvl img{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain}
-.dvg{position:absolute;left:3.5mm;bottom:3.5mm;color:#fff;font-size:9px;line-height:1.55}
-.dvo{position:absolute;left:30%;right:0;top:0;height:21mm;background:var(--ac);border-radius:11mm 0 0 11mm;color:#fff;display:flex;align-items:center;gap:3.5mm;padding:0 5mm 0 9mm;font-size:8.5px;line-height:1.35}
-.dvo .i{font-size:11px}.dvo .sep{width:1px;align-self:stretch;margin:5mm 0;background:rgba(255,255,255,.65)}.dvo .ad{flex:1;min-width:0}
-.dvt{position:absolute;right:0;bottom:2mm;font-size:23px;font-weight:300;letter-spacing:.3px;color:#111}
+${divineHeaderCss()}
 .info{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:6mm;margin-bottom:4mm}.info h4{margin:0 0 2px;font-size:12px;font-weight:400;color:var(--ac)}.info .bt{line-height:1.5;font-size:9.5px}.info .mt td{padding:1.5px 0;font-size:9.5px;vertical-align:top}.info .mt td:first-child{font-weight:bold;width:46%}
 .items{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;font-size:9.5px}
 .items th{background:var(--ac);color:#fff;font-size:9px;padding:5px 3px;border:0;font-weight:bold}.items thead th:first-child{border-top-left-radius:2.5mm}.items thead th:last-child{border-top-right-radius:2.5mm}
@@ -331,9 +368,7 @@ ${FRAME_CSS}
 .thx{margin-top:3mm;text-align:center;font-weight:bold;font-size:9px;border-top:2px solid var(--ac);padding-top:3px;color:var(--ac2)}
 .rs{margin-top:4mm}.rs span{display:block;width:60%;border-top:1px solid #777;padding-top:2px;font-size:8.5px}`;
   const html = `<!doctype html><html><head><meta charset="utf-8"><title>${esc(docTitle(d.client, d.no))}</title><style>${css}</style></head><body><table class="frame"><thead><tr><td></td></tr></thead><tbody><tr><td><div class="page">
-<div class="dvh"><div class="dvb"></div><div class="dvl">${brandLogo(d.workType, "lg")}</div><div class="dvg"><b>GSTIN:</b> ${GSTIN}<br><b>State:</b> 27-Maharashtra</div>
-<div class="dvo"><span><span class="i">☎</span> ${esc(co.phone)}</span><span class="sep"></span><span><span class="i">✉</span> ${esc(co.email)}</span><span class="sep"></span><span class="ad"><span class="i">⌖</span> ${esc(co.shop)}, ${esc(co.address)}</span></div>
-<div class="dvt">Tax Invoice</div></div>
+${divineHeaderHtml(co, d.workType, "Tax Invoice")}
 <div class="info"><div><h4>Bill To:</h4><div class="bt">${c.billTo}</div></div><div><h4>${site || work ? "Site Details:" : ""}</h4><div class="bt">${site ? `<b>Site:</b> ${esc(site)}<br>` : ""}${work ? `<b>Work:</b> ${esc(work)}` : ""}</div></div>
 <div><table class="mt"><tr><td>Invoice No.:</td><td>${esc(d.no)}</td></tr><tr><td>Invoice Date:</td><td>${esc(fmtDate(d.date))}</td></tr><tr><td>Place of Supply:</td><td>27-Maharashtra</td></tr></table></div></div>
 <table class="items"><thead>${c.itemsHead}</thead><tbody>${c.rowsHtml}${c.filler}${c.itemsTotal}</tbody></table>
@@ -438,6 +473,11 @@ export function printTaxInvoice(d: PrintDoc, lines: EstimateLine[], party: Print
 }
 
 
+/** Bill of Supply overrides for the Divine look (header comes from divineHeaderHtml). */
+const DIVINE_BOS_CSS = `.qrow{display:flex;justify-content:space-between;align-items:flex-start;gap:8mm;margin-bottom:3mm}.qrow .to{margin:0;flex:1}.qmeta{line-height:1.7;font-size:11px;min-width:48mm}.qmeta b{display:inline-block;min-width:22mm}.to .nm{color:var(--ac2)}
+.items{border-radius:2.5mm}.items th{background:var(--ac);color:#fff;border-bottom:0;font-weight:bold;font-size:11px}.items thead th:first-child{border-top-left-radius:2.2mm}.items thead th:last-child{border-top-right-radius:2.2mm}
+.tot tr:last-child td{background:var(--ac);color:#fff}.sign b{color:var(--ac2)}`;
+
 // ------------------------------------------------------------ Bill of Supply (Non-GST, ARNAV GLASS SERVICES)
 export function buildBillOfSupply(d: PrintDoc, saved: EstimateLine[], party?: PrintParty) {
   const lines = mergeForPrint(saved);
@@ -488,8 +528,9 @@ export function buildBillOfSupply(d: PrintDoc, saved: EstimateLine[], party?: Pr
   const mobile = String(d.clientMobile || party?.phone || "").trim();
   const address = String(d.clientAddress || party?.address || "").trim();
 
+  const divine = getPrintTheme().invoiceLayout === "divine";
   const html = `<!doctype html><html><head><meta charset="utf-8"><title>${esc((d.client ? d.client + " " : "") + d.no)}</title><style>
-@page{size:A4 portrait;margin:0}*{box-sizing:border-box}html,body{margin:0;padding:0}:root{--fs:10px;--ink:#222}
+${divine ? divineHeaderCss() : ""}@page{size:A4 portrait;margin:0}*{box-sizing:border-box}html,body{margin:0;padding:0}:root{--fs:10px;--ink:#222}
 body{font:var(--fs) ${FONT};color:var(--ink)}
 .frame{width:100%;border-collapse:collapse;border:0}.frame>thead>tr>td,.frame>tfoot>tr>td{height:12.7mm;padding:0;border:0}.frame>tbody>tr>td{padding:0 12.7mm;border:0;vertical-align:top}
 .hd{width:100%;border-collapse:collapse;border-bottom:1.5px solid #222}.hd td{padding:0 0 4px;vertical-align:bottom}.addr{font-size:11px;line-height:1.5;padding-right:12px!important}.addr .caddr{width:62%;min-width:230px}.wd{border:1px solid #222;border-top:0;padding:5px 6px;font-size:11px;line-height:1.5;break-inside:avoid}.hd img{width:150px;height:auto;display:block;margin-left:auto}.hd img.sq{width:auto;height:84px}
@@ -501,11 +542,17 @@ table.items{width:100%;border-collapse:separate;border-spacing:0;border:1px soli
 .bot{width:100%;border-collapse:collapse;border:1px solid #222;border-top:0;break-inside:avoid}.bot>tbody>tr>td{vertical-align:top;padding:0}.acc{padding:3px 4px!important;line-height:1.5;font-size:11px}.aw{margin-bottom:6px}
 .tot{width:100%;border-collapse:collapse;table-layout:fixed}.tot td:last-child{width:${fees ? 63 : 52}%}.tot td{border:1px solid #222;padding:2px 6px;font-size:11px;text-align:center;vertical-align:middle}.tot td:first-child{text-align:left}.tot tr:first-child td{border-top:0}.tot td:first-child{border-left:1px solid #222}.tot td:last-child{border-right:0}.tot tr.b td{font-weight:bold}.tot tr:last-child td{border-bottom:0}
 .sign{margin-top:16px;text-align:right;break-inside:avoid}.sign img{height:34px;width:auto;vertical-align:middle;margin-left:6px}.sign img.sq{height:44px}.sign .gap{height:46px}.sign b{font-size:11px}
-</style></head><body><table class="frame"><thead><tr><td></td></tr></thead><tbody><tr><td><div class="page">
-<table class="hd"><tr><td class="addr"><div class="caddr">${esc(co.shop)}, ${esc(co.address)}</div>Phone: ${esc(co.phone)}<br>${esc(co.email)}</td><td style="width:170px">${logoImg}</td></tr></table>
+${divine ? DIVINE_BOS_CSS : ""}</style></head><body><table class="frame"><thead><tr><td></td></tr></thead><tbody><tr><td><div class="page">
+${(() => {
+    const billNo = esc(civil ? d.no.replace(/^AGS\//i, "") : d.no);
+    const toBlock = `<div class="to">To,<div class="nm">${esc(d.client)}</div>${mobile ? `<div class="st"><b>Mobile:</b> ${esc(mobile)}</div>` : ""}${address ? `<div class="st"><b>Address:</b> ${esc(address)}</div>` : ""}${d.siteName ? `<div class="st"><b>Site:</b> ${esc(d.siteName)}</div>` : ""}</div>`;
+    return divine
+      ? `${divineHeaderHtml(co, d.workType, "Bill of Supply", { logoHtml: logoImg, gstin: false })}<div class="qrow">${toBlock}<div class="qmeta"><div><b>Bill No.:</b> ${billNo}</div><div><b>Date:</b> ${esc(dmy(d.date))}</div></div></div>`
+      : `<table class="hd"><tr><td class="addr"><div class="caddr">${esc(co.shop)}, ${esc(co.address)}</div>Phone: ${esc(co.phone)}<br>${esc(co.email)}</td><td style="width:170px">${logoImg}</td></tr></table>
 <div class="ttl">BILL OF SUPPLY</div>
-<div class="to">To,<div class="nm">${esc(d.client)}</div>${mobile ? `<div class="st"><b>Mobile:</b> ${esc(mobile)}</div>` : ""}${address ? `<div class="st"><b>Address:</b> ${esc(address)}</div>` : ""}${d.siteName ? `<div class="st"><b>Site:</b> ${esc(d.siteName)}</div>` : ""}</div>
-<div class="meta">Bill No.:- <b>${esc(civil ? d.no.replace(/^AGS\//i, "") : d.no)}</b><br>Date:- <b>${esc(dmy(d.date))}</b></div>
+${toBlock}
+<div class="meta">Bill No.:- <b>${billNo}</b><br>Date:- <b>${esc(dmy(d.date))}</b></div>`;
+  })()}
 ${itemsTable}
 <table class="bot"><tr><td class="acc" style="width:${fees ? 62 : 69}%"><div class="aw"><b>Amount in Words:</b> ${esc(amountInWords(total))}</div>${account}</td><td><table class="tot">${totals}</table></td></tr></table>
 <div class="sign"><b>For</b> ${logoImg}<div class="gap"></div><b>Authorised Signatory</b></div>
@@ -544,16 +591,22 @@ export function printLedger(party: PrintParty, rows: LedgerPrintRow[]) {
         .join("")
     : '<tr><td colspan="5" style="text-align:center;padding:14px">No transactions</td></tr>';
 
+  const divine = getPrintTheme().invoiceLayout === "divine";
+  const partyHtml = `<div class="pn">${esc(party.name)}</div>${party.phone ? `<div>Mobile: ${esc(party.phone)}</div>` : ""}${party.address ? `<div>Address: ${esc(party.address)}</div>` : ""}`;
+  const header = divine
+    ? `${divineHeaderHtml(COMPANY.enterprises, null, "Party Ledger")}<div class="qrow"><div class="party">${partyHtml}</div><div class="qmeta"><b>Date:</b> ${today}</div></div>`
+    : `<table class="hd"><tr><td><img class="logo" width="300" height="138" src="${logoUrl()}"></td><td class="ttl"><h1>PARTY LEDGER</h1><div><b>Date:</b> ${today}</div></td></tr></table>
+<div class="party">${partyHtml}</div>`;
   const html = `<!doctype html><html><head><meta charset="utf-8"><title>${esc(party.name)} Ledger</title><style>
-@page{size:A4 portrait;margin:0}*{box-sizing:border-box}html,body{margin:0;padding:0}body{font-family:${FONT};font-size:12px;color:#111}
+${divine ? divineHeaderCss() : ""}@page{size:A4 portrait;margin:0}*{box-sizing:border-box}html,body{margin:0;padding:0}body{font-family:${FONT};font-size:12px;color:#111}
 .frame{width:100%;border-collapse:collapse;border:0}.frame>thead>tr>td,.frame>tfoot>tr>td{height:12.7mm;padding:0;border:0}.frame>tbody>tr>td{padding:0 12.7mm;border:0;vertical-align:top}
 .hd{width:100%;border-collapse:collapse}.hd td{padding:0;border:0;vertical-align:top}.logo{width:150px;height:auto;display:block}.ttl{text-align:right}.ttl h1{margin:2mm 0 8px;font-size:20px;text-decoration:underline;letter-spacing:.3px}.ttl div{margin-top:3px;font-size:12px}
 .party{margin-top:14px;line-height:1.55}.party .pn{font-size:15px;font-weight:bold}
 table.led{width:100%;border-collapse:collapse;margin-top:14px;font-size:11px}table.led th,table.led td{border:1px solid #555;padding:5px 6px;vertical-align:middle;text-align:center}table.led th{background:#eee}table.led .n,table.led th.n{text-align:center;white-space:nowrap}
 table.led thead{display:table-header-group}table.led tr{break-inside:avoid;page-break-inside:avoid}table.led tr.tot td{font-weight:bold;background:#f5f5f5}
+${divine ? `body{print-color-adjust:exact;-webkit-print-color-adjust:exact}.qrow{display:flex;justify-content:space-between;align-items:flex-start;gap:8mm}.qrow .party{margin-top:2mm}.party .pn{color:var(--ac2)}.qmeta{font-size:11px;line-height:1.7;white-space:nowrap}.qmeta b{display:inline-block;min-width:12mm}table.led th{background:var(--ac);color:#fff;border-color:var(--ac)}table.led tr.tot td{background:var(--ac);color:#fff;border-color:var(--ac)}table.led{margin-top:10px}` : ""}
 </style></head><body><table class="frame"><thead><tr><td></td></tr></thead><tbody><tr><td>
-<table class="hd"><tr><td><img class="logo" width="300" height="138" src="${logoUrl()}"></td><td class="ttl"><h1>PARTY LEDGER</h1><div><b>Date:</b> ${today}</div></td></tr></table>
-<div class="party"><div class="pn">${esc(party.name)}</div>${party.phone ? `<div>Mobile: ${esc(party.phone)}</div>` : ""}${party.address ? `<div>Address: ${esc(party.address)}</div>` : ""}</div>
+${header}
 <table class="led"><thead><tr><th style="width:12%">Date</th><th class="d">Particulars</th><th class="n" style="width:16%">Debit</th><th class="n" style="width:16%">Credit</th><th class="n" style="width:17%">Balance</th></tr></thead><tbody>${body}<tr class="tot"><td colspan="2">Total / Closing Balance</td><td class="n">${f(td)}</td><td class="n">${f(tc)}</td><td class="n">${f(run)}</td></tr></tbody></table>
 </td></tr></tbody><tfoot><tr><td></td></tr></tfoot></table></body></html>`;
   printHtmlInFrame(html, { title: `${party.name} Ledger`, widthMm: 210 });

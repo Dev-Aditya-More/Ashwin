@@ -51,7 +51,10 @@ export default async function ClientDetailPage({
     listQuotations(),
     getQuoteConversions(true),
   ]);
-  const quotes = allQuotes.filter((q) => q.client_id === id);
+  // Quotations and estimates only join the client's ledger once their Detail Sheet is made: a confirmed estimate,
+  // and the quotation it came from (struck through). Pending ones stay in the Quotations / Estimates pages.
+  const sheets = clientEstimates.filter((e) => e.confirmed_at);
+  const quotes = allQuotes.filter((q) => q.client_id === id && converted[q.id]);
   const bills = allBills.filter((b) => b.client_id === id);
 
   return (
@@ -187,7 +190,7 @@ export default async function ClientDetailPage({
           <div className="space-y-4">
             <ClientLedgerTable work={work} payments={payments} clientId={id} projects={projects} bills={bills} />
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 items-start">
-              <DetailSheets estimates={clientEstimates} quotations={quotes} converted={converted} />
+              <DetailSheets estimates={sheets}quotations={quotes} converted={converted} />
               <ClientBills bills={bills} />
             </div>
           </div>
