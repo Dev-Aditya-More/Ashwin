@@ -8,7 +8,7 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-8 text-sm">
         {/* Brand */}
         <div className="col-span-2 sm:col-span-1">
-          <Logo className="w-[150px] h-auto" />
+          <Logo contain className="aspect-[421/325] h-20 w-auto" />
           <p className="mt-3 text-xs text-[#777777] leading-relaxed">
             Civil, architectural, landscape, and interior design services —
             based in Chhatrapati Sambhajinagar, serving clients across India.

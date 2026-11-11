@@ -58,7 +58,7 @@ export default function Home() {
             transition={{ duration: 0.7, ease: "easeOut" }}
             className="flex justify-center"
           >
-            <Logo className="w-[220px] sm:w-[280px] h-auto" />
+            <Logo contain className="aspect-[421/325] h-32 sm:h-40 w-auto" />
           </motion.div>
 
           {/* Buttons */}

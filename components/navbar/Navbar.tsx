@@ -60,7 +60,7 @@ export default function Navbar() {
         {/* Logo (also balances the hamburger/spacer on the right for centering) */}
         <div className="flex-1 flex items-center">
           <Link href="/" onClick={() => setMenuOpen(false)} className="flex items-center">
-            <Logo variant="light" className="h-10 md:h-12" />
+            <Logo contain variant="light" className="aspect-[421/325] h-12 md:h-14 w-auto" />
           </Link>
         </div>
 
