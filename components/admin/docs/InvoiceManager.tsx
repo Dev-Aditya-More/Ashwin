@@ -12,24 +12,34 @@ import { DeleteRowButton } from "@/components/admin/dialogs/DeleteRowButton";
 import { DocCard, DocCardList, Field, SetupNotice, selectCls } from "@/components/admin/docs/shared";
 import { deleteDocument, getNextDocNo, saveInvoice } from "@/lib/actions/documents";
 import type { EstimateOption, GstInvoice } from "@/lib/doc-types";
-import { isFeeWork } from "@/lib/doc-calc";
-import { printInvoiceDocument } from "@/lib/print/documents";
+import { printInvoiceDocument, type Brand } from "@/lib/print/documents";
 import { money } from "@/lib/print/frame";
 import { formatDate } from "@/lib/format";
 import { SharePdfButton } from "@/components/admin/docs/SharePdfButton";
 
 const today = () => todayIST();
 
-/** AE/2026/27-003 ⇄ AGS/2026/27-003: GST bills are ASHWIN ENTERPRISES (AE), Non-GST are ARNAV GLASS SERVICES (AGS). */
-function withPrefix(no: string, type: "GST" | "Non-GST") {
-  const prefix = type === "GST" ? "AE/" : "AGS/";
-  return /^(AE|AGS)\//i.test(no) ? no.replace(/^(AE|AGS)\//i, prefix) : no;
+const BRANDS: { id: Brand; name: string; tag: string; logo: string }[] = [
+  { id: "enterprises", name: "Ashwin Enterprises", tag: "GST · AE", logo: "/ashwin-print-logo.png" },
+  { id: "ashwin", name: "Ashwin", tag: "Non-GST", logo: "/ashwin-civil-logo.png" },
+  { id: "arnav", name: "Arnav", tag: "Non-GST · AGS", logo: "/arnav-logo.png" },
+];
+
+/** AE/2026/27-003 (Ashwin Enterprises, GST) · AGS/2026/27-003 (Arnav) · 2026/27-003 (Ashwin): one running serial, only the prefix changes. */
+function withPrefix(no: string, brand: Brand) {
+  const base = no.replace(/^(AE|AGS)\//i, "");
+  return brand === "enterprises" ? `AE/${base}` : brand === "arnav" ? `AGS/${base}` : base;
 }
 
-/** Who issued a bill: GST bills and every Civil / Interior bill are ASHWIN ENTERPRISES; other Non-GST bills are ARNAV GLASS SERVICES. */
+/** Which of the three issuers a saved bill belongs to (derived from type + number prefix, so no extra column is needed). */
+export function invoiceBrand(inv: GstInvoice): Brand {
+  if (inv.invoice_type === "GST") return "enterprises";
+  return /^AGS\//i.test(inv.no) ? "arnav" : "ashwin";
+}
+
 export function invoiceIssuer(inv: GstInvoice) {
-  if (inv.invoice_type === "GST") return "ASHWIN ENTERPRISES (GST)";
-  return isFeeWork(inv.work_type) ? "ASHWIN ENTERPRISES (Non-GST)" : "ARNAV GLASS SERVICES (Non-GST)";
+  const b = BRANDS.find((x) => x.id === invoiceBrand(inv))!;
+  return `${b.name} (${inv.invoice_type})`;
 }
 
 export function printInvoice(inv: GstInvoice) {
@@ -37,6 +47,7 @@ export function printInvoice(inv: GstInvoice) {
     {
       no: inv.no,
       type: inv.invoice_type,
+      brand: invoiceBrand(inv),
       siteName: inv.site_name,
       workType: inv.work_type,
       date: inv.doc_date,
@@ -73,15 +84,14 @@ export function InvoiceManager({
   const [estimateId, setEstimateId] = useState("");
   const [no, setNo] = useState(initialNo);
   const [date, setDate] = useState(today());
-  const [type, setType] = useState<"GST" | "Non-GST">("GST");
+  const [brand, setBrand] = useState<Brand>("enterprises");
+  const type: "GST" | "Non-GST" = brand === "enterprises" ? "GST" : "Non-GST";
   const [gst, setGst] = useState(18);
   const [received, setReceived] = useState(0);
   const [pending, startTransition] = useTransition();
 
   const est = estimates.find((e) => e.id === estimateId);
-  // Civil / Interior bills of supply carry a plain 2026/27-001 number (no AGS/ prefix).
-  const plainNo = type === "Non-GST" && isFeeWork(est?.work_type);
-  const shownNo = plainNo ? no.replace(/^(AE|AGS)\//i, "") : no;
+  const shownNo = no;
   const taxable = Number(est?.taxable ?? est?.subtotal ?? 0);
   const rate = type === "GST" ? gst : 0;
   const tax = (taxable * rate) / 100;
@@ -89,8 +99,8 @@ export function InvoiceManager({
 
   // GST bills are AE/…, Non-GST bills AGS/…, sharing one running serial. Switching the type only swaps
   // the prefix (no server round trip), so the number on screen can never lag behind the chosen type.
-  function changeType(next: "GST" | "Non-GST") {
-    setType(next);
+  function changeBrand(next: Brand) {
+    setBrand(next);
     setNo((cur) => withPrefix(cur, next));
   }
 
@@ -99,7 +109,7 @@ export function InvoiceManager({
 
   function save() {
     startTransition(async () => {
-      const res = await saveInvoice({ estimateId, no, date, type, gstRate: gst, received });
+      const res = await saveInvoice({ estimateId, no, date, type, brand, gstRate: gst, received });
       if (!res.ok) {
         toast.error(res.error);
         return;
@@ -111,7 +121,7 @@ export function InvoiceManager({
       );
       setEstimateId("");
       setReceived(0);
-      setNo(withPrefix(await getNextDocNo("invoice"), type));
+      setNo(withPrefix(await getNextDocNo("invoice"), brand));
     });
   }
 
@@ -147,22 +157,40 @@ export function InvoiceManager({
           <Field label="Invoice Date">
             <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
           </Field>
-          <Field label="Invoice Type">
-            <select className={selectCls} value={type} onChange={(e) => changeType(e.target.value as "GST" | "Non-GST")}>
-              <option>GST</option>
-              <option>Non-GST</option>
-            </select>
-          </Field>
-          <Field label="GST % (GST invoice)">
-            <select className={selectCls} value={gst} onChange={(e) => setGst(Number(e.target.value))}>
-              {[0, 5, 12, 18, 28].map((g) => (
-                <option key={g}>{g}</option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Advance / Received (₹)">
+          {type === "GST" && (
+            <Field label="GST %">
+              <select className={selectCls} value={gst} onChange={(e) => setGst(Number(e.target.value))}>
+                {[0, 5, 12, 18, 28].map((g) => (
+                  <option key={g}>{g}</option>
+                ))}
+              </select>
+            </Field>
+          )}
+          <Field label="Advance (₹)">
             <Input type="number" min="0" step="0.01" placeholder="0" value={received || ""} onChange={(e) => setReceived(Number(e.target.value))} />
           </Field>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2" role="radiogroup" aria-label="Issued by">
+          {BRANDS.map((b) => (
+            <button
+              key={b.id}
+              type="button"
+              role="radio"
+              aria-checked={brand === b.id}
+              onClick={() => changeBrand(b.id)}
+              className={`flex sm:flex-col items-center gap-3 sm:gap-1.5 rounded-lg border p-3 text-left sm:text-center transition-colors ${
+                brand === b.id ? "border-[var(--accent-blue)] bg-[var(--accent-blue)]/5 ring-1 ring-[var(--accent-blue)]" : "border-[var(--border)] hover:bg-[var(--bg-2)]"
+              }`}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={b.logo} alt="" className="h-10 w-24 object-contain" />
+              <span>
+                <span className="block text-sm font-medium leading-tight">{b.name}</span>
+                <span className="block text-xs text-[var(--text-muted)]">{b.tag}</span>
+              </span>
+            </button>
+          ))}
         </div>
 
         <p className="rounded-md border-l-4 border-amber-400 bg-amber-50 px-3 py-2 text-sm">
@@ -173,11 +201,7 @@ export function InvoiceManager({
               Taxable value: {money(taxable)} · GST {rate}%: {money(tax)} ·{" "}
               <b>{type === "GST" ? "Invoice total" : "Bill total (no GST)"}: {money(invoiceTotal)}</b>
               <br />
-              {type === "GST"
-                ? "Issued by ASHWIN ENTERPRISES. Payment QR will use UPI ID ashwinenterprises@icici and the invoice total."
-                : plainNo
-                ? "Bill of Supply issued by ASHWIN ENTERPRISES (no GST, no QR)."
-                : "Bill of Supply issued by ARNAV GLASS SERVICES (no GST, no QR)."}
+              {type === "GST" ? "Tax Invoice with UPI QR." : "Bill of Supply (no GST, no QR)."}
             </>
           ) : (
             "The bill amount will appear after you select a Detail Sheet. Only Detail Sheets can be billed — convert an Estimate to a Detail Sheet first."

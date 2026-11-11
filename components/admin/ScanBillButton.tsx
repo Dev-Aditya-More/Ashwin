@@ -39,6 +39,14 @@ async function toJpegBase64(file: File): Promise<{ data: string; mime: string }>
   return { data: url.slice(url.indexOf(",") + 1), mime: "image/jpeg" };
 }
 
+/** PDFs go to the reader as they are (no shrinking). */
+async function pdfToBase64(file: File): Promise<{ data: string; mime: string }> {
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  let bin = "";
+  for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  return { data: btoa(bin), mime: "application/pdf" };
+}
+
 export function ScanBillButton({ onScanned }: { onScanned: (bill: ScannedBill, notes: string[]) => void }) {
   const touch = useIsTouchDevice();
   const cameraRef = useRef<HTMLInputElement>(null);
@@ -49,17 +57,22 @@ export function ScanBillButton({ onScanned }: { onScanned: (bill: ScannedBill, n
   async function handle(file: File | undefined) {
     if (!file) return;
     setError(null);
-    if (!file.type.startsWith("image/")) {
-      setError("Please choose a photo (JPG, PNG or WebP).");
+    const isPdf = file.type === "application/pdf" || /\.pdf$/i.test(file.name);
+    if (!isPdf && !file.type.startsWith("image/")) {
+      setError("Please choose a photo or PDF (JPG, PNG, WebP or PDF).");
+      return;
+    }
+    if (isPdf && file.size > 2.6 * 1024 * 1024) {
+      setError("That PDF is too large (max about 2.5 MB). Try a smaller one.");
       return;
     }
     setBusy(true);
     try {
       let img: { data: string; mime: string };
       try {
-        img = await toJpegBase64(file);
+        img = isPdf ? await pdfToBase64(file) : await toJpegBase64(file);
       } catch {
-        setError("Couldn't open that photo. If it's a HEIC/iPhone file, choose it again from the gallery or take a new photo.");
+        setError("Couldn't open that file. If it's a HEIC/iPhone photo, choose it again from the gallery or take a new photo.");
         return;
       }
       const res = await scanBill(img.data, img.mime);
@@ -91,12 +104,12 @@ export function ScanBillButton({ onScanned }: { onScanned: (bill: ScannedBill, n
               <Camera className="size-4" /> Take Photo
             </Button>
             <Button type="button" size="sm" variant="outline" className="w-full" disabled={busy} onClick={() => fileRef.current?.click()}>
-              <ImageIcon className="size-4" /> Gallery
+              <ImageIcon className="size-4" /> Gallery / PDF
             </Button>
           </>
         ) : (
           <Button type="button" size="sm" variant="outline" disabled={busy} onClick={() => fileRef.current?.click()}>
-            <Upload className="size-4" /> Upload Bill Photo
+            <Upload className="size-4" /> Upload Photo / PDF
           </Button>
         )}
       </div>
@@ -107,7 +120,7 @@ export function ScanBillButton({ onScanned }: { onScanned: (bill: ScannedBill, n
       )}
       {/* `capture` opens the rear camera directly on phones; the gallery input has none, so it opens the photo picker. */}
       <input ref={cameraRef} type="file" accept="image/*" capture="environment" hidden onChange={(e) => handle(e.target.files?.[0])} />
-      <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/*" hidden onChange={(e) => handle(e.target.files?.[0])} />
+      <input ref={fileRef} type="file" accept="image/*,application/pdf,.pdf" hidden onChange={(e) => handle(e.target.files?.[0])} />
       {error && (
         <p className="flex gap-1.5 text-xs text-rose-700">
           <TriangleAlert className="size-3.5 shrink-0 mt-0.5" /> {error}

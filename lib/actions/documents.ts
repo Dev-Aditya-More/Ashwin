@@ -644,6 +644,7 @@ export async function saveInvoice(input: {
   no: string;
   date: string;
   type: "GST" | "Non-GST";
+  brand?: "ashwin" | "enterprises" | "arnav";
   gstRate: number;
   received: number;
 }): Promise<ActionResult> {
@@ -669,12 +670,10 @@ export async function saveInvoice(input: {
   // The prefix always follows the type: AE/… = GST (ASHWIN ENTERPRISES), AGS/… = Non-GST (ARNAV GLASS SERVICES).
   const typedNo = input.no.trim();
   // Civil / Interior bills of supply are issued by ASHWIN ENTERPRISES with a plain 2026/27-001 number (no AGS/).
-  const civilBill = input.type === "Non-GST" && isFeeWork(est.work_type);
-  const no = civilBill
-    ? typedNo.replace(/^(AE|AGS)\//i, "")
-    : /^(AE|AGS)\//i.test(typedNo)
-    ? typedNo.replace(/^(AE|AGS)\//i, input.type === "GST" ? "AE/" : "AGS/")
-    : typedNo;
+  const civilBill = input.type === "Non-GST" && (input.brand ? input.brand === "ashwin" : isFeeWork(est.work_type));
+  const base = typedNo.replace(/^(AE|AGS)\//i, "");
+  // The prefix is what tells the three issuers apart later: AE/ = Ashwin Enterprises, AGS/ = Arnav, none = Ashwin.
+  const no = !base ? "" : civilBill ? base : (input.type === "GST" ? "AE/" : "AGS/") + base;
   if (!no) return { ok: false, error: "Invoice number missing." };
   const gst = input.type === "GST" ? Math.max(0, Number(input.gstRate) || 0) : 0;
   const taxable = Number(est.taxable ?? est.subtotal) || 0;

@@ -15,7 +15,6 @@ import {
   FileText,
   Calculator,
   Receipt,
-  Hourglass,
   FileSpreadsheet,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -25,7 +24,6 @@ export const NAV = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { label: "AI Assistant", href: "/admin/assistant", icon: Sparkles },
   { label: "Clients", href: "/admin/clients", icon: Users },
-  { label: "Receivables", href: "/admin/receivables", icon: Hourglass },
   { label: "Labour", href: "/admin/labour", icon: HardHat },
   { label: "Vendors", href: "/admin/vendors", icon: Truck },
   { label: "Quotation", href: "/admin/quotations", icon: FileText },

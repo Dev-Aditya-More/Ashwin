@@ -1,10 +1,12 @@
 import { Suspense, cache } from "react";
-import { Users, Truck, HardHat, Wallet, TrendingUp, UserSquare2, FileText } from "lucide-react";
+import { Users, Truck, HardHat, Wallet, TrendingUp, UserSquare2, FileText, Hourglass, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { getDashboardData, getDailyPerformance } from "@/lib/actions/dashboard";
 import { listPartyOptions } from "@/lib/actions/month-view";
 import { listTransactions } from "@/lib/actions/transactions";
 import { countQuotations } from "@/lib/actions/documents";
+import { getReceivables } from "@/lib/actions/receivables";
+import { BUCKETS } from "@/lib/ageing";
 import { QuickAddTransaction } from "@/components/admin/QuickAddTransaction";
 import { formatDate, formatMoney } from "@/lib/format";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -118,12 +120,64 @@ async function Operations() {
     <div className="space-y-6">
       <QuickAddTransaction clients={parties.clients} labourers={parties.labourers} vendors={parties.vendors} />
 
+      <Suspense fallback={<div className="animate-pulse"><TableSkeleton columns={4} rows={3} /></div>}>
+        <ReceivablesQuickAccess />
+      </Suspense>
+
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard icon={Users} label="Clients" value={parties.clients.length} isMoney={false} />
         <StatCard icon={Truck} label="Vendors" value={parties.vendors.length} isMoney={false} />
         <StatCard icon={HardHat} label="Labour" value={parties.labourers.length} isMoney={false} />
         <StatCard icon={FileText} label="Quotations" value={quotationCount} isMoney={false} />
       </div>
+    </div>
+  );
+}
+
+const BUCKET_TONE = ["text-emerald-700", "text-amber-700", "text-orange-700", "text-rose-700"];
+
+/** Who owes what and for how long; the full list lives at /admin/receivables. */
+async function ReceivablesQuickAccess() {
+  const all = await getReceivables();
+  const totals = BUCKETS.map((b) => ({ ...b, amount: all.reduce((s, r) => s + r.buckets[b.key], 0) }));
+  const grand = totals.reduce((s, t) => s + t.amount, 0);
+  const top = all.slice(0, 5);
+  return (
+    <div className="rounded-xl border border-[var(--border)] bg-white overflow-hidden">
+      <div className="px-4 py-3 border-b border-[var(--border)] bg-[var(--bg-2)] flex items-center justify-between gap-3">
+        <p className="font-semibold text-sm flex items-center gap-2">
+          <Hourglass className="size-4" /> Receivables
+        </p>
+        <Link href="/admin/receivables" className="text-xs font-medium text-[var(--accent-blue)] inline-flex items-center gap-1 hover:underline">
+          View all <ArrowRight className="size-3.5" />
+        </Link>
+      </div>
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 p-4">
+        <div className="col-span-2 lg:col-span-1">
+          <p className="text-xs text-[var(--text-muted)]">To collect</p>
+          <p className="text-lg font-semibold">{formatMoney(grand)}</p>
+          <p className="text-xs text-[var(--text-muted)]">{all.length} client{all.length === 1 ? "" : "s"}</p>
+        </div>
+        {totals.map((t, i) => (
+          <Link key={t.key} href={i === 0 ? "/admin/receivables" : `/admin/receivables?age=${[0, 30, 60, 90][i]}`}>
+            <p className="text-xs text-[var(--text-muted)]">{t.label}</p>
+            <p className={`text-lg font-semibold ${BUCKET_TONE[i]}`}>{formatMoney(t.amount)}</p>
+          </Link>
+        ))}
+      </div>
+      {top.length > 0 && (
+        <ul className="border-t border-[var(--border)] divide-y divide-[var(--border)]">
+          {top.map((r) => (
+            <li key={r.id}>
+              <Link href={`/admin/clients/${r.id}`} className="flex items-center justify-between gap-3 px-4 py-2 text-sm hover:bg-[var(--bg-2)]">
+                <span className="truncate font-medium">{r.name}</span>
+                <span className="shrink-0 text-xs text-[var(--text-muted)]">{r.oldestDays}d</span>
+                <span className="shrink-0 font-medium">{formatMoney(r.outstanding)}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

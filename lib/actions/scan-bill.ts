@@ -11,11 +11,11 @@ export type ScanBillResult =
   | { ok: false; error: string };
 
 const MODEL = process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
-const MIME_OK = ["image/jpeg", "image/png", "image/webp"];
+const MIME_OK = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
 /** Base64 characters (about 2.7 MB of image). The browser shrinks photos far below this before sending. */
 const MAX_B64 = 3_700_000;
 
-const PROMPT = `You read photos of Indian purchase bills / tax invoices that a glass & aluminium business RECEIVES from its suppliers.
+const PROMPT = `You read photos or PDFs of Indian purchase bills / tax invoices that a glass & aluminium business RECEIVES from its suppliers.
 Extract the details of the SUPPLIER (the seller who issued the bill), never the buyer. The buyer is ASHWIN ENTERPRISES / ARNAV GLASS SERVICES (GSTIN 27AEGPT6645A1ZF); ignore their name and GSTIN.
 Rules:
 - vendor_gstin: the supplier's 15-character GSTIN, exactly as printed. Omit it if the bill has none (unregistered / bill of supply).
@@ -23,6 +23,7 @@ Rules:
 - taxable_amount: total taxable value before tax (after discount). cgst, sgst, igst: the tax AMOUNTS in rupees (not the percentages). Use igst only for inter-state bills.
 - total_amount: the final payable grand total (after round-off).
 - items: a short plain summary of what was bought (e.g. "12mm toughened glass, silicone, hardware"), max 12 words.
+- If a PDF has several pages or bills, read the first bill only.
 - Numbers are plain numbers without the rupee sign or commas. If a value is not clearly visible, OMIT it. Never guess or invent digits.`;
 
 export async function scanBill(imageBase64: string, mimeType: string): Promise<ScanBillResult> {
@@ -33,8 +34,8 @@ export async function scanBill(imageBase64: string, mimeType: string): Promise<S
   if (!apiKey) {
     return { ok: false, error: "Bill scanning isn't set up yet. Add a GEMINI_API_KEY to .env.local and restart the app." };
   }
-  if (!MIME_OK.includes(mimeType)) return { ok: false, error: "Please use a JPG, PNG or WebP photo." };
-  if (!imageBase64 || imageBase64.length > MAX_B64) return { ok: false, error: "That photo is too large. Try a smaller one." };
+  if (!MIME_OK.includes(mimeType)) return { ok: false, error: "Please use a JPG, PNG, WebP or PDF file." };
+  if (!imageBase64 || imageBase64.length > MAX_B64) return { ok: false, error: "That file is too large (max about 2.5 MB). Try a smaller one." };
 
   const number = { type: Type.NUMBER, nullable: true };
   const text = { type: Type.STRING, nullable: true };
