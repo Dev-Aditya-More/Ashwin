@@ -318,7 +318,7 @@ function divineHeaderCss() {
 .dvl{position:absolute;left:3.5mm;top:3mm;width:42mm;height:20mm;display:flex;align-items:center;justify-content:center}.dvl img{filter:drop-shadow(0 0 .4mm #fff) drop-shadow(0 0 .4mm #fff) drop-shadow(0 0 .8mm #fff);max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;margin:0}
 .dvg{position:absolute;left:3.5mm;bottom:3.5mm;color:#fff;font-size:9px;line-height:1.55}
 .dvo{position:absolute;left:30%;right:0;top:0;height:21mm;background:var(--ac);border-radius:11mm 0 0 11mm;color:#fff;display:flex;align-items:center;gap:3.5mm;padding:0 5mm 0 9mm;font-size:8.5px;line-height:1.35}
-.dvo .i{font-size:11px}.dvo .sep{width:1px;align-self:stretch;margin:5mm 0;background:rgba(255,255,255,.65)}.dvo .ad{flex:1;min-width:0}
+.dvo .i{display:inline-block;width:10px;height:10px;vertical-align:-1.5px;margin-right:1px}.dvo .i svg{display:block;width:100%;height:100%}.dvo .sep{width:1px;align-self:stretch;margin:5mm 0;background:rgba(255,255,255,.65)}.dvo .ad{flex:1;min-width:0}
 .dvt{position:absolute;right:0;bottom:2mm;font-size:23px;font-weight:300;letter-spacing:.3px;color:#111}`;
 }
 
@@ -330,7 +330,7 @@ function divineHeaderHtml(
 ) {
   const gstin = o.gstin !== false;
   return `<div class="dvh"><div class="dvb"></div><div class="dvl">${o.logoHtml ?? brandLogo(workType, "lg", o.brand)}</div><div class="dvg">${gstin ? `<b>GSTIN:</b> ${GSTIN}<br>` : ""}<b>State:</b> 27-Maharashtra</div>
-<div class="dvo"><span><span class="i">☎</span> ${esc(co.phone)}</span><span class="sep"></span><span><span class="i">✉</span> ${esc(co.email)}</span><span class="sep"></span><span class="ad"><span class="i">⌖</span> ${esc(co.shop)}, ${esc(co.address)}</span></div>
+<div class="dvo"><span><span class="i"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span> ${esc(co.phone)}</span><span class="sep"></span><span><span class="i"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg></span> ${esc(co.email)}</span><span class="sep"></span><span class="ad"><span class="i"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg></span> ${esc(co.shop)}, ${esc(co.address)}</span></div>
 <div class="dvt">${esc(title)}</div></div>`;
 }
 
