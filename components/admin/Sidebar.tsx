@@ -42,7 +42,7 @@ export default function Sidebar() {
     <aside className="hidden md:flex md:flex-col w-64 shrink-0 border-r border-[var(--border)] bg-white h-screen sticky top-0">
       <div className="h-16 flex items-center px-5 border-b border-[var(--border)]">
         <Link href="/admin" className="flex items-center">
-          <Logo className="w-[150px] h-auto" />
+          <Logo contain className="aspect-[421/325] h-12 w-auto" />
         </Link>
       </div>
 

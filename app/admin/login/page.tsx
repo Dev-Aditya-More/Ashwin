@@ -14,7 +14,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-sm bg-white border border-[var(--border)] rounded-2xl shadow-sm p-8">
         <div className="flex flex-col items-center text-center mb-2">
-          <Logo className="w-[170px] h-auto" />
+          <Logo contain className="aspect-[421/325] h-28 w-auto" />
           <p className="text-xs text-[var(--text-muted)] mt-1">Admin Dashboard</p>
         </div>
 

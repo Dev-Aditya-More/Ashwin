@@ -24,7 +24,7 @@ export default function MobileSidebar() {
       <SheetContent side="left" className="w-64 p-0">
         <SheetTitle className="sr-only">Navigation</SheetTitle>
         <div className="h-16 flex items-center px-5 border-b border-[var(--border)]">
-          <Logo className="w-[150px] h-auto" />
+          <Logo contain className="aspect-[421/325] h-12 w-auto" />
         </div>
         <nav className="py-3 px-3 space-y-0.5">
           {NAV.map((item) => {

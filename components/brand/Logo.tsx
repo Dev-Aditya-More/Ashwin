@@ -12,10 +12,13 @@ import { cn } from "@/lib/utils";
 export function Logo({
   variant = "dark",
   marathi = false,
+  contain = false,
   className,
 }: {
   variant?: "dark" | "light";
   marathi?: boolean;
+  /** Show the whole image (stacked logo) instead of cropping it to a wide strip. */
+  contain?: boolean;
   className?: string;
 }) {
   return (
@@ -25,7 +28,7 @@ export function Logo({
         alt={marathi ? "अश्विन" : "Ashwin"}
         fill
         priority
-        className={cn("object-cover", variant === "light" && "brightness-0 invert")}
+        className={cn(contain ? "object-contain" : "object-cover", variant === "light" && "brightness-0 invert")}
       />
     </div>
   );

@@ -43,7 +43,7 @@ export default function UnlockPage() {
     <div className="min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-sm bg-white border border-[var(--border)] rounded-2xl shadow-sm p-8">
         <div className="flex flex-col items-center text-center mb-2">
-          <Logo className="w-[170px] h-auto" />
+          <Logo contain className="aspect-[421/325] h-28 w-auto" />
           <div className="mt-3 size-10 rounded-full bg-[var(--accent-blue)]/10 flex items-center justify-center">
             <Lock className="size-5 text-[var(--accent-blue)]" />
           </div>
