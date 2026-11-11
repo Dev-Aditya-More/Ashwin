@@ -39,7 +39,7 @@ const DIRECTION_BY_KIND: Record<TransactionKind, "in" | "out" | "neutral"> = {
 export async function listTransactions(
   limit = 100,
   projectId?: string,
-  monthKey?: string // "YYYY-MM" — filters to that calendar month
+  monthKey?: string // "YYYY-MM" - filters to that calendar month
 ): Promise<TransactionRow[]> {
   const supabase = await createClient();
 

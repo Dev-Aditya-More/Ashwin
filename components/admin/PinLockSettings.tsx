@@ -51,7 +51,7 @@ export function PinLockSettings({
       </div>
       <p className="text-xs text-[var(--text-muted)] -mt-2">
         {enabled
-          ? "A PIN is required on this and every device before the dashboard opens — separate from your sign-in password, so a browser that already remembers your login still can't be opened by anyone else."
+          ? "A PIN is required on this and every device before the dashboard opens - separate from your sign-in password, so a browser that already remembers your login still can't be opened by anyone else."
           : "Not set up. Add a PIN so the dashboard stays locked even on a device that already remembers your sign-in."}
       </p>
 
@@ -61,7 +61,7 @@ export function PinLockSettings({
           <p>
             A PIN is set, but the server can&apos;t see <code>APP_PIN_SECRET</code> right now, so
             the lock screen won&apos;t appear. This env var needs a full server restart (redeploy,
-            or stop/start <code>npm run dev</code>) to take effect — just editing{" "}
+            or stop/start <code>npm run dev</code>) to take effect - just editing{" "}
             <code>.env.local</code> isn&apos;t enough while it&apos;s already running.
           </p>
         </div>

@@ -3,7 +3,7 @@
 
 import { GSTIN_RE } from "@/lib/doc-calc";
 
-/** GSTINs that belong to us — they appear on a purchase bill as the BUYER, never as the supplier. */
+/** GSTINs that belong to us - they appear on a purchase bill as the BUYER, never as the supplier. */
 const OWN_GSTINS = ["27AEGPT6645A1ZF"];
 
 /** What the model is asked to read off the bill (every field optional: it leaves out what it can't see). */

@@ -71,13 +71,13 @@ export default async function VendorsPage({
                     {v.name}
                   </Link>
                 </TableCell>
-                <TableCell className="text-[var(--text-muted)]">{v.category ?? "—"}</TableCell>
-                <TableCell className="text-[var(--text-muted)]">{v.phone ?? "—"}</TableCell>
+                <TableCell className="text-[var(--text-muted)]">{v.category ?? "-"}</TableCell>
+                <TableCell className="text-[var(--text-muted)]">{v.phone ?? "-"}</TableCell>
                 <TableCell className="text-right text-[var(--text-muted)]">
-                  {v.totalBilled ? formatMoney(v.totalBilled) : "—"}
+                  {v.totalBilled ? formatMoney(v.totalBilled) : "-"}
                 </TableCell>
                 <TableCell className="text-right text-[var(--text-muted)]">
-                  {v.totalPaid ? formatMoney(v.totalPaid) : "—"}
+                  {v.totalPaid ? formatMoney(v.totalPaid) : "-"}
                 </TableCell>
                 <TableCell className="text-right">
                   {v.balance > 0 ? (

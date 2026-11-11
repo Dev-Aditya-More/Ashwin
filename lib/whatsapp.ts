@@ -7,7 +7,7 @@ const moneyText = (n: number) =>
  * The WhatsApp message follows the party's most recent saved transaction:
  * payment received / paid / refund each get matching wording, otherwise the
  * outstanding (or excess) balance is mentioned. Returns null when there is
- * nothing relevant to say (settled account, no relevant transaction) — in
+ * nothing relevant to say (settled account, no relevant transaction) - in
  * that case no message is opened, same as the original ASHWIN software.
  *
  * Civil/Interior clients sign as ASHWIN, Glass/Aluminium/UPVC clients and all

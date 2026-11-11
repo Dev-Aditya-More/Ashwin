@@ -25,7 +25,7 @@ import type {
   RegisterRow,
 } from "@/lib/doc-types";
 
-/** Postgres/PostgREST codes for "table or column does not exist" — i.e. migration 0007 hasn't been run. */
+/** Postgres/PostgREST codes for "table or column does not exist" - i.e. migration 0007 hasn't been run. */
 function isMissing(error: { code?: string; message?: string } | null | undefined) {
   if (!error) return false;
   return (
@@ -245,7 +245,7 @@ export async function listEstimates(
   };
 }
 
-/** Detail Sheets (confirmed estimates) for the invoice picker — only a Detail Sheet can be billed. No line items. */
+/** Detail Sheets (confirmed estimates) for the invoice picker - only a Detail Sheet can be billed. No line items. */
 export async function listEstimateOptions(): Promise<EstimateOption[]> {
   const supabase = await createClient();
   const { data } = await supabase
@@ -532,7 +532,7 @@ export async function updateEstimate(
   revalidatePath(`/admin/clients/${h.clientId}`);
   if (est.client_id !== h.clientId) revalidatePath(`/admin/clients/${est.client_id}`);
   revalidatePath("/admin");
-  return { ok: true, id, message: "Estimate updated — its Detail Sheet, ledger due and bills were updated too." };
+  return { ok: true, id, message: "Estimate updated - its Detail Sheet, ledger due and bills were updated too." };
 }
 
 export async function getEstimate(id: string): Promise<Estimate | null> {
@@ -542,7 +542,7 @@ export async function getEstimate(id: string): Promise<Estimate | null> {
   return flat(data as Joined<Omit<Estimate, "client">>) as unknown as Estimate;
 }
 
-/** Every estimate for one client, newest first — confirmed (Detail Sheet) or not. */
+/** Every estimate for one client, newest first - confirmed (Detail Sheet) or not. */
 export async function listClientEstimates(clientId: string): Promise<Estimate[]> {
   const supabase = await createClient();
   const { data } = await supabase
@@ -800,7 +800,7 @@ export async function getDocumentRegister(
       const gst = Number(r.gst_amount) || 0;
       purchaseGst += gst;
       const total = Number(r.amount);
-      rows.push({ group: "purchase", inSales: false, kind: "Purchase", no: r.bill_no ?? "—", date: r.bill_date, party: r.vendors?.name ?? "", taxable: r.taxable_amount != null ? Number(r.taxable_amount) : total, gst, total });
+      rows.push({ group: "purchase", inSales: false, kind: "Purchase", no: r.bill_no ?? "-", date: r.bill_date, party: r.vendors?.name ?? "", taxable: r.taxable_amount != null ? Number(r.taxable_amount) : total, gst, total });
     }
   }
   rows.sort((a, b) => a.date.localeCompare(b.date));
@@ -822,7 +822,7 @@ function fail(e: unknown): ActionResult {
   return { ok: false, error: err?.message || "Something went wrong. Please try again." };
 }
 
-/** Plain insert that throws on error — the new tables have no older shape to fall back to. */
+/** Plain insert that throws on error - the new tables have no older shape to fall back to. */
 async function insertStrict(
   supabase: SupabaseClient,
   table: string,

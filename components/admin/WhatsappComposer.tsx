@@ -67,7 +67,7 @@ export function WhatsappComposer({
 
       {noMessage && (
         <p className="text-xs text-amber-700">
-          No outstanding balance or relevant payment/refund transaction for this person — nothing to send.
+          No outstanding balance or relevant payment/refund transaction for this person - nothing to send.
         </p>
       )}
 

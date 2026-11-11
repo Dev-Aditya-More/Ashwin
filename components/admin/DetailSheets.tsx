@@ -109,7 +109,7 @@ export function DetailSheets({
                   {converted[q.id] ? `Quotation → Detail Sheet ${converted[q.id]}` : "Quotation"}
                 </Badge>
               </TableCell>
-              <TableCell className="text-right text-[var(--text-muted)]">—</TableCell>
+              <TableCell className="text-right text-[var(--text-muted)]">-</TableCell>
               <TableCell>
                 <div className="flex justify-end flex-wrap gap-1">
                   <Button size="sm" variant="outline" onClick={() => printQuotation(q)}>

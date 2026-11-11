@@ -15,7 +15,7 @@ export default async function BulkPayPage() {
         <div>
           <h1 className="text-xl font-semibold">Bulk Pay Labour</h1>
           <p className="text-sm text-[var(--text-muted)]">
-            Pay several workers at once — leave an amount blank to skip that worker.
+            Pay several workers at once - leave an amount blank to skip that worker.
           </p>
         </div>
       </div>

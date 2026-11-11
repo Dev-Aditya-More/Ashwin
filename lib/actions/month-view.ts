@@ -89,7 +89,7 @@ export type DaywiseRow = {
   note: string | null;
 };
 
-/** Every transaction of the month (dues included), oldest first — for the day-wise view. */
+/** Every transaction of the month (dues included), oldest first - for the day-wise view. */
 export async function getDaywiseTransactions(month: string): Promise<DaywiseRow[]> {
   const range = monthRange(month);
   if (!range) return [];
@@ -123,7 +123,7 @@ export async function getDaywiseTransactions(month: string): Promise<DaywiseRow[
 
 export type PartyOption = { id: string; name: string; gstin?: string | null };
 
-/** id + name (+ GSTIN) of every party — all the Quick Add form needs, in three small parallel queries. */
+/** id + name (+ GSTIN) of every party - all the Quick Add form needs, in three small parallel queries. */
 export async function listPartyOptions(): Promise<{
   clients: PartyOption[];
   labourers: PartyOption[];
@@ -135,7 +135,7 @@ export async function listPartyOptions(): Promise<{
     supabase.from("labourers").select("id, name").order("name"),
     supabase.from("vendors").select("id, name").order("name"),
   ]);
-  // gstin column missing (migration 0007 pending) — fall back to names only.
+  // gstin column missing (migration 0007 pending) - fall back to names only.
   const clients = c.error
     ? ((await supabase.from("clients").select("id, name").order("name")).data ?? [])
     : c.data ?? [];

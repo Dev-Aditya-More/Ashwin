@@ -86,7 +86,7 @@ export function AssistantChat() {
         if ("error" in result) {
           toast.error(result.error);
         } else {
-          pushTurn("assistant", "↩️ Done — that's been removed.");
+          pushTurn("assistant", "↩️ Done - that's been removed.");
           toast.success("Undone");
           lastCommitted.current = null;
           router.refresh();
@@ -122,7 +122,7 @@ export function AssistantChat() {
         return;
       }
       setTurns((t) => t.map((turn) => (turn.id === turnId ? { ...turn, undoable: undefined } : turn)));
-      pushTurn("assistant", "↩️ Done — that's been removed.");
+      pushTurn("assistant", "↩️ Done - that's been removed.");
       toast.success("Undone");
       lastCommitted.current = null;
       router.refresh();
@@ -147,7 +147,7 @@ export function AssistantChat() {
         <div className="min-w-0">
           <p className="text-sm font-semibold leading-tight">Ashwin Assistant</p>
           <p className="text-xs text-[var(--text-muted)] leading-tight truncate">
-            Asks before it saves anything — nothing is written without your confirm.
+            Asks before it saves anything - nothing is written without your confirm.
           </p>
         </div>
       </div>
@@ -161,7 +161,7 @@ export function AssistantChat() {
             <div>
               <p className="font-medium">Tell me what happened, I&apos;ll log it</p>
               <p className="text-sm text-[var(--text-muted)] mt-1 max-w-xs">
-                I&apos;ll ask for anything I&apos;m missing, one thing at a time — say &ldquo;skip&rdquo;
+                I&apos;ll ask for anything I&apos;m missing, one thing at a time - say &ldquo;skip&rdquo;
                 for anything optional you don&apos;t want to fill in.
               </p>
             </div>

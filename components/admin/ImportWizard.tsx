@@ -125,7 +125,7 @@ export function ImportWizard() {
       setResult(null);
       applySheetDefaults(wb, entity);
     } catch {
-      toast.error("Couldn't read that file — is it a valid .csv or Excel file?");
+      toast.error("Couldn't read that file - is it a valid .csv or Excel file?");
     }
   }
 
@@ -202,7 +202,7 @@ export function ImportWizard() {
                     ))}
                   </select>
                   <p className="text-xs text-[var(--text-muted)]">
-                    One workbook, one sheet per type — pick the sheet feeding this tab.
+                    One workbook, one sheet per type - pick the sheet feeding this tab.
                   </p>
                 </div>
               )}
@@ -213,7 +213,7 @@ export function ImportWizard() {
                   onChange={(e) => setTypeColumn(e.target.value)}
                   className="w-full h-9 rounded-md border border-[var(--border)] bg-background px-3 text-sm"
                 >
-                  <option value="">— This sheet is all {ENTITY_LABEL[entity].toLowerCase()} —</option>
+                  <option value="">- This sheet is all {ENTITY_LABEL[entity].toLowerCase()} -</option>
                   {currentSheet.headers.map((h) => (
                     <option key={h} value={h}>
                       {h}
@@ -240,7 +240,7 @@ export function ImportWizard() {
                       }
                       className="w-full h-9 rounded-md border border-[var(--border)] bg-background px-3 text-sm"
                     >
-                      <option value="">— Not in file —</option>
+                      <option value="">- Not in file -</option>
                       {currentSheet.headers.map((h) => (
                         <option key={h} value={h}>
                           {h}
@@ -266,7 +266,7 @@ export function ImportWizard() {
                     <TableRow key={i}>
                       {ENTITY_FIELDS[entity].map((f) => (
                         <TableCell key={f.key} className="text-[var(--text-muted)]">
-                          {String((r as unknown as Record<string, unknown>)[f.key] ?? "—") || "—"}
+                          {String((r as unknown as Record<string, unknown>)[f.key] ?? "-") || "-"}
                         </TableCell>
                       ))}
                     </TableRow>
@@ -280,7 +280,7 @@ export function ImportWizard() {
               )}
               {importRows.length === 0 && (
                 <p className="text-sm text-[var(--text-muted)] px-4 py-6 text-center">
-                  No rows matched {ENTITY_LABEL[entity].toLowerCase()} on this sheet — check the
+                  No rows matched {ENTITY_LABEL[entity].toLowerCase()} on this sheet - check the
                   Type Column or Sheet picked above.
                 </p>
               )}

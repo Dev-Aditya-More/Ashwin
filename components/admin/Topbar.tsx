@@ -40,7 +40,7 @@ export default function Topbar({
       <MobileSearch />
 
       {/* Pinned to the far right regardless of how much room the (max-width
-          capped) search box leaves — was previously just floating with a
+          capped) search box leaves - was previously just floating with a
           gap after it since nothing here had ml-auto. */}
       <div className="ml-auto flex items-center gap-3 shrink-0">
         <div className="hidden lg:flex items-center gap-2 text-sm text-[var(--text-secondary)]">

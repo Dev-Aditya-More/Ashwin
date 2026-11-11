@@ -55,7 +55,7 @@ export default async function TransactionsPage({
         <div>
           <h1 className="text-xl font-semibold">Transactions</h1>
           <p className="text-sm text-[var(--text-muted)]">
-            Every money-moving event, newest first — the single source of truth behind every balance.
+            Every money-moving event, newest first - the single source of truth behind every balance.
           </p>
         </div>
         <Button asChild variant="outline">
@@ -105,7 +105,7 @@ export default async function TransactionsPage({
                   {t.description}
                 </TableCell>
                 <TableCell className="text-[var(--text-muted)]">
-                  {t.addedBy ? shortName(t.addedBy) : "—"}
+                  {t.addedBy ? shortName(t.addedBy) : "-"}
                 </TableCell>
                 <TableCell
                   className={

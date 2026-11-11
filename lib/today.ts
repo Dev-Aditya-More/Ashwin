@@ -1,5 +1,5 @@
 // Business dates are Indian dates. `new Date().toISOString()` is UTC, which is still "yesterday"
-// in India until 5:30 am — so every default/limit date goes through these helpers instead.
+// in India until 5:30 am - so every default/limit date goes through these helpers instead.
 const IST = "Asia/Kolkata";
 
 /** Today's date in India, as YYYY-MM-DD. */

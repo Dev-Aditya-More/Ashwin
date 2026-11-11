@@ -8,7 +8,7 @@ export default function ImportPage() {
         <h1 className="text-xl font-semibold">Import &amp; Backup</h1>
         <p className="text-sm text-[var(--text-muted)]">
           Bring in clients, vendors, or labour from a CSV or Excel file. One workbook with a
-          sheet per type, or a single sheet mixing all three with a Type column — both work.
+          sheet per type, or a single sheet mixing all three with a Type column - both work.
           Include an opening balance column to carry over existing dues.
         </p>
       </div>

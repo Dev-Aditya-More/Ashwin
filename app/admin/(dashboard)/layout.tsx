@@ -14,7 +14,7 @@ export default async function DashboardLayout({
 }) {
   const supabase = await createClient();
   // getSession() reads the already-verified JWT from the request cookie
-  // locally — no network round trip. proxy.ts already called the
+  // locally - no network round trip. proxy.ts already called the
   // authoritative supabase.auth.getUser() for this request (and would
   // have redirected to /admin/login if it failed), so re-verifying here
   // would just be a second, redundant call to the Supabase Auth server.

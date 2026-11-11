@@ -6,7 +6,7 @@ const rupeesPaise = new Intl.NumberFormat("en-IN", {
   maximumFractionDigits: 2,
 });
 
-/** ₹1,500 for whole rupees, ₹5.40 when there are paise — so small amounts are never shown rounded away. */
+/** ₹1,500 for whole rupees, ₹5.40 when there are paise - so small amounts are never shown rounded away. */
 export function formatMoney(amount: number): string {
   const n = Number(amount) || 0;
   return Math.abs(n - Math.round(n)) < 0.005 ? rupees.format(n) : rupeesPaise.format(n);
@@ -20,7 +20,7 @@ export function formatDate(date: string | Date): string {
   }).format(new Date(date));
 }
 
-/** Good Morning / Afternoon / Evening — based on the current hour in India. */
+/** Good Morning / Afternoon / Evening - based on the current hour in India. */
 export function getGreeting(): string {
   const hour = Number(
     new Intl.DateTimeFormat("en-US", {
@@ -34,7 +34,7 @@ export function getGreeting(): string {
   return "Good Evening!";
 }
 
-/** "vikas@ashwin.world" -> "Vikas" — for a compact "added by" tag. */
+/** "vikas@ashwin.world" -> "Vikas" - for a compact "added by" tag. */
 export function shortName(email: string): string {
   const local = email.split("@")[0] ?? email;
   return local.charAt(0).toUpperCase() + local.slice(1);

@@ -22,7 +22,7 @@ type ActiveDialog = "client" | "vendor" | "labour" | null;
 
 /**
  * Replaces a single "+ Add Client" shortcut with a menu covering all three
- * entity types plus a hand-off to the AI assistant — the dashboard is the
+ * entity types plus a hand-off to the AI assistant - the dashboard is the
  * one place people land before knowing what they actually came to add.
  */
 export function AddEntityDropdown() {

@@ -29,7 +29,7 @@ export async function resetAllData(confirmation: string): Promise<{ ok: boolean;
   if (!data.user) return { ok: false, error: "Not signed in." };
 
   for (const table of TABLES) {
-    // Newer tables (migration 0007) may not exist yet — skip those quietly.
+    // Newer tables (migration 0007) may not exist yet - skip those quietly.
     const { error } = await supabase.from(table).delete().not("id", "is", null);
     if (error && !/does not exist|schema cache/i.test(error.message)) {
       return { ok: false, error: `Could not clear ${table}: ${error.message}` };

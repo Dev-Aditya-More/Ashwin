@@ -108,7 +108,7 @@ export default async function ReceivablesPage({ searchParams }: { searchParams: 
                   <TableCell className="text-right font-semibold">{formatMoney(r.outstanding)}</TableCell>
                   {BUCKETS.map((b, i) => (
                     <TableCell key={b.key} className={`text-right ${r.buckets[b.key] ? BUCKET_TONE[i] : "text-[var(--text-muted)]"}`}>
-                      {r.buckets[b.key] ? formatMoney(r.buckets[b.key]) : "—"}
+                      {r.buckets[b.key] ? formatMoney(r.buckets[b.key]) : "-"}
                     </TableCell>
                   ))}
                   <TableCell className="text-center">{ageBadge(r.oldestDays)}</TableCell>

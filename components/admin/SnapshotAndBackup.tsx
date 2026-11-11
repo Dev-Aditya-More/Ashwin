@@ -79,7 +79,7 @@ export function SnapshotAndBackup() {
           <Download className="size-4" /> Backup
         </p>
         <p className="text-sm text-[var(--text-muted)]">
-          Download everything — parties, ledgers, quotations, estimates, invoices — as one JSON file. Data lives in the
+          Download everything - parties, ledgers, quotations, estimates, invoices - as one JSON file. Data lives in the
           cloud and syncs across all devices automatically; keep a weekly backup anyway.
         </p>
         <Button asChild variant="outline">

@@ -13,7 +13,7 @@ export type ParsedWorkbook = {
 
 /**
  * Reads a .csv/.xlsx/.xlsm/.xls file in the browser into every sheet's
- * header + row data — not everyone keeps clients, vendors, and labour in
+ * header + row data - not everyone keeps clients, vendors, and labour in
  * separate files, so a workbook with one tab per type (or one CSV with a
  * Type column) both need to be readable in one pass.
  */

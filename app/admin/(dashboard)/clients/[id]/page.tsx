@@ -72,7 +72,7 @@ export default async function ClientDetailPage({
         />
         <EditClientDialog client={client} />
         <DeleteRowButton
-          what="client — this also removes all their work entries and payments"
+          what="client - this also removes all their work entries and payments"
           action={deleteClientRecord.bind(null, id)}
           trigger={
             <Button variant="destructive" size="sm">
@@ -82,7 +82,7 @@ export default async function ClientDetailPage({
         />
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
         <SummaryCard label="Total Work Billed" value={balance.total_work} />
         <SummaryCard label="Total Payment Received" value={balance.total_paid} />
         <SummaryCard
@@ -164,7 +164,7 @@ export default async function ClientDetailPage({
                   {payments.map((p) => (
                     <TableRow key={p.id}>
                       <TableCell className="text-[var(--text-muted)] whitespace-nowrap">{formatDate(p.payment_date)}</TableCell>
-                      <TableCell>{p.is_refund ? `Refund${p.note ? ` — ${p.note}` : ""}` : (p.note ?? "—")}</TableCell>
+                      <TableCell>{p.is_refund ? `Refund${p.note ? ` - ${p.note}` : ""}` : (p.note ?? "-")}</TableCell>
                       <TableCell className={`text-right font-medium ${p.is_refund ? "text-rose-600" : "text-emerald-600"}`}>
                         {p.is_refund ? "−" : "+"} {formatMoney(p.amount)}
                       </TableCell>

@@ -38,7 +38,7 @@ const GLASS_RE = /(glass|aluminium|aluminum|upvc)/i;
 export async function getContactContext(): Promise<ContactContext> {
   const supabase = await createClient();
   const [latest, clients, quotes, estimates] = await Promise.all([
-    // One row per party (view from migration 0009) — no need to scan the whole history.
+    // One row per party (view from migration 0009) - no need to scan the whole history.
     supabase.from("party_last_txn").select("kind, entity_id, amount, txn_date, is_refund, note"),
     supabase.from("clients").select("id, work_status"),
     supabase.from("quotations").select("client_id, work_type"),

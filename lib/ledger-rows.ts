@@ -8,7 +8,7 @@ const finish = (rows: Keyed[]): LedgerPrintRow[] =>
     .sort((a, b) => a.key.localeCompare(b.key))
     .map((r) => ({ date: r.date, particulars: r.particulars, debit: r.debit, credit: r.credit }));
 
-/** The Due booked by a Detail Sheet is described as "Estimate / Detail Sheet <no>" — on the ledger the Bill No. says it all. */
+/** The Due booked by a Detail Sheet is described as "Estimate / Detail Sheet <no>" - on the ledger the Bill No. says it all. */
 const AUTO_DETAIL_SHEET = /^Estimate \/ Detail Sheet\b/i;
 
 /** Debit = increases what the client owes (work billed, refunds); credit = payments received. */
@@ -18,7 +18,7 @@ export function clientLedgerRows(work: ClientWork[], payments: ClientPayment[]):
       key: `${w.work_date}T${w.created_at}`,
       date: w.work_date,
       particulars: w.bill_no
-        ? [`Bill ${w.bill_no}`, AUTO_DETAIL_SHEET.test(w.description ?? "") ? "" : w.description].filter(Boolean).join(" — ")
+        ? [`Bill ${w.bill_no}`, AUTO_DETAIL_SHEET.test(w.description ?? "") ? "" : w.description].filter(Boolean).join(" - ")
         : w.description ?? "",
       debit: Number(w.amount),
       credit: 0,
@@ -38,7 +38,7 @@ export function vendorLedgerRows(bills: VendorBill[], payments: VendorPayment[])
     ...bills.map((b) => ({
       key: `${b.bill_date}T${b.created_at}`,
       date: b.bill_date,
-      particulars: [b.bill_no ? `Bill ${b.bill_no}` : "", b.description].filter(Boolean).join(" — "),
+      particulars: [b.bill_no ? `Bill ${b.bill_no}` : "", b.description].filter(Boolean).join(" - "),
       debit: Number(b.amount),
       credit: 0,
     })),
@@ -57,7 +57,7 @@ export function labourLedgerRows(work: LabourWorkWithSite[], payments: LabourPay
     ...work.map((w) => ({
       key: `${w.work_date}T${w.created_at}`,
       date: w.work_date,
-      particulars: [w.client_name, w.site_location, w.description].filter(Boolean).join(" — "),
+      particulars: [w.client_name, w.site_location, w.description].filter(Boolean).join(" - "),
       debit: Number(w.amount),
       credit: 0,
     })),

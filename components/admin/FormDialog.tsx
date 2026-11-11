@@ -27,7 +27,7 @@ export function FormDialog({
   children,
 }: {
   trigger?: React.ReactNode;
-  /** Controlled open state — omit to let the dialog manage its own (uncontrolled) state via `trigger`. */
+  /** Controlled open state - omit to let the dialog manage its own (uncontrolled) state via `trigger`. */
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   title: string;

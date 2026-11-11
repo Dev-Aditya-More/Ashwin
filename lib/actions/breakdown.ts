@@ -27,7 +27,7 @@ type Row = {
 };
 
 /**
- * Party-wise detail behind a Revenue / Labour / Vendor figure for a date range — the payments the
+ * Party-wise detail behind a Revenue / Labour / Vendor figure for a date range - the payments the
  * performance table adds up, grouped by party (Revenue = received from clients, Labour/Vendor = paid
  * out; refunds subtract). Documents such as estimates, Detail Sheets and invoices are not counted.
  */
@@ -52,7 +52,7 @@ function group(rows: Row[], base: string) {
     p.amount += r.amount;
     p.entries.push({
       date: r.date,
-      description: [r.billNo ? `Bill ${r.billNo}` : "", r.description].filter(Boolean).join(" — "),
+      description: [r.billNo ? `Bill ${r.billNo}` : "", r.description].filter(Boolean).join(" - "),
       amount: r.amount,
     });
     map.set(r.entity, p);

@@ -17,7 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 /**
- * The one delete-confirmation dialog for the whole app — a ledger row's trash
+ * The one delete-confirmation dialog for the whole app - a ledger row's trash
  * icon and an entity page's "Delete" button both render this, so a business
  * owner sees the exact same "are you sure" screen everywhere, not a mix of
  * instant deletes and confirmed ones.
@@ -47,7 +47,7 @@ export function DeleteRowButton({
       } catch (err) {
         toast.dismiss(id);
         // A server action that redirects on success throws Next's internal
-        // redirect signal — that's not a real failure, so let it propagate
+        // redirect signal - that's not a real failure, so let it propagate
         // and navigate instead of showing an error toast.
         if (err && typeof err === "object" && "digest" in err && String(err.digest).startsWith("NEXT_REDIRECT")) {
           throw err;
@@ -81,7 +81,7 @@ export function DeleteRowButton({
             <div className="space-y-1 pt-0.5">
               <AlertDialogTitle>Delete this {what}?</AlertDialogTitle>
               <AlertDialogDescription>
-                This removes it for good — it can&apos;t be undone.
+                This removes it for good - it can&apos;t be undone.
               </AlertDialogDescription>
             </div>
           </div>

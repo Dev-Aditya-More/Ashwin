@@ -30,7 +30,7 @@ export async function GET() {
     exportedBy: auth.user.email ?? null,
   };
   for (const table of TABLES) {
-    // Tables from migration 0007 may not exist yet — export what is there.
+    // Tables from migration 0007 may not exist yet - export what is there.
     const { data, error } = await supabase.from(table).select("*");
     backup[table] = error ? [] : data;
   }

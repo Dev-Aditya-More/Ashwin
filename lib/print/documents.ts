@@ -57,7 +57,7 @@ function isFeeBill(workType: unknown, lines: EstimateLine[]) {
 }
 
 /**
- * Print-preview title — also the file name when saved as PDF: party name (when there is one) + document no.,
+ * Print-preview title - also the file name when saved as PDF: party name (when there is one) + document no.,
  * e.g. "Amol Chothre E-2026/27-005".
  */
 function docTitle(party: string | null | undefined, no: string) {
@@ -142,7 +142,7 @@ function chargesTable(d: PrintDoc) {
   };
 }
 
-/** Party block: name, then mobile / address / site exactly as saved — each only when it was entered. */
+/** Party block: name, then mobile / address / site exactly as saved - each only when it was entered. */
 function partyBlock(d: PrintDoc, party?: PrintParty, extra: string[] = []) {
   const mobile = String(d.clientMobile || party?.phone || "").trim();
   const address = String(d.clientAddress || party?.address || "").trim();
@@ -315,7 +315,7 @@ function divineHeaderCss() {
   return `:root{--ac:${accent};--ac2:${accent2}}
 .dvh{position:relative;height:36mm;margin-bottom:3mm}
 .dvb{position:absolute;left:0;top:0;width:54%;height:100%;background:var(--ac2);border-radius:0 0 14mm 0}
-.dvl{position:absolute;left:3.5mm;top:3mm;width:42mm;height:20mm;background:#fff;border-radius:3mm;display:flex;align-items:center;justify-content:center;padding:1mm}.dvl img{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;margin:0}
+.dvl{position:absolute;left:3.5mm;top:3mm;width:42mm;height:20mm;display:flex;align-items:center;justify-content:center}.dvl img{filter:drop-shadow(0 0 .4mm #fff) drop-shadow(0 0 .4mm #fff) drop-shadow(0 0 .8mm #fff);max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;margin:0}
 .dvg{position:absolute;left:3.5mm;bottom:3.5mm;color:#fff;font-size:9px;line-height:1.55}
 .dvo{position:absolute;left:30%;right:0;top:0;height:21mm;background:var(--ac);border-radius:11mm 0 0 11mm;color:#fff;display:flex;align-items:center;gap:3.5mm;padding:0 5mm 0 9mm;font-size:8.5px;line-height:1.35}
 .dvo .i{font-size:11px}.dvo .sep{width:1px;align-self:stretch;margin:5mm 0;background:rgba(255,255,255,.65)}.dvo .ad{flex:1;min-width:0}

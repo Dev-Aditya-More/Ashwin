@@ -88,7 +88,7 @@ export async function createClientRecord(formData: FormData): Promise<{ id?: str
     .select("id")
     .single();
   if (error || !data) {
-    // gstin/work_status columns missing (migration 0007 pending) — save the base row.
+    // gstin/work_status columns missing (migration 0007 pending) - save the base row.
     ({ data, error } = await supabase.from("clients").insert({ name, phone, address }).select("id").single());
   }
   if (error || !data) return {};

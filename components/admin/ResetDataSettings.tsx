@@ -29,11 +29,11 @@ export function ResetDataSettings() {
   return (
     <div className="rounded-xl border border-rose-200 bg-white p-4 space-y-3">
       <p className="font-semibold text-sm text-rose-700 flex items-center gap-2">
-        <TriangleAlert className="size-4" /> Danger zone — start fresh
+        <TriangleAlert className="size-4" /> Danger zone - start fresh
       </p>
       <p className="text-sm text-[var(--text-muted)]">
         Permanently deletes every client, vendor, labourer, ledger entry, project, quotation, estimate, detail sheet
-        and invoice. Financial years, PIN lock and logins are kept. This cannot be undone — download a backup first.
+        and invoice. Financial years, PIN lock and logins are kept. This cannot be undone - download a backup first.
       </p>
       <Button asChild variant="outline" size="sm">
         <a href="/admin/import/backup">

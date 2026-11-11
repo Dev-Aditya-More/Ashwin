@@ -16,7 +16,7 @@ let cachedRaw: string | null | undefined = undefined;
 let cachedItems: RecentItem[] = EMPTY;
 
 /**
- * Cached read, keyed on the raw localStorage string — returns the SAME
+ * Cached read, keyed on the raw localStorage string - returns the SAME
  * array reference when the underlying value hasn't changed, which
  * useSyncExternalStore requires to avoid re-render loops.
  */
@@ -58,7 +58,7 @@ export function pushRecentlyViewed(item: Omit<RecentItem, "viewedAt">) {
     const next = [{ ...item, viewedAt: Date.now() }, ...existing].slice(0, MAX_ITEMS);
     window.localStorage.setItem(KEY, JSON.stringify(next));
   } catch {
-    // localStorage unavailable (private mode, etc.) — recently-viewed is a
+    // localStorage unavailable (private mode, etc.) - recently-viewed is a
     // convenience feature, safe to no-op.
   }
 }

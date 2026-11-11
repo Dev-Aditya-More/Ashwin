@@ -96,7 +96,7 @@ export async function verifyPinAndUnlock(
     .maybeSingle();
 
   if (!data?.pin_hash) {
-    // Lock isn't even on (e.g. turned off mid-session elsewhere) — let them through.
+    // Lock isn't even on (e.g. turned off mid-session elsewhere) - let them through.
     redirect(next);
   }
 
@@ -107,7 +107,7 @@ export async function verifyPinAndUnlock(
 
   const secret = process.env.APP_PIN_SECRET;
   if (!secret) {
-    return { error: "App lock isn't fully configured — missing APP_PIN_SECRET." };
+    return { error: "App lock isn't fully configured - missing APP_PIN_SECRET." };
   }
 
   const token = await signPinToken(secret, Date.now() + PIN_SESSION_MS);
@@ -117,7 +117,7 @@ export async function verifyPinAndUnlock(
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/admin",
-    // No maxAge/expires on purpose — a session cookie the browser drops when
+    // No maxAge/expires on purpose - a session cookie the browser drops when
     // it's fully closed; the 6-hour cap is enforced inside the signed token.
   });
 

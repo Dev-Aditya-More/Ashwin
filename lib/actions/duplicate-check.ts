@@ -4,7 +4,7 @@ const WINDOW_MINUTES = 15;
 
 /**
  * True if a row with the same entity + amount + date was added in the
- * last 15 minutes — almost always an accidental double-submit (double
+ * last 15 minutes - almost always an accidental double-submit (double
  * tap on a slow connection, browser back-button resubmit, etc.).
  */
 export async function hasRecentDuplicate(

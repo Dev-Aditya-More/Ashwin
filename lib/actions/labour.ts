@@ -232,7 +232,7 @@ export async function updateLabourPayment(id: string, labourerId: string, formDa
 }
 
 /**
- * Pays several labourers in one go (e.g. weekly wage day) — one shared
+ * Pays several labourers in one go (e.g. weekly wage day) - one shared
  * payment date/note, one amount field per labourer, a single bulk insert.
  */
 export async function addBulkLabourPayments(

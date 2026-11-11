@@ -6,7 +6,7 @@ import { getMonthlyPerformance } from "@/lib/actions/dashboard";
 import { DocumentRegister } from "@/components/admin/DocumentRegister";
 import { SummaryTile, QuickAccess, MonthlyPerformance, LedgerTable } from "@/components/admin/LedgerBlocks";
 
-// recharts is one of the heaviest client bundles in the app — split it
+// recharts is one of the heaviest client bundles in the app - split it
 // into its own chunk so it doesn't delay the rest of the page.
 const MonthlyChart = dynamic(
   () => import("@/components/admin/MonthlyChart").then((m) => m.MonthlyChart),
@@ -33,18 +33,18 @@ export default async function ReportsPage() {
       <div>
         <h1 className="text-xl font-semibold">Reports</h1>
         <p className="text-sm text-[var(--text-muted)]">
-          Who owes you, and who you owe — calculated live from work, bills and payments.
+          Who owes you, and who you owe - calculated live from work, bills and payments.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
         <SummaryTile label="Client Receivable" value={totalReceivable} tone="emerald" />
         <SummaryTile label="Vendor Payable" value={totalVendorDue} tone="rose" />
         <SummaryTile label="Labour Due" value={totalLabourDue} tone="amber" />
       </div>
       {/* Lines up under the row above: Vendor Cost under Vendor Payable,
           Labour Cost under Labour Due. */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
         <SummaryTile label="Total FY Received" value={totalRevenue} tone="blue" />
         <SummaryTile label="Total Vendor Paid" value={totalVendorCost} tone="blue" />
         <SummaryTile label="Total Labour Paid" value={totalLabourCost} tone="blue" />

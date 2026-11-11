@@ -175,7 +175,7 @@ export async function bulkImport(entity: ImportEntity, rows: ImportRow[]): Promi
           })
           .select("id")
           .single();
-        // gstin/work_status columns missing (migration 0007 pending) — import the base row.
+        // gstin/work_status columns missing (migration 0007 pending) - import the base row.
         if (error) ({ data, error } = await supabase.from("clients").insert(base).select("id").single());
         if (error || !data) throw error ?? new Error("insert failed");
         await applyOpeningBalance(

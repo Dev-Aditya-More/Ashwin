@@ -1,6 +1,6 @@
 import { todayIST } from "@/lib/today";
 
-/** Last day of the current (Indian) calendar month, as YYYY-MM-DD — the furthest a date picker should allow. */
+/** Last day of the current (Indian) calendar month, as YYYY-MM-DD - the furthest a date picker should allow. */
 export function endOfCurrentMonth(): string {
   const [y, m] = todayIST().split("-").map(Number);
   // Day 0 of next month = last day of this month; computed in UTC so no timezone can shift it.
@@ -15,4 +15,4 @@ export function isAfterCurrentMonth(dateStr: string): boolean {
 }
 
 export const FUTURE_MONTH_WARNING =
-  "That date is in a future month — you can log entries for the current month or earlier only.";
+  "That date is in a future month - you can log entries for the current month or earlier only.";

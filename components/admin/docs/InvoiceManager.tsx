@@ -104,7 +104,7 @@ export function InvoiceManager({
     setNo((cur) => withPrefix(cur, next));
   }
 
-  // An estimate can be billed once — as GST or Non-GST, not both.
+  // An estimate can be billed once - as GST or Non-GST, not both.
   const invoicedBy = new Map(rows.filter((r) => r.estimate_id).map((r) => [r.estimate_id!, r.no]));
 
   function save() {
@@ -143,8 +143,8 @@ export function InvoiceManager({
                 const billed = invoicedBy.get(e.id);
                 return (
                   <option key={e.id} value={e.id} disabled={!!billed}>
-                    {e.no} — {e.client?.name}
-                    {e.site_name ? ` — ${e.site_name}` : ""} — {money(e.total)}
+                    {e.no} - {e.client?.name}
+                    {e.site_name ? ` - ${e.site_name}` : ""} - {money(e.total)}
                     {billed ? ` (already billed: ${billed})` : ""}
                   </option>
                 );
@@ -204,7 +204,7 @@ export function InvoiceManager({
               {type === "GST" ? "Tax Invoice with UPI QR." : "Bill of Supply (no GST, no QR)."}
             </>
           ) : (
-            "The bill amount will appear after you select a Detail Sheet. Only Detail Sheets can be billed — convert an Estimate to a Detail Sheet first."
+            "The bill amount will appear after you select a Detail Sheet. Only Detail Sheets can be billed - convert an Estimate to a Detail Sheet first."
           )}
         </p>
 

@@ -12,8 +12,8 @@ export type FlowRow = {
 export type CashFlows = { revenue: FlowRow[]; labour: FlowRow[]; vendor: FlowRow[] };
 
 /**
- * The performance figures follow actual money movements — the same transactions as the
- * Transactions page — like the workbook's day-wise "Total Credit":
+ * The performance figures follow actual money movements - the same transactions as the
+ * Transactions page - like the workbook's day-wise "Total Credit":
  *  - Revenue = payments received from clients (refunds to clients subtract)
  *  - Labour  = payments made to labour (refunds from labour subtract)
  *  - Vendor  = payments made to vendors (refunds from vendors subtract)

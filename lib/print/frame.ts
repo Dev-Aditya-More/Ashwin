@@ -133,7 +133,7 @@ let capturing: ((doc: CapturedDocument) => void) | null = null;
 
 /**
  * Runs a print function but, instead of opening the print preview, hands back the document it
- * would have printed — so the same templates also produce shareable PDFs.
+ * would have printed - so the same templates also produce shareable PDFs.
  */
 export function captureDocument(run: () => void): CapturedDocument | null {
   let doc: CapturedDocument | null = null;

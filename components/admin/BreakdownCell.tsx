@@ -11,14 +11,14 @@ type Cat = BreakdownCategory | "net";
 
 const TITLE: Record<Cat, string> = { revenue: "Revenue", labour: "Labour", vendor: "Vendor", net: "Net" };
 const HINT: Record<Cat, string> = {
-  revenue: "Payments received from clients (refunds subtracted). Quotations, estimates and invoices are not counted — only money actually received.",
+  revenue: "Payments received from clients (refunds subtracted). Quotations, estimates and invoices are not counted - only money actually received.",
   labour: "Payments made to labour (refunds subtracted).",
   vendor: "Payments made to vendors (refunds subtracted).",
   net: "Received from clients minus paid to labour and vendors.",
 };
 
 /**
- * A figure in the performance table that opens the party-wise details behind it —
+ * A figure in the performance table that opens the party-wise details behind it -
  * like the ASHWIN workbook's "PARTY-WISE DETAILS" pop-up.
  */
 export function BreakdownCell({
@@ -61,7 +61,7 @@ export function BreakdownCell({
         <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {TITLE[category]} — {label}
+              {TITLE[category]} - {label}
             </DialogTitle>
             <DialogDescription>{HINT[category]}</DialogDescription>
           </DialogHeader>

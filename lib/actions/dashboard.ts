@@ -34,7 +34,7 @@ export type DashboardData = {
 };
 
 export type MonthlyRow = {
-  key: string; // "YYYY-MM" — usable as a query param for filtering transactions
+  key: string; // "YYYY-MM" - usable as a query param for filtering transactions
   month: string;
   year: number;
   revenue: number;
@@ -48,8 +48,8 @@ function sum(rows: { balance: number }[] | null) {
 }
 
 /**
- * Everything below fires in ONE Promise.all batch — a single network
- * round trip to Supabase — rather than being split across several
+ * Everything below fires in ONE Promise.all batch - a single network
+ * round trip to Supabase - rather than being split across several
  * sequential awaits. That's the difference between the dashboard
  * feeling instant vs. feeling like it's loading in stages.
  */
@@ -223,12 +223,12 @@ export type DailyRow = {
 };
 
 /**
- * Day-by-day revenue/labour/vendor/net for an arbitrary date range —
+ * Day-by-day revenue/labour/vendor/net for an arbitrary date range -
  * used once the FY Monthly Performance table is filtered down, since
  * whole-month buckets get too coarse once there's a lot of activity.
  */
 export async function getDailyPerformance(from: string, to: string): Promise<DailyRow[]> {
-  // Defensive cap — a year of daily rows is already a lot to render; anything
+  // Defensive cap - a year of daily rows is already a lot to render; anything
   // wider almost certainly means someone fat-fingered the range.
   const maxTo = new Date(from);
   maxTo.setDate(maxTo.getDate() + 366);
@@ -278,7 +278,7 @@ export async function getDailyPerformance(from: string, to: string): Promise<Dai
 }
 
 /**
- * Lighter-weight than getDashboardData — just the active FY's
+ * Lighter-weight than getDashboardData - just the active FY's
  * month-by-month revenue/labour/vendor/net, for the Reports page.
  */
 export async function getMonthlyPerformance(): Promise<MonthlyRow[]> {

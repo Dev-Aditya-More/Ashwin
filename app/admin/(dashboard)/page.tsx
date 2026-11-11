@@ -63,7 +63,7 @@ export default async function DashboardPage({
         <Stats />
       </Suspense>
 
-      {/* Quick Access hidden for now — uncomment (and the import above) to bring it back.
+      {/* Quick Access hidden for now - uncomment (and the import above) to bring it back.
       <QuickAccess />
       */}
 
@@ -88,7 +88,7 @@ async function Stats() {
   const data = await dashboardData();
   return (
     <>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
         <StatCard icon={Users} label="Client Receivable" value={data.clientReceivable} sublabel="From clients" tone="green" />
         <StatCard icon={Truck} label="Vendor Payable" value={data.vendorPayable} sublabel="Materials & bills" tone="red" />
         <StatCard icon={HardHat} label="Labour Due" value={data.labourDue} sublabel="Owed to workers" tone="amber" />
@@ -97,7 +97,7 @@ async function Stats() {
 
       {/* Second row lines up under the first: Vendor Cost under Vendor
           Payable, Labour Cost under Labour Due. */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
         <StatCard icon={TrendingUp} label="Total FY Received" value={data.totalRevenue} sublabel="Payments from clients" />
         <StatCard icon={Truck} label="Total Vendor Paid" value={data.totalVendorCost} sublabel="Payments to vendors" />
         <StatCard icon={HardHat} label="Total Labour Paid" value={data.totalLabourCost} sublabel="Payments to workers" />

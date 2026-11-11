@@ -28,18 +28,18 @@ export function StatCard({
   return (
     <div
       className={cn(
-        "rounded-xl border border-[var(--border)] p-4 flex flex-col gap-3",
+        "rounded-xl border border-[var(--border)] p-3 sm:p-4 flex flex-col gap-2 sm:gap-3 min-w-0",
         TONES[tone]
       )}
     >
       <div className="flex items-center gap-2.5">
-        <div className="icon-badge size-9 rounded-lg flex items-center justify-center shrink-0">
+        <div className="icon-badge size-8 sm:size-9 rounded-lg flex items-center justify-center shrink-0">
           <Icon className="size-[18px]" />
         </div>
-        <p className="text-sm font-medium">{label}</p>
+        <p className="text-xs sm:text-sm font-medium leading-tight">{label}</p>
       </div>
       <div>
-        <p className="text-2xl font-semibold text-[var(--text-primary)] tabular-nums">
+        <p className="text-lg sm:text-2xl font-semibold text-[var(--text-primary)] tabular-nums break-words">
           {typeof value === "number" && isMoney ? formatMoney(value) : value}
         </p>
         <p className="text-xs text-[var(--text-muted)] mt-0.5">{sublabel}</p>

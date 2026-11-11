@@ -99,7 +99,7 @@ export function DocumentRegister() {
         </div>
 
         <p className="text-xs text-[var(--text-muted)]">
-          Quotations and estimates are counted as documents but not as sales — an estimate that is later invoiced is
+          Quotations and estimates are counted as documents but not as sales - an estimate that is later invoiced is
           only earned once, through its invoice.
         </p>
 
@@ -133,7 +133,7 @@ export function DocumentRegister() {
                     ) : r.group === "purchase" ? (
                       "Purchase"
                     ) : (
-                      "No — document only"
+                      "No - document only"
                     )}
                   </TableCell>
                 </TableRow>

@@ -155,7 +155,7 @@ export function AddLabourWorkDialog({
       </div>
       <ProjectSelect projects={projects} />
       <p className="text-xs text-[var(--text-muted)]">
-        Or pick a Project/Site above instead — its site and client fill in automatically when left blank.
+        Or pick a Project/Site above instead - its site and client fill in automatically when left blank.
       </p>
     </FormDialog>
   );

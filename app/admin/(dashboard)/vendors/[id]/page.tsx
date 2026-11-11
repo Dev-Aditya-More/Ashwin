@@ -53,7 +53,7 @@ export default async function VendorDetailPage({
         <PrintLedgerButton party={{ name: vendor.name, phone: vendor.phone }} rows={vendorLedgerRows(bills, payments)} />
         <EditVendorDialog vendor={vendor} />
         <DeleteRowButton
-          what="vendor — this also removes all their bills and payments"
+          what="vendor - this also removes all their bills and payments"
           action={deleteVendorRecord.bind(null, id)}
           trigger={
             <Button variant="destructive" size="sm">
@@ -63,7 +63,7 @@ export default async function VendorDetailPage({
         />
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
         <SummaryCard label="Total Billed" value={balance.total_billed} />
         <SummaryCard label="Total Payment Made" value={balance.total_paid} />
         <SummaryCard label="Remaining to Pay" value={balance.balance} tone="rose" />
@@ -133,7 +133,7 @@ export default async function VendorDetailPage({
                   {payments.map((p) => (
                     <TableRow key={p.id}>
                       <TableCell className="text-[var(--text-muted)] whitespace-nowrap">{formatDate(p.payment_date)}</TableCell>
-                      <TableCell>{p.is_refund ? `Refund${p.note ? ` — ${p.note}` : ""}` : (p.note ?? "—")}</TableCell>
+                      <TableCell>{p.is_refund ? `Refund${p.note ? ` - ${p.note}` : ""}` : (p.note ?? "-")}</TableCell>
                       <TableCell className={`text-right font-medium ${p.is_refund ? "text-emerald-600" : "text-rose-600"}`}>
                         {p.is_refund ? "+" : "-"} {formatMoney(p.amount)}
                       </TableCell>

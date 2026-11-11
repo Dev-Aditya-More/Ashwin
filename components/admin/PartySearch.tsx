@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
-/** Search box for the party lists — keeps the term in `?q=` so the server renders the filtered rows. */
+/** Search box for the party lists - keeps the term in `?q=` so the server renders the filtered rows. */
 export function PartySearch({ initial, placeholder }: { initial: string; placeholder: string }) {
   const router = useRouter();
   const pathname = usePathname();

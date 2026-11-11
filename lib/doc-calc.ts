@@ -101,7 +101,7 @@ export type EstimateLine = {
   rate: number;
   amount: number;
   hsn?: string;
-  /** Measurement exactly as typed (e.g. "45 3/8") — what every document prints. */
+  /** Measurement exactly as typed (e.g. "45 3/8") - what every document prints. */
   heightText?: string;
   lengthText?: string;
   lumpSum?: boolean;
@@ -305,7 +305,7 @@ export function describeInches(value: unknown): string {
   const raw = String(value ?? "").trim();
   if (!raw) return "";
   const n = parseInches(raw);
-  if (!n) return "Not understood — use e.g. 45 3/8";
+  if (!n) return "Not understood - use e.g. 45 3/8";
   return `${inchesToFraction(n)}″ → ${halfFoot(raw)} ft`;
 }
 
@@ -332,7 +332,7 @@ function dimAsWritten(text: string | undefined, inches: number | undefined): str
   return inches != null && Number(inches) ? inchesToFraction(Number(inches)) : "";
 }
 
-/** Size column for documents: `45 3/8″ × 62½″` exactly as typed — no conversion to decimals or feet. */
+/** Size column for documents: `45 3/8″ × 62½″` exactly as typed - no conversion to decimals or feet. */
 export function sizeAsWritten(l: Pick<EstimateLine, "heightText" | "lengthText" | "heightIn" | "lengthIn">): string {
   const h = dimAsWritten(l.heightText, l.heightIn);
   const w = dimAsWritten(l.lengthText, l.lengthIn);

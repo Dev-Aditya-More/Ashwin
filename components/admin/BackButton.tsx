@@ -5,7 +5,7 @@ import { ArrowLeft } from "lucide-react";
 
 /**
  * Goes back to wherever the user actually came from (Dashboard, Reports,
- * a list page, …) instead of a hardcoded parent route — so people don't
+ * a list page, …) instead of a hardcoded parent route - so people don't
  * have to reach for the browser's own back button to retrace a click.
  * Falls back to `fallbackHref` only if there's no in-app history to go
  * back to (e.g. the page was opened directly / in a new tab).

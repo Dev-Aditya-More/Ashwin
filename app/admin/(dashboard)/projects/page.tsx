@@ -58,9 +58,9 @@ export default async function ProjectsPage() {
                     {p.name}
                   </Link>
                 </TableCell>
-                <TableCell className="text-[var(--text-muted)]">{p.client_name ?? "—"}</TableCell>
+                <TableCell className="text-[var(--text-muted)]">{p.client_name ?? "-"}</TableCell>
                 <TableCell className="text-[var(--text-muted)] max-w-[240px] truncate">
-                  {p.site_address ?? "—"}
+                  {p.site_address ?? "-"}
                 </TableCell>
                 <TableCell>
                   <Badge className={STATUS_TONE[p.status]}>{STATUS_LABEL[p.status]}</Badge>

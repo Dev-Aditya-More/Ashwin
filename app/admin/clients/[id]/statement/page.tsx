@@ -24,8 +24,8 @@ export default async function ClientStatementPage({
   type Row = {
     date: string;
     description: string;
-    debit: number; // work billed — increases what client owes
-    credit: number; // payment received — decreases what client owes
+    debit: number; // work billed - increases what client owes
+    credit: number; // payment received - decreases what client owes
     sortKey: string;
   };
 

@@ -84,17 +84,17 @@ export default async function ClientsPage({
                     {c.name}
                   </Link>
                 </TableCell>
-                <TableCell className="text-[var(--text-muted)]">{c.phone ?? "—"}</TableCell>
-                <TableCell className="text-[var(--text-muted)] font-mono text-xs">{c.gstin ?? "—"}</TableCell>
+                <TableCell className="text-[var(--text-muted)]">{c.phone ?? "-"}</TableCell>
+                <TableCell className="text-[var(--text-muted)] font-mono text-xs">{c.gstin ?? "-"}</TableCell>
                 <TableCell className="text-[var(--text-muted)] max-w-[200px] truncate">
-                  {c.address ?? "—"}
+                  {c.address ?? "-"}
                 </TableCell>
-                <TableCell className="text-[var(--text-muted)]">{c.work_status ?? "—"}</TableCell>
+                <TableCell className="text-[var(--text-muted)]">{c.work_status ?? "-"}</TableCell>
                 <TableCell className="text-right text-[var(--text-muted)]">
-                  {c.totalWork ? formatMoney(c.totalWork) : "—"}
+                  {c.totalWork ? formatMoney(c.totalWork) : "-"}
                 </TableCell>
                 <TableCell className="text-right text-[var(--text-muted)]">
-                  {c.totalPaid ? formatMoney(c.totalPaid) : "—"}
+                  {c.totalPaid ? formatMoney(c.totalPaid) : "-"}
                 </TableCell>
                 <TableCell className="text-right">
                   {c.balance > 0 ? (

@@ -9,7 +9,7 @@ export default function AssistantPage() {
       <div>
         <h1 className="text-xl font-semibold">AI Assistant</h1>
         <p className="text-sm text-[var(--text-muted)]">
-          Tell it what happened in plain English — it finds the right contact and proposes the
+          Tell it what happened in plain English - it finds the right contact and proposes the
           ledger entry for you to confirm. Nothing is saved without your approval.
         </p>
       </div>

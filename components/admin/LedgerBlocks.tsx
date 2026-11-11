@@ -80,7 +80,7 @@ export function QuickAccess() {
       <div className="px-4 py-3 border-b border-[var(--border)] bg-[var(--bg-2)]">
         <p className="font-semibold text-sm">Quick Access</p>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-3 [&>*]:border-b [&>*]:border-r [&>*]:border-[var(--border)]">
+      <div className="grid grid-cols-2 sm:grid-cols-3 [&>*]:border-b [&>*]:border-r [&>*]:border-[var(--border)]">
         {links.map((l) => {
           const Icon = l.icon;
           return (
@@ -128,7 +128,7 @@ export function MonthlyPerformance({
     <div className="rounded-xl border border-[var(--border)] bg-white overflow-hidden">
       <div className="px-4 py-3 border-b border-[var(--border)] bg-[var(--bg-2)] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
         <p className="font-semibold text-sm">
-          {filtering ? "Performance — Day by Day" : "FY Monthly Performance"}
+          {filtering ? "Performance - Day by Day" : "FY Monthly Performance"}
         </p>
         <form action="/admin" className="flex flex-wrap items-center gap-1.5">
           <input
@@ -189,7 +189,7 @@ export function MonthlyPerformance({
                           {d[c] ? (
                             <BreakdownCell category={c} value={d[c]} from={d.key} to={d.key} label={formatDate(d.key)} />
                           ) : (
-                            "—"
+                            "-"
                           )}
                         </TableCell>
                       ))}
@@ -201,7 +201,7 @@ export function MonthlyPerformance({
                         {hasActivity ? (
                           <BreakdownCell category="net" value={d.net} from={d.key} to={d.key} label={formatDate(d.key)} />
                         ) : (
-                          "—"
+                          "-"
                         )}
                       </TableCell>
                     </TableRow>
@@ -231,7 +231,7 @@ export function MonthlyPerformance({
                           {m[c] ? (
                             <BreakdownCell category={c} value={m[c]} from={range.from} to={range.to} label={label} />
                           ) : (
-                            "—"
+                            "-"
                           )}
                         </TableCell>
                       ))}
@@ -243,7 +243,7 @@ export function MonthlyPerformance({
                         {hasActivity ? (
                           <BreakdownCell category="net" value={m.net} from={range.from} to={range.to} label={label} />
                         ) : (
-                          "—"
+                          "-"
                         )}
                       </TableCell>
                     </TableRow>
@@ -326,7 +326,7 @@ export function LedgerTable({
             return (
               <TableRow key={r.id}>
                 <TableCell className="font-medium">{r.name}</TableCell>
-                <TableCell className="text-[var(--text-muted)]">{r.phone ?? "—"}</TableCell>
+                <TableCell className="text-[var(--text-muted)]">{r.phone ?? "-"}</TableCell>
                 <TableCell className={`text-right font-medium ${toneClass}`}>
                   {formatMoney(r.balance)}
                 </TableCell>

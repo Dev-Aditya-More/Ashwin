@@ -21,7 +21,7 @@ export function PageHeaderSkeleton({ withAction = true }: { withAction?: boolean
 
 export function StatCardsSkeleton({ count = 4 }: { count?: number }) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
       {Array.from({ length: count }).map((_, i) => (
         <div key={i} className="h-28 rounded-xl border border-[var(--border)] bg-[var(--bg-2)]" />
       ))}

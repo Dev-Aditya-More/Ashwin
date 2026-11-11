@@ -1,5 +1,5 @@
 // Monthly GST report: sales (B2B / B2C), HSN summary, input credit from vendor bills, and the net payable.
-// Pure functions only — the page fetches the rows, this turns them into the report.
+// Pure functions only - the page fetches the rows, this turns them into the report.
 
 import { hsnFor } from "@/lib/doc-calc";
 import type { EstimateLine } from "@/lib/doc-calc";
@@ -84,7 +84,7 @@ function hsnShares(inv: InvoiceRow) {
   const half = r2(tax / 2);
   const by = new Map<string, number>();
   for (const l of inv.lines ?? []) by.set(hsnFor(l), (by.get(hsnFor(l)) ?? 0) + num(l.amount));
-  if (!by.size) by.set("—", 0);
+  if (!by.size) by.set("-", 0);
   const sum = [...by.values()].reduce((a, b) => a + b, 0);
   let leftT = taxable, leftC = half, leftS = r2(tax - half);
   return [...by.entries()].map(([hsn, amt], i, all) => {
@@ -144,7 +144,7 @@ export function buildGstReport(invoices: InvoiceRow[], bills: PurchaseRow[]): Gs
     .map((b) => {
       const gstin = String(b.vendor_gstin ?? "").trim().toUpperCase();
       return {
-        billNo: b.bill_no ?? "—",
+        billNo: b.bill_no ?? "-",
         date: b.bill_date,
         vendor: b.vendor_name,
         gstin,

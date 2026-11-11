@@ -32,7 +32,7 @@ export type AssistantReply = {
   proposal?: ProposedAction;
 };
 
-/** What a confirmed action would take to reverse — kept client-side so undo works across turns without server session state. */
+/** What a confirmed action would take to reverse - kept client-side so undo works across turns without server session state. */
 export type UndoInfo =
   | { table: "clients" | "vendors" | "labourers"; id: string }
   | {
@@ -78,7 +78,7 @@ function describeAction(tool: string, input: Record<string, string | number | un
     case "create_client":
       return `Add new client "${input.name}"${input.phone ? ` (${input.phone})` : ""}`;
     case "create_vendor":
-      return `Add new vendor "${input.name}"${input.category ? ` — ${input.category}` : ""}`;
+      return `Add new vendor "${input.name}"${input.category ? ` - ${input.category}` : ""}`;
     case "create_labourer":
       return `Add new worker "${input.name}"${input.default_rate ? ` at ₹${input.default_rate}/day` : ""}`;
     case "add_client_work":
@@ -108,7 +108,7 @@ export async function chatWithAssistant(
   const gemini = client();
   if (!gemini) {
     return {
-      reply: "The AI assistant isn't set up yet — add a GEMINI_API_KEY to .env.local and restart the app.",
+      reply: "The AI assistant isn't set up yet - add a GEMINI_API_KEY to .env.local and restart the app.",
     };
   }
 
@@ -169,7 +169,7 @@ export async function chatWithAssistant(
     });
   }
 
-  return { reply: "I got a bit stuck narrowing that down — can you give me more detail?" };
+  return { reply: "I got a bit stuck narrowing that down - can you give me more detail?" };
 }
 
 export async function confirmAssistantAction(
@@ -311,7 +311,7 @@ export async function confirmAssistantAction(
  * Reverses whatever `confirmAssistantAction` just committed. Deletes the
  * three entity tables directly (rather than reusing deleteClientRecord/
  * deleteVendorRecord/deleteLabourerRecord) because those redirect the page
- * afterwards — fine from their own "Delete" button, but not from a chat undo.
+ * afterwards - fine from their own "Delete" button, but not from a chat undo.
  */
 export async function undoAssistantAction(
   undo: UndoInfo
@@ -360,6 +360,6 @@ export async function undoAssistantAction(
     }
     return { success: true };
   } catch {
-    return { error: "Couldn't undo that — it may already be gone." };
+    return { error: "Couldn't undo that - it may already be gone." };
   }
 }

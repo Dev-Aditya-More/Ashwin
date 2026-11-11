@@ -44,7 +44,7 @@ export type Estimate = {
   source_quote_id: string | null;
   confirmed_at: string | null;
   client_work_id: string | null;
-  /** Net payments the client has made so far (advance received) — printed in the totals box. */
+  /** Net payments the client has made so far (advance received) - printed in the totals box. */
   paid?: number;
   client: DocClient | null;
 };
@@ -75,7 +75,7 @@ export type GstInvoice = {
   client: DocClient | null;
 };
 
-/** Just what the invoice picker needs (no line items) — keeps that page light. */
+/** Just what the invoice picker needs (no line items) - keeps that page light. */
 export type EstimateOption = {
   id: string;
   no: string;

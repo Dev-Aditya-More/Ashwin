@@ -114,7 +114,7 @@ export function QuotationManager({
           <h2 className="font-semibold text-sm">{editingId ? `Edit Quotation ${no}` : "Create Quotation"}</h2>
           {editingId && (
             <Button type="button" variant="outline" size="sm" onClick={() => startNew()}>
-              Cancel edit — new quotation
+              Cancel edit - new quotation
             </Button>
           )}
         </div>
@@ -271,7 +271,7 @@ export function QuotationManager({
                   <TableCell className={`font-medium ${converted[q.id] ? "line-through" : ""}`}>{q.no}</TableCell>
                   <TableCell className={converted[q.id] ? "line-through" : ""}>{q.client?.name}</TableCell>
                   <TableCell className="text-[var(--text-muted)]">
-                    <span className={converted[q.id] ? "line-through" : ""}>{q.site_name ?? "—"}</span>
+                    <span className={converted[q.id] ? "line-through" : ""}>{q.site_name ?? "-"}</span>
                     {converted[q.id] && <span className="ml-2 text-[11px] text-emerald-700">✓ Detail Sheet {converted[q.id]}</span>}
                   </TableCell>
                   <TableCell>

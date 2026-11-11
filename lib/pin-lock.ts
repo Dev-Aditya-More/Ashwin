@@ -1,5 +1,5 @@
 /**
- * Web Crypto only (no `node:crypto`) — this runs both in proxy.ts (Edge
+ * Web Crypto only (no `node:crypto`) - this runs both in proxy.ts (Edge
  * runtime) and in ordinary server actions (Node), and Web Crypto's
  * `crypto.subtle` is the one hashing API both environments share.
  */
@@ -22,7 +22,7 @@ async function hmacKey(secret: string) {
   );
 }
 
-/** SHA-256(salt + pin) — plenty for a short local-device PIN, not a login password. */
+/** SHA-256(salt + pin) - plenty for a short local-device PIN, not a login password. */
 export async function hashPin(pin: string, salt: string): Promise<string> {
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(salt + pin));
   return toHex(digest);
@@ -32,7 +32,7 @@ export function randomSalt(): string {
   return toHex(crypto.getRandomValues(new Uint8Array(16)).buffer);
 }
 
-/** A signed "unlocked until <expiry>" cookie value — verifiable without a DB round trip. */
+/** A signed "unlocked until <expiry>" cookie value - verifiable without a DB round trip. */
 export async function signPinToken(secret: string, expiresAt: number): Promise<string> {
   const key = await hmacKey(secret);
   const payload = String(expiresAt);
@@ -61,5 +61,5 @@ export async function verifyPinToken(secret: string, token: string | undefined):
 /** How long an unlock lasts even if the browser tab is left open. */
 export const PIN_SESSION_MS = 6 * 60 * 60 * 1000; // 6 hours
 
-/** Short-lived cookie: "no PIN lock is set" — lets the proxy skip a database lookup on every page. */
+/** Short-lived cookie: "no PIN lock is set" - lets the proxy skip a database lookup on every page. */
 export const LOCK_OFF_COOKIE = "ashwin_lock_off";

@@ -11,8 +11,8 @@ export async function currentUserEmail(supabase: SupabaseClient): Promise<string
  * Inserts row(s), tagging them with who added them and merging any
  * newer optional columns (payment_mode, bill_no, entry_type, …).
  * Falls back to a plain insert of just the base row if any of that
- * fails — e.g. the relevant migration (0002/0003) hasn't been run on
- * this project yet — so core functionality never breaks while a
+ * fails - e.g. the relevant migration (0002/0003) hasn't been run on
+ * this project yet - so core functionality never breaks while a
  * migration is pending.
  */
 export async function insertWithActor(

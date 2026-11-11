@@ -235,7 +235,7 @@ export function GstReportView({ month, report }: { month: string; report: GstRep
                 <TableCell className="whitespace-nowrap">{formatDate(p.date)}</TableCell>
                 <TableCell className="font-medium">{p.billNo}</TableCell>
                 <TableCell>{p.vendor}</TableCell>
-                <TableCell className="font-mono text-xs">{p.gstin || "—"}</TableCell>
+                <TableCell className="font-mono text-xs">{p.gstin || "-"}</TableCell>
                 <TableCell className="text-right">{formatMoney(p.taxable)}</TableCell>
                 <TableCell className="text-right">{formatMoney(p.gst)}</TableCell>
                 <TableCell className="text-right">{formatMoney(p.total)}</TableCell>

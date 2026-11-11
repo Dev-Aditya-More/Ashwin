@@ -22,7 +22,7 @@ export async function createClient() {
               cookieStore.set(name, value, options)
             );
           } catch {
-            // Called from a Server Component render — the proxy already
+            // Called from a Server Component render - the proxy already
             // refreshes the session, so this can be safely ignored.
           }
         },

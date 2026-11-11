@@ -17,7 +17,7 @@ export function SharePdfButton({
   compact = false,
   className,
 }: {
-  /** The same function the Print button uses — its output becomes the PDF. */
+  /** The same function the Print button uses - its output becomes the PDF. */
   print: () => void;
   /** PDF file name (without .pdf), e.g. "Amol Chothre E-2026-27/002". */
   title: string;
@@ -32,7 +32,7 @@ export function SharePdfButton({
     try {
       const file = await makePdf(print, title);
       const outcome = await shareFile(file);
-      if (outcome === "downloaded") toast.success("PDF downloaded — attach it in WhatsApp or e-mail.");
+      if (outcome === "downloaded") toast.success("PDF downloaded - attach it in WhatsApp or e-mail.");
       if (outcome === "needs-tap") {
         // The browser wants a fresh tap to open the share sheet.
         toast("PDF ready", {

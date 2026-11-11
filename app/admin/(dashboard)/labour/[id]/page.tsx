@@ -53,7 +53,7 @@ export default async function LabourDetailPage({
         <PrintLedgerButton party={{ name: labourer.name, phone: labourer.phone }} rows={labourLedgerRows(work, payments)} />
         <EditLabourerDialog labourer={labourer} />
         <DeleteRowButton
-          what="labourer — this also removes all their work entries and payments"
+          what="labourer - this also removes all their work entries and payments"
           action={deleteLabourerRecord.bind(null, id)}
           trigger={
             <Button variant="destructive" size="sm">
@@ -63,7 +63,7 @@ export default async function LabourDetailPage({
         />
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
         <SummaryCard label="Total Work" value={balance.total_work} />
         <SummaryCard label="Total Payment Made" value={balance.total_paid} />
         <SummaryCard label="Remaining to Pay" value={balance.balance} tone="amber" />
@@ -143,7 +143,7 @@ export default async function LabourDetailPage({
                   {payments.map((p) => (
                     <TableRow key={p.id}>
                       <TableCell className="text-[var(--text-muted)] whitespace-nowrap">{formatDate(p.payment_date)}</TableCell>
-                      <TableCell>{p.is_refund ? `Refund${p.note ? ` — ${p.note}` : ""}` : (p.note ?? "—")}</TableCell>
+                      <TableCell>{p.is_refund ? `Refund${p.note ? ` - ${p.note}` : ""}` : (p.note ?? "-")}</TableCell>
                       <TableCell className={`text-right font-medium ${p.is_refund ? "text-emerald-600" : "text-rose-600"}`}>
                         {p.is_refund ? "+" : "-"} {formatMoney(p.amount)}
                       </TableCell>

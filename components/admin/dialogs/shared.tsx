@@ -14,7 +14,7 @@ export function PaymentModeSelect({ defaultValue = "" }: { defaultValue?: string
         defaultValue={defaultValue}
         className="w-full h-9 rounded-md border border-[var(--border)] bg-background px-3 text-sm"
       >
-        <option value="">— Select —</option>
+        <option value="">- Select -</option>
         {MODES.map((m) => (
           <option key={m} value={m}>
             {m}
@@ -59,7 +59,7 @@ export function ProjectSelect({
         defaultValue={defaultValue}
         className="w-full h-9 rounded-md border border-[var(--border)] bg-background px-3 text-sm"
       >
-        <option value="">— None —</option>
+        <option value="">- None -</option>
         {projects.map((p) => (
           <option key={p.id} value={p.id}>
             {p.name}

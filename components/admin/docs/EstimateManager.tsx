@@ -221,7 +221,7 @@ export function EstimateManager({
 
   async function onCatalogChange(key: CatalogKey, value: string) {
     if (value !== CUSTOM) return patchDraft({ [FIELD_OF[key]]: value } as Partial<EstimateLineInput>);
-    const v = window.prompt(`New ${CATALOG_LABEL[key]} — enter:`);
+    const v = window.prompt(`New ${CATALOG_LABEL[key]} - enter:`);
     if (v && (await addOption(key, v))) patchDraft({ [FIELD_OF[key]]: v.trim() } as Partial<EstimateLineInput>);
   }
 
@@ -255,7 +255,7 @@ export function EstimateManager({
       if (at >= 0) {
         const qty = (Number(lines[at].qty) || 0) + (Number(draft.qty) || 0);
         setLines((ls) => ls.map((l, i) => (i === at ? { ...l, qty } : l)));
-        toast.success(`Same item already added — Qty of item ${at + 1} is now ${qty}.`);
+        toast.success(`Same item already added - Qty of item ${at + 1} is now ${qty}.`);
       } else {
         setLines((ls) => [...ls, draft]);
       }
@@ -285,7 +285,7 @@ export function EstimateManager({
     setLines([]);
     setDraft(newLine(catalog));
     setEditIdx(null);
-    toast.info("Client / Site / Work Category loaded. Quotation descriptions were not copied — add Estimate items separately.");
+    toast.info("Client / Site / Work Category loaded. Quotation descriptions were not copied - add Estimate items separately.");
   }
 
   function save() {
@@ -387,7 +387,7 @@ export function EstimateManager({
           <h2 className="font-semibold text-sm">{editingId ? `Edit Estimate ${no}` : "Create Estimate"}</h2>
           {editingId && (
             <Button type="button" variant="outline" size="sm" onClick={() => startNew()}>
-              Cancel edit — new estimate
+              Cancel edit - new estimate
             </Button>
           )}
         </div>
@@ -403,7 +403,7 @@ export function EstimateManager({
             <option value="">Select quotation</option>
             {quotations.map((q) => (
               <option key={q.id} value={q.id}>
-                {q.no} — {q.client?.name} — {q.site_name ?? ""}
+                {q.no} - {q.client?.name} - {q.site_name ?? ""}
               </option>
             ))}
           </select>
@@ -629,7 +629,7 @@ export function EstimateManager({
               {lines.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={9} className="text-center text-[var(--text-muted)] py-6">
-                    No items yet — fill in the item details above and press “Add Item”.
+                    No items yet - fill in the item details above and press “Add Item”.
                   </TableCell>
                 </TableRow>
               )}

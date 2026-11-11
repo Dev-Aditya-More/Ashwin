@@ -144,12 +144,12 @@ export function ClientLedgerTable({
           {withBalance.map((r, i) => (
             <TableRow key={i} className={r.struck ? "opacity-60" : ""}>
               <TableCell className={`whitespace-nowrap ${r.struck ? "line-through" : ""}`}>{formatDate(r.date)}</TableCell>
-              <TableCell className={`text-[var(--text-muted)] ${r.struck ? "line-through" : ""}`}>{r.billNo ?? "—"}</TableCell>
+              <TableCell className={`text-[var(--text-muted)] ${r.struck ? "line-through" : ""}`}>{r.billNo ?? "-"}</TableCell>
               <TableCell>
                 <span className={r.struck ? "line-through" : ""}>{r.particulars}</span>
                 {r.struck && <span className="ml-2 text-[11px] text-emerald-700">✓ Billed</span>}
               </TableCell>
-              <TableCell className="text-[var(--text-muted)]">{r.paymentMode ?? "—"}</TableCell>
+              <TableCell className="text-[var(--text-muted)]">{r.paymentMode ?? "-"}</TableCell>
               <TableCell className={`text-right ${r.struck ? "line-through" : ""}`}>{r.debit ? formatMoney(r.debit) : ""}</TableCell>
               <TableCell className="text-right text-emerald-600">{r.credit ? formatMoney(r.credit) : ""}</TableCell>
               <BalanceCell value={r.balance} />
@@ -243,11 +243,11 @@ export function VendorLedgerTable({
           {withBalance.map((r, i) => (
             <TableRow key={i}>
               <TableCell className="whitespace-nowrap">{formatDate(r.date)}</TableCell>
-              <TableCell className="text-[var(--text-muted)]">{r.billNo ?? "—"}</TableCell>
+              <TableCell className="text-[var(--text-muted)]">{r.billNo ?? "-"}</TableCell>
               <TableCell>{r.item}</TableCell>
               <TableCell className="text-right">{r.billAmount ? formatMoney(r.billAmount) : ""}</TableCell>
               <TableCell className="text-right text-emerald-600">{r.payment ? formatMoney(r.payment) : ""}</TableCell>
-              <TableCell className="text-[var(--text-muted)]">{r.paymentMode ?? "—"}</TableCell>
+              <TableCell className="text-[var(--text-muted)]">{r.paymentMode ?? "-"}</TableCell>
               <BalanceCell value={r.balance} />
               <TableCell>
                 <div className="flex items-center gap-0.5">
@@ -353,17 +353,17 @@ export function LabourLedgerTable({
           {withBalance.map((r, i) => (
             <TableRow key={i}>
               <TableCell className="whitespace-nowrap">{formatDate(r.date)}</TableCell>
-              <TableCell className="text-[var(--text-muted)]">{r.site ?? "—"}</TableCell>
-              <TableCell className="text-[var(--text-muted)]">{r.client ?? "—"}</TableCell>
-              <TableCell>{r.workDetails ?? "—"}</TableCell>
+              <TableCell className="text-[var(--text-muted)]">{r.site ?? "-"}</TableCell>
+              <TableCell className="text-[var(--text-muted)]">{r.client ?? "-"}</TableCell>
+              <TableCell>{r.workDetails ?? "-"}</TableCell>
               <TableCell className="text-right">{r.qty ?? ""}</TableCell>
               <TableCell className="text-right">{r.rate ? formatMoney(r.rate) : ""}</TableCell>
               <TableCell className="text-right">{r.workAmount ? formatMoney(r.workAmount) : ""}</TableCell>
               <TableCell className="text-right text-emerald-600">
                 {r.amountPaid ? formatMoney(r.amountPaid) : ""}
               </TableCell>
-              <TableCell className="text-[var(--text-muted)]">{r.entryType ?? "—"}</TableCell>
-              <TableCell className="text-[var(--text-muted)]">{r.paymentMode ?? "—"}</TableCell>
+              <TableCell className="text-[var(--text-muted)]">{r.entryType ?? "-"}</TableCell>
+              <TableCell className="text-[var(--text-muted)]">{r.paymentMode ?? "-"}</TableCell>
               <BalanceCell value={r.balance} />
               <TableCell>
                 <div className="flex items-center gap-0.5">

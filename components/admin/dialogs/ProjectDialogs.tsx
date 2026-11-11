@@ -37,7 +37,7 @@ function ClientSelect({
       defaultValue={defaultValue}
       className="w-full h-9 rounded-md border border-[var(--border)] bg-background px-3 text-sm"
     >
-      <option value="">— No client —</option>
+      <option value="">- No client -</option>
       {clients.map((c) => (
         <option key={c.id} value={c.id}>
           {c.name}

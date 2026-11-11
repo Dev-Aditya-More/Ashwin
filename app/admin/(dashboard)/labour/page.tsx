@@ -80,15 +80,15 @@ export default async function LabourPage({
                     {l.name}
                   </Link>
                 </TableCell>
-                <TableCell className="text-[var(--text-muted)]">{l.phone ?? "—"}</TableCell>
+                <TableCell className="text-[var(--text-muted)]">{l.phone ?? "-"}</TableCell>
                 <TableCell className="text-[var(--text-muted)]">
-                  {l.default_rate ? formatMoney(l.default_rate) : "—"}
+                  {l.default_rate ? formatMoney(l.default_rate) : "-"}
                 </TableCell>
                 <TableCell className="text-right text-[var(--text-muted)]">
-                  {l.totalWork ? formatMoney(l.totalWork) : "—"}
+                  {l.totalWork ? formatMoney(l.totalWork) : "-"}
                 </TableCell>
                 <TableCell className="text-right text-[var(--text-muted)]">
-                  {l.totalPaid ? formatMoney(l.totalPaid) : "—"}
+                  {l.totalPaid ? formatMoney(l.totalPaid) : "-"}
                 </TableCell>
                 <TableCell className="text-right">
                   {l.balance > 0 ? (
