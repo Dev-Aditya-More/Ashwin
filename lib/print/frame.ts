@@ -163,6 +163,29 @@ export function prepareHtml(rawHtml: string, widthMm?: number): string {
     );
 }
 
+/** Small full-screen "Preparing…" spinner shown while a document is laid out; returns a function that removes it. */
+export function showBusy(message: string): () => void {
+  if (typeof document === "undefined") return () => {};
+  if (!document.getElementById("busyStyle")) {
+    const st = document.createElement("style");
+    st.id = "busyStyle";
+    st.textContent = "@keyframes busyspin{to{transform:rotate(360deg)}}";
+    document.head.appendChild(st);
+  }
+  document.getElementById("busyOverlay")?.remove();
+  const o = document.createElement("div");
+  o.id = "busyOverlay";
+  o.setAttribute("role", "status");
+  o.style.cssText =
+    "position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.55);backdrop-filter:blur(1px)";
+  o.innerHTML =
+    '<div style="display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:12px 18px;box-shadow:0 8px 30px rgba(0,0,0,.15);font:500 14px system-ui,sans-serif;color:#222">' +
+    '<span style="width:18px;height:18px;border:2px solid #d1d5db;border-top-color:#1c3f94;border-radius:50%;animation:busyspin .7s linear infinite"></span>' +
+    esc(message) + "</div>";
+  document.body.appendChild(o);
+  return () => o.remove();
+}
+
 export function printHtmlInFrame(rawHtml: string, titleOrOpts?: string | PrintOptions) {
   let opts: PrintOptions = typeof titleOrOpts === "string" ? { title: titleOrOpts } : titleOrOpts ?? {};
   const title = opts.title;
@@ -188,6 +211,7 @@ export function printHtmlInFrame(rawHtml: string, titleOrOpts?: string | PrintOp
   }
   const html = prepareHtml(source, opts.widthMm);
   document.getElementById("printFrame")?.remove();
+  const hideBusy = showBusy("Preparing document…");
 
   const f = document.createElement("iframe");
   f.id = "printFrame";
@@ -202,6 +226,7 @@ export function printHtmlInFrame(rawHtml: string, titleOrOpts?: string | PrintOp
     if (restored) return;
     restored = true;
     document.title = prevTitle;
+    hideBusy();
     setTimeout(() => f.remove(), 300);
   };
 
@@ -223,6 +248,7 @@ export function printHtmlInFrame(rawHtml: string, titleOrOpts?: string | PrintOp
       try {
         if (opts.fit) fitPages(d, opts.fit);
         win.focus();
+        hideBusy();
         win.print();
       } catch (e) {
         restore();

@@ -25,6 +25,8 @@ const BRANDS: { id: Brand; name: string; tag: string; logo: string }[] = [
   { id: "arnav", name: "Arnav", tag: "Non-GST · AGS", logo: "/arnav-logo.png" },
 ];
 
+const KIND = { enterprises: "invoice", arnav: "invoice-nongst", ashwin: "invoice-ashwin" } as const;
+
 /** AE/2026/27-003 (Ashwin Enterprises, GST) · AGS/2026/27-003 (Arnav) · 2026/27-003 (Ashwin): one running serial, only the prefix changes. */
 function withPrefix(no: string, brand: Brand) {
   const base = no.replace(/^(AE|AGS)\//i, "");
@@ -89,6 +91,7 @@ export function InvoiceManager({
   const [gst, setGst] = useState(18);
   const [received, setReceived] = useState(0);
   const [pending, startTransition] = useTransition();
+  const [noLoading, setNoLoading] = useState(false);
 
   const est = estimates.find((e) => e.id === estimateId);
   const shownNo = no;
@@ -99,9 +102,16 @@ export function InvoiceManager({
 
   // GST bills are AE/…, Non-GST bills AGS/…, sharing one running serial. Switching the type only swaps
   // the prefix (no server round trip), so the number on screen can never lag behind the chosen type.
-  function changeBrand(next: Brand) {
+  // Each issuer has its own serial, so switching asks the server for that issuer's next number.
+  async function changeBrand(next: Brand) {
     setBrand(next);
-    setNo((cur) => withPrefix(cur, next));
+    setNo(withPrefix(no, next));
+    setNoLoading(true);
+    try {
+      setNo(await getNextDocNo(KIND[next]));
+    } finally {
+      setNoLoading(false);
+    }
   }
 
   // An estimate can be billed once - as GST or Non-GST, not both.
@@ -121,7 +131,7 @@ export function InvoiceManager({
       );
       setEstimateId("");
       setReceived(0);
-      setNo(withPrefix(await getNextDocNo("invoice"), brand));
+      setNo(await getNextDocNo(KIND[brand]));
     });
   }
 
@@ -152,7 +162,10 @@ export function InvoiceManager({
             </select>
           </Field>
           <Field label="Invoice Number">
-            <Input value={shownNo} onChange={(e) => setNo(e.target.value)} />
+            <div className="relative">
+              <Input value={shownNo} disabled={noLoading} onChange={(e) => setNo(e.target.value)} />
+              {noLoading && <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 size-4 animate-spin text-[var(--text-muted)]" />}
+            </div>
           </Field>
           <Field label="Invoice Date">
             <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />

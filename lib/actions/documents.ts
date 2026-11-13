@@ -68,7 +68,7 @@ const TABLE: Record<DocKind, string> = {
 };
 
 /** Next free number: Quotation 2026/27-001, Estimate 2026-27/001, GST invoice AE/2026/27-001, Non-GST bill AGS/2026/27-001. */
-export async function getNextDocNo(kind: DocKind | "invoice-nongst"): Promise<string> {
+export async function getNextDocNo(kind: DocKind | "invoice-nongst" | "invoice-ashwin"): Promise<string> {
   const supabase = await createClient();
   const fy = await activeFy(supabase);
   const [y, yy] = fyParts(fy?.label, fy?.start_date);
@@ -79,12 +79,13 @@ export async function getNextDocNo(kind: DocKind | "invoice-nongst"): Promise<st
       ? `${y}-${yy}/`
       : kind === "invoice-nongst"
       ? `AGS/${y}/${yy}-`
+      : kind === "invoice-ashwin"
+      ? `${y}/${yy}-`
       : `AE/${y}/${yy}-`;
-  const isInvoice = kind === "invoice" || kind === "invoice-nongst";
-  // GST (AE/…) and Non-GST (AGS/…) bills share ONE running count: after AE/2026/27-001,
-  // switching the type gives AGS/2026/27-002, so no two bills ever carry the same serial.
-  // (Civil / Interior bills of supply use the plain 2026/27-001 form, so they are counted too.)
-  const prefixes = isInvoice ? [`AE/${y}/${yy}-`, `AGS/${y}/${yy}-`, `${y}/${yy}-`] : [prefix];
+  const isInvoice = kind === "invoice" || kind === "invoice-nongst" || kind === "invoice-ashwin";
+  // Each issuer has its own running serial: invoice = Ashwin Enterprises (AE/), invoice-nongst = Arnav (AGS/),
+  // invoice-ashwin = Ashwin (plain 2026/27-001). Only that issuer's own bills are counted.
+  const prefixes = [prefix];
   const table = isInvoice ? TABLE.invoice : TABLE[kind as DocKind];
   const { data } = await supabase
     .from(table)

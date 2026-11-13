@@ -15,7 +15,6 @@ import {
   FileText,
   Calculator,
   Receipt,
-  FileSpreadsheet,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/brand/Logo";
@@ -29,7 +28,6 @@ export const NAV = [
   { label: "Quotation", href: "/admin/quotations", icon: FileText },
   { label: "Estimate", href: "/admin/estimates", icon: Calculator },
   { label: "GST & Invoices", href: "/admin/invoices", icon: Receipt },
-  { label: "GST Reports", href: "/admin/gst-reports", icon: FileSpreadsheet },
   { label: "Transactions", href: "/admin/transactions", icon: ArrowLeftRight },
   { label: "Import & Backup", href: "/admin/import", icon: Upload },
   { label: "WhatsApp", href: "/admin/whatsapp", icon: MessageCircle },
