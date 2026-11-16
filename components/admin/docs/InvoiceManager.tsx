@@ -3,14 +3,14 @@
 import { todayIST } from "@/lib/today";
 
 import { useState, useTransition } from "react";
-import { Loader2, Printer } from "lucide-react";
+import { Loader2, Pencil, Printer, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DeleteRowButton } from "@/components/admin/dialogs/DeleteRowButton";
 import { DocCard, DocCardList, Field, SetupNotice, selectCls } from "@/components/admin/docs/shared";
-import { deleteDocument, getNextDocNo, saveInvoice } from "@/lib/actions/documents";
+import { deleteDocument, getNextDocNo, saveInvoice, updateInvoice } from "@/lib/actions/documents";
 import type { EstimateOption, GstInvoice } from "@/lib/doc-types";
 import { printInvoiceDocument, type Brand } from "@/lib/print/documents";
 import { money } from "@/lib/print/frame";
@@ -92,8 +92,29 @@ export function InvoiceManager({
   const [received, setReceived] = useState(0);
   const [pending, startTransition] = useTransition();
   const [noLoading, setNoLoading] = useState(false);
+  const [editing, setEditing] = useState<GstInvoice | null>(null);
 
-  const est = estimates.find((e) => e.id === estimateId);
+  const est = editing
+    ? ({ id: editing.estimate_id ?? "", no: editing.estimate_no ?? "", client: editing.client, taxable: editing.taxable, subtotal: editing.subtotal, total: editing.total, site_name: editing.site_name } as unknown as EstimateOption)
+    : estimates.find((e) => e.id === estimateId);
+
+  function startEdit(inv: GstInvoice) {
+    setEditing(inv);
+    setBrand(invoiceBrand(inv));
+    setNo(inv.no);
+    setDate(inv.doc_date);
+    setGst(Number(inv.gst_rate) || 18);
+    setReceived(Number(inv.received) || 0);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  async function cancelEdit() {
+    setEditing(null);
+    setEstimateId("");
+    setReceived(0);
+    setDate(today());
+    setNo(await getNextDocNo(KIND[brand]));
+  }
   const shownNo = no;
   const taxable = Number(est?.taxable ?? est?.subtotal ?? 0);
   const rate = type === "GST" ? gst : 0;
@@ -119,9 +140,19 @@ export function InvoiceManager({
 
   function save() {
     startTransition(async () => {
-      const res = await saveInvoice({ estimateId, no, date, type, brand, gstRate: gst, received });
+      const res = editing
+        ? await updateInvoice(editing.id, { no, date, type, brand, gstRate: gst, received })
+        : await saveInvoice({ estimateId, no, date, type, brand, gstRate: gst, received });
       if (!res.ok) {
         toast.error(res.error);
+        return;
+      }
+      if (editing) {
+        toast.success("Invoice updated.");
+        setEditing(null);
+        setReceived(0);
+        setDate(today());
+        setNo(await getNextDocNo(KIND[brand]));
         return;
       }
       toast.success(
@@ -144,11 +175,11 @@ export function InvoiceManager({
       )}
 
       <div className="rounded-xl border border-[var(--border)] bg-white p-4 space-y-4">
-        <h2 className="font-semibold text-sm">Create Invoice from Detail Sheet</h2>
+        <h2 className="font-semibold text-sm">{editing ? `Edit Invoice ${editing.no}` : "Create Invoice from Detail Sheet"}</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <Field label="Detail Sheet">
-            <select className={selectCls} value={estimateId} onChange={(e) => setEstimateId(e.target.value)}>
-              <option value="">{estimates.length ? "Select Detail Sheet" : "No Detail Sheets yet"}</option>
+            <select className={selectCls} value={editing ? "" : estimateId} disabled={!!editing} onChange={(e) => setEstimateId(e.target.value)}>
+              <option value="">{editing ? `${editing.estimate_no ?? "Detail Sheet"} (billed)` : estimates.length ? "Select Detail Sheet" : "No Detail Sheets yet"}</option>
               {estimates.map((e) => {
                 const billed = invoicedBy.get(e.id);
                 return (
@@ -223,8 +254,13 @@ export function InvoiceManager({
 
         <div className="flex flex-wrap gap-2">
           <Button type="button" onClick={save} disabled={pending}>
-            {pending && <Loader2 className="size-4 animate-spin" />} Save Invoice
+            {pending && <Loader2 className="size-4 animate-spin" />} {editing ? "Update Invoice" : "Save Invoice"}
           </Button>
+          {editing && (
+            <Button type="button" variant="outline" onClick={cancelEdit} disabled={pending}>
+              <X className="size-4" /> Cancel
+            </Button>
+          )}
           <Button type="button" variant="outline" disabled={!rows.length} onClick={() => printInvoice(rows[0])}>
             <Printer className="size-4" /> Print / PDF
           </Button>
@@ -258,6 +294,9 @@ export function InvoiceManager({
               <Button size="sm" variant="outline" onClick={() => printInvoice(inv)}>
                 <Printer className="size-3.5" /> View / Print
               </Button>
+              <Button size="sm" variant="outline" onClick={() => startEdit(inv)}>
+                <Pencil className="size-3.5" /> Edit
+              </Button>
               <SharePdfButton print={() => printInvoice(inv)} title={`${inv.client?.name ?? ""} ${inv.no}`} />
             </DocCard>
           ))}
@@ -288,6 +327,9 @@ export function InvoiceManager({
                     <div className="flex justify-end gap-1">
                       <Button size="sm" variant="outline" onClick={() => printInvoice(inv)}>
                         View / Print
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => startEdit(inv)}>
+                        <Pencil className="size-3.5" /> Edit
                       </Button>
                       <SharePdfButton print={() => printInvoice(inv)} title={`${inv.client?.name ?? ""} ${inv.no}`} />
                       <DeleteRowButton

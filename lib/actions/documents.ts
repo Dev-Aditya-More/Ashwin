@@ -722,6 +722,40 @@ export async function saveInvoice(input: {
   }
 }
 
+/** Edit a saved invoice: number, date, issuer, GST % and advance. Amounts are recomputed from the bill's own taxable value. */
+export async function updateInvoice(
+  id: string,
+  input: { no: string; date: string; type: "GST" | "Non-GST"; brand?: "ashwin" | "enterprises" | "arnav"; gstRate: number; received: number }
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const { data: inv } = await supabase.from("gst_invoices").select("taxable, subtotal").eq("id", id).maybeSingle();
+  if (!inv) return { ok: false, error: "Invoice not found." };
+  const base = input.no.trim().replace(/^(AE|AGS)\//i, "");
+  if (!base) return { ok: false, error: "Invoice number missing." };
+  const plain = input.type === "Non-GST" && input.brand === "ashwin";
+  const no = plain ? base : (input.type === "GST" ? "AE/" : "AGS/") + base;
+  const gst = input.type === "GST" ? Math.max(0, Number(input.gstRate) || 0) : 0;
+  const taxable = Number(inv.taxable ?? inv.subtotal) || 0;
+  const tax = Math.round(taxable * gst) / 100;
+  const total = input.type === "GST" ? Math.round(taxable + tax) : Math.round(taxable * 100) / 100;
+  const { error } = await supabase
+    .from("gst_invoices")
+    .update({
+      no,
+      doc_date: input.date || undefined,
+      invoice_type: input.type,
+      gst_rate: gst,
+      tax,
+      total,
+      received: Math.max(0, Number(input.received) || 0),
+    })
+    .eq("id", id);
+  if (error) return fail(error);
+  revalidatePath("/admin/invoices");
+  revalidatePath("/admin");
+  return { ok: true, id, message: "Invoice updated." };
+}
+
 export async function deleteDocument(kind: DocKind, id: string): Promise<ActionResult> {
   const supabase = await createClient();
   const { error } = await supabase.from(TABLE[kind]).delete().eq("id", id);
