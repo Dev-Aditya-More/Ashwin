@@ -40,7 +40,7 @@ export default function Projects({ isFullPage = false }: Props) {
   return (
     <section
       id="portfolio"
-      className="w-full py-16 sm:py-20 md:py-24 px-4 sm:px-6 md:px-10 border-t border-[#E5E5E5]"
+      className="w-full py-16 sm:py-20 md:py-24 px-4 sm:px-6 md:px-10 border-t border-[#E5E5E5] surface-white"
     >
       <div className="max-w-7xl mx-auto">
         {/* Heading (only on homepage) */}
@@ -80,7 +80,7 @@ export default function Projects({ isFullPage = false }: Props) {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: (index % 12) * 0.05 }}
               onClick={() => setSelected(index)}
-              className="group relative overflow-hidden cursor-pointer rounded-md sm:rounded-lg shadow-sm hover:shadow-lg transition-shadow duration-300"
+              className="group relative overflow-hidden cursor-pointer rounded-lg sm:rounded-xl card-lift"
             >
               <div className="relative w-full aspect-[4/5] sm:aspect-[3/4] md:aspect-[4/3] lg:aspect-[5/4]">
                 <Image
@@ -91,11 +91,6 @@ export default function Projects({ isFullPage = false }: Props) {
                   className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
                 />
               </div>
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-2 py-2 sm:opacity-0 sm:group-hover:opacity-100 transition duration-300">
-                <p className="text-white text-[11px] sm:text-sm text-center truncate">
-                  {project.title}
-                </p>
-              </div>
             </motion.div>
           ))}
         </motion.div>
@@ -105,7 +100,7 @@ export default function Projects({ isFullPage = false }: Props) {
           <div className="mt-12 flex justify-center">
             <button
               onClick={() => setVisibleCount((prev) => prev + 12)}
-              className="px-6 py-3 border border-black text-sm hover:bg-black hover:text-white transition"
+              className="px-6 py-3 border border-black text-sm btn-depth-outline bg-white hover:bg-black hover:text-white transition"
             >
               Load More
             </button>
@@ -117,7 +112,7 @@ export default function Projects({ isFullPage = false }: Props) {
           <div className="mt-10 flex justify-center">
             <Link
               href="/portfolio"
-              className="relative overflow-hidden text-xs sm:text-sm px-6 py-3 border border-[#111111] text-[#111111] group"
+              className="relative overflow-hidden text-xs sm:text-sm px-6 py-3 border border-[#111111] text-[#111111] btn-depth-outline bg-white group"
             >
               <span className="absolute inset-0 w-0 bg-[var(--accent-gold)] transition-all duration-300 group-hover:w-full"></span>
 
@@ -161,9 +156,6 @@ export default function Projects({ isFullPage = false }: Props) {
               ✕
             </button>
 
-            <p className="text-white text-center mt-4 text-sm tracking-wide">
-              {projects[selected].title}
-            </p>
           </motion.div>
         </motion.div>
       )}

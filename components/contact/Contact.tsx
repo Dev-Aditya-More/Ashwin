@@ -44,7 +44,7 @@ export default function Contact() {
   return (
     <section
       id="contact"
-      className="w-full py-16 sm:py-20 md:py-24 px-4 sm:px-6 md:px-10 border-t border-[#E5E5E5] bg-[#fafafa]"
+      className="w-full py-16 sm:py-20 md:py-24 px-4 sm:px-6 md:px-10 border-t border-[#E5E5E5] surface-white"
     >
       <div className="max-w-7xl mx-auto">
         {/* Heading */}
@@ -166,7 +166,7 @@ export default function Contact() {
             >
               <a
                 href="tel:+919822990577"
-                className="relative overflow-hidden text-xs sm:text-sm px-5 sm:px-6 py-2.5 sm:py-3 border border-[#111111] group text-center w-full sm:w-auto"
+                className="relative overflow-hidden text-xs sm:text-sm px-5 sm:px-6 py-2.5 sm:py-3 border border-[#111111] btn-depth-outline group text-center w-full sm:w-auto"
               >
                 <span className="absolute inset-0 w-0 bg-[var(--accent-blue)] transition-all duration-600 group-hover:w-full" />
                 <span className="relative z-10 group-hover:text-white transition">
@@ -176,7 +176,7 @@ export default function Contact() {
 
               <a
                 href="https://wa.me/919822990577?text=Hi%20Ashwin,%20I%20am%20interested%20in%20your%20services.%20Can%20we%20discuss%20further?"
-                className="relative overflow-hidden text-xs sm:text-sm px-5 sm:px-6 py-2.5 sm:py-3 bg-[#111111] text-white group text-center w-full sm:w-auto"
+                className="relative overflow-hidden text-xs sm:text-sm px-5 sm:px-6 py-2.5 sm:py-3 bg-[#111111] text-white btn-depth group text-center w-full sm:w-auto"
               >
                 <span className="absolute inset-0 w-0 bg-[var(--accent-gold)] transition-all duration-600 group-hover:w-full" />
                 <span className="relative z-10">Chat on WhatsApp</span>
@@ -190,7 +190,7 @@ export default function Contact() {
             whileInView={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.7, ease: "easeOut", delay: 0.2 }}
             viewport={{ once: true }}
-            className="w-full border border-[var(--accent-gold)] bg-white p-6 sm:p-8 md:p-10"
+            className="w-full border border-[rgba(193,155,81,0.5)] rounded-2xl bg-white p-6 sm:p-8 md:p-10 shadow-[0_30px_70px_-25px_rgba(17,17,17,0.3)]"
           >
             <p className="text-[10px] tracking-[0.25em] uppercase text-[#888888] mb-1">
               Enquiry
@@ -239,7 +239,7 @@ export default function Contact() {
                     value={form.name}
                     onChange={handleChange}
                     placeholder="Your full name"
-                    className="w-full border border-[#E5E5E5] bg-[#fafafa] px-4 py-3 text-sm text-[#111111] placeholder:text-[#aaaaaa] outline-none focus:border-[var(--accent-gold)] transition"
+                    className="w-full border border-[#E5E5E5] bg-[#fafafa] rounded-md px-4 py-3 text-sm text-[#111111] placeholder:text-[#aaaaaa] outline-none focus:border-[var(--accent-gold)] transition"
                   />
                 </div>
 
@@ -256,7 +256,7 @@ export default function Contact() {
                       value={form.phone}
                       onChange={handleChange}
                       placeholder="+91 XXXXX XXXXX"
-                      className="w-full border border-[#E5E5E5] bg-[#fafafa] px-4 py-3 text-sm text-[#111111] placeholder:text-[#aaaaaa] outline-none focus:border-[var(--accent-gold)] transition"
+                      className="w-full border border-[#E5E5E5] bg-[#fafafa] rounded-md px-4 py-3 text-sm text-[#111111] placeholder:text-[#aaaaaa] outline-none focus:border-[var(--accent-gold)] transition"
                     />
                   </div>
                   <div className="flex flex-col gap-1">
@@ -269,7 +269,7 @@ export default function Contact() {
                       value={form.email}
                       onChange={handleChange}
                       placeholder="your@email.com"
-                      className="w-full border border-[#E5E5E5] bg-[#fafafa] px-4 py-3 text-sm text-[#111111] placeholder:text-[#aaaaaa] outline-none focus:border-[var(--accent-gold)] transition"
+                      className="w-full border border-[#E5E5E5] bg-[#fafafa] rounded-md px-4 py-3 text-sm text-[#111111] placeholder:text-[#aaaaaa] outline-none focus:border-[var(--accent-gold)] transition"
                     />
                   </div>
                 </div>
@@ -283,7 +283,7 @@ export default function Contact() {
                     name="service"
                     value={form.service}
                     onChange={handleChange}
-                    className="w-full border border-[#E5E5E5] bg-[#fafafa] px-4 py-3 text-sm text-[#111111] outline-none focus:border-[var(--accent-gold)] transition appearance-none cursor-pointer"
+                    className="w-full border border-[#E5E5E5] bg-[#fafafa] rounded-md px-4 py-3 text-sm text-[#111111] outline-none focus:border-[var(--accent-gold)] transition appearance-none cursor-pointer"
                   >
                     <option value="">Select a service</option>
                     <option>Civil Planning</option>
@@ -306,14 +306,14 @@ export default function Contact() {
                     onChange={handleChange}
                     rows={4}
                     placeholder="Tell us about your project or requirement…"
-                    className="w-full border border-[#E5E5E5] bg-[#fafafa] px-4 py-3 text-sm text-[#111111] placeholder:text-[#aaaaaa] outline-none focus:border-[var(--accent-gold)] transition resize-none"
+                    className="w-full border border-[#E5E5E5] bg-[#fafafa] rounded-md px-4 py-3 text-sm text-[#111111] placeholder:text-[#aaaaaa] outline-none focus:border-[var(--accent-gold)] transition resize-none"
                   />
                 </div>
 
                 {/* Submit */}
                 <button
                   type="submit"
-                  className="relative overflow-hidden mt-1 text-xs sm:text-sm tracking-widest uppercase px-6 py-3 bg-[#111111] text-white group text-center w-full"
+                  className="relative overflow-hidden mt-1 text-xs sm:text-sm tracking-widest uppercase px-6 py-3 bg-[#111111] text-white btn-depth group text-center w-full"
                 >
                   <span className="absolute inset-0 w-0 bg-[var(--accent-gold)] transition-all duration-500 group-hover:w-full" />
                   <span className="relative z-10">Send Enquiry via WhatsApp</span>

@@ -21,11 +21,21 @@ export function Logo({
   contain?: boolean;
   className?: string;
 }) {
+  // /ashwinLogoMarathi.png doesn't exist in public/ — render the wordmark as
+  // text instead of requesting a 404 image (which broke hydration).
+  if (marathi) {
+    return (
+      <span className={cn("block text-right font-serif text-2xl leading-none text-[#111111]", className)}>
+        अश्विन
+      </span>
+    );
+  }
+
   return (
     <div className={cn("relative aspect-[4/1] overflow-hidden shrink-0", className)}>
       <Image
-        src={marathi ? "/ashwinLogoMarathi.png" : "/ashwinLogo.png"}
-        alt={marathi ? "अश्विन" : "Ashwin"}
+        src="/ashwinLogo.png"
+        alt="Ashwin"
         fill
         priority
         className={cn(contain ? "object-contain" : "object-cover", variant === "light" && "brightness-0 invert")}

@@ -52,7 +52,7 @@ export default function Navbar() {
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         scrolled
-          ? "bg-black/90 backdrop-blur-lg border-b border-white/10"
+          ? "bg-black border-b border-white/10 shadow-[0_8px_30px_-10px_rgba(0,0,0,0.6)]"
           : "bg-gradient-to-b from-black/80 via-black/40 to-transparent"
       }`}
     >
@@ -60,7 +60,7 @@ export default function Navbar() {
         {/* Logo (also balances the hamburger/spacer on the right for centering) */}
         <div className="flex-1 flex items-center">
           <Link href="/" onClick={() => setMenuOpen(false)} className="flex items-center">
-            <Logo contain variant="light" className="aspect-[421/325] h-12 md:h-14 w-auto" />
+            <Logo contain className="aspect-[421/325] h-12 md:h-14 w-auto" />
           </Link>
         </div>
 

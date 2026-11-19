@@ -4,7 +4,7 @@ import { Logo } from "@/components/brand/Logo";
 
 export default function Footer() {
   return (
-    <footer className="w-full border-t border-[#E5E5E5] py-12 px-4 sm:px-6 md:px-10">
+    <footer className="w-full border-t border-[#E5E5E5] py-12 px-4 sm:px-6 md:px-10 bg-gradient-to-b from-white to-[#f4efe6] shadow-[inset_0_20px_30px_-30px_rgba(17,17,17,0.2)]">
       <div className="max-w-7xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-8 text-sm">
         {/* Brand */}
         <div className="col-span-2 sm:col-span-1">
@@ -115,7 +115,6 @@ export default function Footer() {
           &copy; {new Date().getFullYear()} Ashwin. All rights
           reserved.
         </p>
-        <Logo marathi className="w-[110px] h-auto opacity-80" />
       </div>
     </footer>
   );

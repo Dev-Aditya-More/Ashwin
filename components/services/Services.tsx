@@ -24,7 +24,7 @@ export default function Services() {
   return (
     <section
       id="services"
-      className="w-full pt-10 sm:pt-12 md:pt-14 pb-16 sm:pb-20 md:pb-24 px-4 sm:px-6 md:px-10 bg-[var(--bg-2)] border-t border-[var(--border)]"
+      className="w-full pt-10 sm:pt-12 md:pt-14 pb-16 sm:pb-20 md:pb-24 px-4 sm:px-6 md:px-10 surface-warm border-t border-[var(--border)]"
     >
       <div className="max-w-7xl mx-auto">
         
@@ -64,8 +64,8 @@ export default function Services() {
                 onMouseEnter={() => setHovered(i)}
                 onMouseLeave={() => setHovered(null)}
                 onClick={() => setHovered(isActive ? null : i)}
-                className={`grid grid-cols-[20px_1fr] gap-4 md:gap-6 py-5 md:py-7 border-b border-[var(--border)] cursor-pointer transition ${
-                  isActive ? "bg-[rgba(193,155,81,0.05)]" : ""
+                className={`grid grid-cols-[20px_1fr] gap-4 md:gap-6 px-3 md:px-5 py-5 md:py-7 mb-3 rounded-xl border border-[var(--border)] bg-white/70 cursor-pointer card-lift ${
+                  isActive ? "!bg-white ring-1 ring-[rgba(193,155,81,0.45)]" : ""
                 }`}
               >
                 {/* Bullet */}
@@ -117,7 +117,7 @@ export default function Services() {
         <div className="mt-10 flex justify-center">
           <Link
             href="/services"
-            className="relative overflow-hidden text-xs sm:text-sm px-6 py-3 border border-[var(--text-primary)] text-[var(--text-primary)] group"
+            className="relative overflow-hidden text-xs sm:text-sm px-6 py-3 border border-[var(--text-primary)] text-[var(--text-primary)] btn-depth-outline bg-white group"
           >
             <span className="absolute inset-0 w-0 bg-[var(--accent-gold)] transition-all duration-300 group-hover:w-full"></span>
             <span className="relative z-10 group-hover:text-black transition">

@@ -7,7 +7,7 @@ export default function About() {
   return (
     <section
       id="about"
-      className="w-full py-16 sm:py-20 md:py-24 px-4 sm:px-6 md:px-10 border-t border-[#E5E5E5] bg-white"
+      className="w-full py-16 sm:py-20 md:py-24 px-4 sm:px-6 md:px-10 border-t border-[#E5E5E5] surface-warm"
     >
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-center">
         {/* Image */}
@@ -20,7 +20,7 @@ export default function About() {
         >
           <div className="absolute -top-3 -left-3 right-3 bottom-3 sm:-top-5 sm:-left-5 sm:right-5 sm:bottom-5 border border-[var(--accent-gold)] pointer-events-none" />
 
-          <div className="w-full aspect-[4/5] overflow-hidden">
+          <div className="w-full aspect-[4/5] overflow-hidden rounded-sm shadow-[0_30px_60px_-20px_rgba(17,17,17,0.45)]">
             <motion.div
               initial={{ scale: 1.1 }}
               whileInView={{ scale: 1 }}

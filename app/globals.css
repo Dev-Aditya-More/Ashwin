@@ -132,3 +132,39 @@ html {
 section {
   scroll-margin-top: 100px;
 }
+/* ================= DEPTH & POLISH (public site) ================= */
+
+.surface-warm {
+  background:
+    radial-gradient(900px 400px at 85% -10%, rgba(193,155,81,0.10), transparent 60%),
+    radial-gradient(700px 400px at -10% 110%, rgba(48,117,208,0.06), transparent 60%),
+    linear-gradient(180deg, #fbf9f5 0%, #f6f2ea 100%);
+}
+
+.surface-white {
+  background:
+    radial-gradient(800px 360px at 100% 0%, rgba(193,155,81,0.07), transparent 60%),
+    linear-gradient(180deg, #ffffff 0%, #fcfbf8 100%);
+}
+
+.card-lift {
+  box-shadow: 0 1px 2px rgba(17,17,17,0.04), 0 10px 30px -12px rgba(17,17,17,0.18);
+  transition: box-shadow .35s ease, transform .35s ease;
+}
+.card-lift:hover {
+  box-shadow: 0 2px 4px rgba(17,17,17,0.06), 0 24px 48px -16px rgba(17,17,17,0.28);
+  transform: translateY(-3px);
+}
+
+.btn-depth {
+  box-shadow: 0 6px 16px -6px rgba(17,17,17,0.45), inset 0 1px 0 rgba(255,255,255,0.15);
+  border-radius: 6px;
+}
+.btn-depth-outline {
+  box-shadow: 0 4px 14px -8px rgba(17,17,17,0.35);
+  border-radius: 6px;
+}
+
+.gold-rule {
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
