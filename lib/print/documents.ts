@@ -142,6 +142,11 @@ function chargesTable(d: PrintDoc) {
   };
 }
 
+/** Address with every comma-separated part on its own line. */
+function addrLines(a: string) {
+  return String(a || "").split(",").map((x) => x.trim()).filter(Boolean).map((x, i, arr) => esc(x) + (i < arr.length - 1 ? "," : "")).join("<br>");
+}
+
 /** Party block: name, then mobile / address / site exactly as saved - each only when it was entered. */
 function partyBlock(d: PrintDoc, party?: PrintParty, extra: string[] = []) {
   const mobile = String(d.clientMobile || party?.phone || "").trim();
@@ -150,7 +155,7 @@ function partyBlock(d: PrintDoc, party?: PrintParty, extra: string[] = []) {
   return [
     `<b class="pn">${esc(d.client)}</b>`,
     mobile ? `Mobile: ${esc(mobile)}` : "",
-    address ? `Address: ${esc(address)}` : "",
+    address ? `Address: ${addrLines(address)}` : "",
     site ? `Site: ${esc(site)}` : "",
     ...extra,
   ]
@@ -313,7 +318,7 @@ type DivineCtx = {
 function divineHeaderCss() {
   const { accent, accent2 } = getPrintTheme();
   return `:root{--ac:${accent};--ac2:${accent2}}
-.dvh{position:relative;height:36mm;margin-bottom:3mm}
+.dvh{position:relative;height:36mm;margin-bottom:1mm}
 .dvb{position:absolute;left:0;top:0;width:54%;height:100%;background:var(--ac2);border-radius:0 0 14mm 0}
 .dvl{position:absolute;left:3.5mm;top:3mm;width:42mm;height:20mm;display:flex;align-items:center;justify-content:center}.dvl img{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;margin:0}
 .dvg{position:absolute;left:3.5mm;bottom:3.5mm;color:#fff;font-size:9px;line-height:1.55;font-weight:bold}
@@ -361,20 +366,20 @@ body{font:var(--fs) ${FONT};color:#222;print-color-adjust:exact;-webkit-print-co
 ${FRAME_CSS}
 .page{display:flex;flex-direction:column;min-height:260mm;width:100%}.spacer{flex:1 1 auto;min-height:0}
 ${divineHeaderCss()}
-.info{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:6mm;margin-bottom:4mm}.info h4{margin:0 0 2px;font-size:12px;font-weight:400;color:var(--ac)}.info .bt{line-height:1.5;font-size:9.5px}.info .mt{table-layout:fixed;width:100%}.info .mt td{padding:1.5px 0;font-size:9.5px;vertical-align:top}.info .mt td:first-child{font-weight:bold;width:27mm;white-space:nowrap}
+.info{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:6mm;margin-bottom:0}.info h4{margin:0 0 1px;font-size:12px;font-weight:400;color:var(--ac)}.info .bt{line-height:1.35;font-size:9.5px}.info .mt{table-layout:fixed;width:100%}.info .mt td{padding:1.5px 0;font-size:9.5px;vertical-align:top}.info .mt td:first-child{font-weight:bold;width:27mm;white-space:nowrap}
 .items{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;font-size:9.5px}
 .items th{background:var(--ac);color:#fff;font-size:9px;padding:5px 3px;border:0;font-weight:bold}.items thead th:first-child{border-top-left-radius:2.5mm}.items thead th:last-child{border-top-right-radius:2.5mm}
 .items td{border:1px solid #888;border-top:0;padding:4px 3px;text-align:center;vertical-align:middle;overflow-wrap:anywhere;line-height:1.3}.items tbody tr:first-child td{border-top:1px solid #888}
 .items td.d,.items th.d{text-align:left;padding-left:5px}.items tbody td:last-child{font-weight:bold}.items .num{white-space:nowrap}
 .items tr.fill td{padding:0;border-top:0;border-bottom:0}.items tr.tot td{background:var(--ac);color:#fff;font-weight:bold;border-color:var(--ac)}.items tr.tot td:first-child{border-bottom-left-radius:2.5mm}.items tr.tot td:last-child{border-bottom-right-radius:2.5mm}
 .items thead{display:table-header-group}.items tr{break-inside:avoid}.items tr.fill{break-inside:auto}
-.low{display:grid;grid-template-columns:1fr 43%;column-gap:6mm;margin-top:3mm;break-inside:avoid;align-items:stretch;min-height:92mm}.low>div{display:flex;flex-direction:column}.low>div:first-child{justify-content:space-between}.low>div:last-child .sg{margin-top:auto}
-.low h4{margin:0 0 2px;font-size:12px;font-weight:400;color:var(--ac)}.low .blk{margin-bottom:3.5mm;line-height:1.5;font-size:9px}
+.low{display:grid;grid-template-columns:1fr 43%;column-gap:6mm;margin-top:3mm;break-inside:avoid;align-items:stretch}.low>div{display:flex;flex-direction:column}.low>div:last-child .sg,.low>div:first-child .rs{margin-top:auto}
+.low h4{margin:0 0 2px;font-size:12px;font-weight:400;color:var(--ac)}.low .blk{margin-bottom:2.5mm;line-height:1.5;font-size:9px}
 .pay{display:flex;gap:3mm;align-items:flex-start}.pay img{width:22mm;height:22mm;object-fit:contain;flex:none}.pay div{line-height:1.5}
-.tt{width:100%;border-collapse:collapse;table-layout:fixed}.tt td{border:1px solid #666;padding:3.5px 6px;font-size:9.5px}.tt td:last-child{text-align:right;white-space:nowrap;width:46%}
+.tt{width:100%;border-collapse:collapse;table-layout:fixed}.tt td{border:1px solid #666;padding:3.5px 6px;font-size:9.5px}.tt td:last-child{text-align:right;white-space:nowrap;width:${c.fees ? 51 : 39.5}%}
 .tt tr.grand td{background:var(--ac);color:#fff;font-weight:bold;border-color:var(--ac)}.tt tr.bal td{font-weight:bold}
-.tax{width:100%;border-collapse:collapse;table-layout:fixed;margin-top:3mm}.tax th,.tax td{border:1px solid #666;font-size:6.8px;text-align:center;padding:2px 1px;line-height:1.15;overflow-wrap:anywhere}.tax th{background:#f1f3f8}
-.sg{margin-top:5mm;text-align:right;font-size:9px;break-inside:avoid}.sg b{font-size:10px}.sg .gap{height:13mm}
+.tax{width:100%;border-collapse:collapse;table-layout:fixed;margin:0 0 3.5mm}.tax th,.tax td{border:1px solid #666;font-size:6.8px;text-align:center;padding:2px 1px;line-height:1.15;overflow-wrap:anywhere}.tax th{background:#f1f3f8}
+.sg{margin-top:5mm;text-align:right;font-size:9px;break-inside:avoid}.sg b{font-size:10px}.sg .gap{height:9mm}.sg img{height:8mm;width:auto;vertical-align:middle;margin-left:3px}
 .thx{margin-top:3mm;text-align:center;font-weight:bold;font-size:9px;border-top:2px solid var(--ac);padding-top:3px;color:var(--ac2)}
 .rs{margin-top:4mm}.rs span{display:block;width:60%;border-top:1px solid #777;padding-top:2px;font-size:8.5px}`;
   const html = `<!doctype html><html><head><meta charset="utf-8"><title>${esc(docTitle(d.client, d.no))}</title><style>${css}</style></head><body><table class="frame"><thead><tr><td></td></tr></thead><tbody><tr><td><div class="page">
@@ -383,12 +388,12 @@ ${divineHeaderHtml(co, d.workType, "Tax Invoice", { brand: "enterprises" })}
 <div><table class="mt"><tr><td>No.:</td><td>${esc(d.no)}</td></tr><tr><td>Date:</td><td>${esc(fmtDate(d.date))}</td></tr><tr><td>Place of Supply:</td><td>27-Maharashtra</td></tr></table></div></div>
 <table class="items"><thead>${c.itemsHead}</thead><tbody>${c.rowsHtml}${c.filler}${c.itemsTotal}</tbody></table>
 <div class="low"><div>
+${tg.hsn ? `<table class="tax"><tr><th>HSN</th><th>Taxable (₹)</th><th>CGST %</th><th>CGST (₹)</th><th>SGST %</th><th>SGST (₹)</th><th>Tax (₹)</th></tr>${c.hsnRows}<tr><th>TOTAL</th><th>${c.taxable.toFixed(2)}</th><th></th><th>${c.half.toFixed(2)}</th><th></th><th>${(c.tax - c.half).toFixed(2)}</th><th>${c.tax.toFixed(2)}</th></tr></table>` : ""}
 ${tg.bank || tg.qr ? `<div class="blk"><h4>Pay To:</h4><div class="pay">${tg.qr ? `<img src="${c.qr}" alt="UPI payment QR">` : ""}${tg.bank ? `<div>Bank: ICICI BANK LIMITED, AURANGABAD<br>Account No.: 110505002754<br>IFSC: ICIC0006970<br>Account Name: ASHWIN ENTERPRISES<br>UPI ID: ashwinenterprises@icici</div>` : ""}</div></div>` : ""}
 ${tg.words ? `<div class="blk"><h4>In Words</h4>${amountInWords(c.total)}</div>` : ""}
 ${tg.terms ? `<div class="blk"><h4>Terms And Conditions</h4>Please pay within 3 days of the bill date.</div>` : ""}
 ${tg.signature ? `<div class="rs"><span>Receiver’s Signature</span></div>` : ""}
-</div><div><table class="tt">${totals}</table>${tg.hsn ? `<table class="tax"><tr><th>HSN</th><th>Taxable (₹)</th><th>CGST %</th><th>CGST (₹)</th><th>SGST %</th><th>SGST (₹)</th><th>Tax (₹)</th></tr>${c.hsnRows}<tr><th>TOTAL</th><th>${c.taxable.toFixed(2)}</th><th></th><th>${c.half.toFixed(2)}</th><th></th><th>${(c.tax - c.half).toFixed(2)}</th><th>${c.tax.toFixed(2)}</th></tr></table>` : ""}
-${tg.signature ? `<div class="sg"><b>For ASHWIN ENTERPRISES</b><div class="gap"></div>Authorised Signatory</div>` : ""}</div></div>
+</div><div><table class="tt">${totals}</table>${tg.signature ? `<div class="sg"><b>For</b>${brandLogo(d.workType, "sglogo", "enterprises")}<div class="gap"></div>Authorised Signatory</div>` : ""}</div></div>
 ${tg.thanks ? `<div class="thx">THANK YOU FOR DOING BUSINESS WITH US!</div>` : ""}
 </div></td></tr></tbody><tfoot><tr><td></td></tr></tfoot></table></body></html>`;
   return html;
@@ -437,7 +442,7 @@ export function buildTaxInvoice(d: PrintDoc, saved: EstimateLine[], party: Print
   const address = String(d.clientAddress || party.address || "").trim();
   const billTo = [
     `<b>${esc(d.client)}</b>`,
-    address ? esc(address) : "",
+    address ? addrLines(address) : "",
     mobile ? `Contact No.: ${esc(mobile)}` : "",
     d.siteName ? `Site: ${esc(d.siteName)}` : "",
     `GSTIN: <b>${esc(d.clientGstin || party.gstin || "Unregistered")}</b> &nbsp; State: 27-Maharashtra`,
@@ -537,6 +542,10 @@ export function buildBillOfSupply(d: PrintDoc, saved: EstimateLine[], party?: Pr
   const account = civil
     ? "Account Name:- Vikas Karbhrai Thokal<br>Bank Name:- SBI, Satara Parisar Branch, Beed Bypass Road, Chh. Sambhajinagar.<br>Account No.:- 30705278225<br>IFSC Code:- SBIN0021138"
     : "Account Name:- ARNAV GLASS SERVICES<br>Bank Name:- HDFC Bank Ltd., Beed Bypass Road, Chh. Sambhajinagar.<br>Account No.:- 50200061793113<br>IFSC Code:- HDFC0009426";
+  const upiPa = civil ? "30705278225@SBIN0021138.ifsc.npci.upi" : "50200061793113@HDFC0009426.ifsc.npci.upi";
+  const upiName = civil ? "Vikas Karbhrai Thokal" : "ARNAV GLASS SERVICES";
+  const upi = `upi://pay?pa=${upiPa}&pn=${encodeURIComponent(upiName)}&am=${bal.toFixed(2)}&cu=INR&tn=${encodeURIComponent("Bill " + d.no)}`;
+  const qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=4&data=" + encodeURIComponent(upi);
   const mobile = String(d.clientMobile || party?.phone || "").trim();
   const address = String(d.clientAddress || party?.address || "").trim();
 
@@ -559,7 +568,7 @@ table.items{width:100%;border-collapse:separate;border-spacing:0;border:1px soli
 ${divine ? DIVINE_BOS_CSS : ""}</style></head><body><table class="frame"><thead><tr><td></td></tr></thead><tbody><tr><td><div class="page">
 ${(() => {
     const billNo = esc(civil ? d.no.replace(/^AGS\//i, "") : d.no);
-    const toBlock = `<div class="to">To,<div class="nm">${esc(d.client)}</div>${mobile ? `<div class="st"><b>Mobile:</b> ${esc(mobile)}</div>` : ""}${address ? `<div class="st"><b>Address:</b> ${esc(address)}</div>` : ""}${d.siteName ? `<div class="st"><b>Site:</b> ${esc(d.siteName)}</div>` : ""}</div>`;
+    const toBlock = `<div class="to">To,<div class="nm">${esc(d.client)}</div>${mobile ? `<div class="st"><b>Mobile:</b> ${esc(mobile)}</div>` : ""}${address ? `<div class="st"><b>Address:</b> ${addrLines(address)}</div>` : ""}${d.siteName ? `<div class="st"><b>Site:</b> ${esc(d.siteName)}</div>` : ""}</div>`;
     return divine
       ? `${divineHeaderHtml(co, d.workType, "Bill of Supply", { logoHtml: logoImg, gstin: false })}<div class="qrow">${toBlock}<div class="qmeta"><div><b>Bill No.:</b> ${billNo}</div><div><b>Date:</b> ${esc(dmy(d.date))}</div></div></div>`
       : `<table class="hd"><tr><td class="addr"><div class="caddr">${esc(co.shop)}, ${esc(co.address)}</div>Phone: ${esc(co.phone)}<br>${esc(co.email)}</td><td style="width:170px">${logoImg}</td></tr></table>
@@ -568,7 +577,7 @@ ${toBlock}
 <div class="meta">Bill No.:- <b>${billNo}</b><br>Date:- <b>${esc(dmy(d.date))}</b></div>`;
   })()}
 ${itemsTable}
-<table class="bot"><tr><td class="acc" style="width:${fees ? 62 : 69}%"><div class="aw"><b>In Words:</b> ${esc(amountInWords(total))}</div>${account}</td><td><table class="tot">${totals}</table></td></tr></table>
+<table class="bot"><tr><td class="acc" style="width:${fees ? 62 : 69}%"><div class="aw"><b>In Words:</b> ${esc(amountInWords(total))}</div><div style="display:flex;gap:8px;align-items:center"><img src="${qrUrl}" alt="UPI payment QR" style="width:70px;height:70px;object-fit:contain;margin:0;flex:none"><div>${account}</div></div></td><td><table class="tot">${totals}</table></td></tr></table>
 <div class="sign"><b>For</b> ${logoImg}<div class="gap"></div><b>Authorised Signatory</b></div>
 </div></td></tr></tbody><tfoot><tr><td></td></tr></tfoot></table></body></html>`;
   return { html, title: (d.client ? d.client + " " : "") + d.no, opts: { widthMm: 210, fit: PIN_PAGE } as PrintOptions };
