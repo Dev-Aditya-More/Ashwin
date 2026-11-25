@@ -176,7 +176,10 @@ export default async function ServiceDetailPage({
           </div>
         </div>
 
-        <div className="mt-10 text-center">
+        <div className="mt-10 text-center space-y-3">
+          <Link href="/blog" className="block text-sm text-[var(--accent-gold)] underline underline-offset-4">
+            Read our interior design guides &rarr;
+          </Link>
           <Link
             href="/portfolio"
             className="text-sm text-[var(--accent-gold)] underline underline-offset-4"

@@ -169,33 +169,6 @@ export const services: Service[] = [
       "Final handover walkthrough",
     ],
   },
-  {
-    slug: "glass-work",
-    title: "Glass Work",
-    seoTitle: "Glass Work & Glass Partitions in Sambhajinagar (Aurangabad)",
-    shortDescription:
-      "Toughened glass partitions, doors, railings, mirrors and decorative glass — supplied, fitted and finished for homes and offices.",
-    metaDescription:
-      "Glass work in Chhatrapati Sambhajinagar (Aurangabad) — toughened glass partitions, glass doors, railings, mirrors and decorative glass for homes, offices and shops by Ashwin. Call +91 98229 90577.",
-    keywords: [
-      "glass work in Aurangabad",
-      "glass partition Sambhajinagar",
-      "toughened glass Aurangabad",
-      "glass railing Sambhajinagar",
-      "glass door installation Aurangabad",
-    ],
-    intro: [
-      "Glass is one of the quickest ways to make a space feel larger and brighter — an office cabin that doesn't block light, a staircase railing that doesn't feel heavy, a shower area that's easy to keep clean. We handle glass work as part of our interior projects and as a standalone service for homes, offices and shops in Chhatrapati Sambhajinagar.",
-      "Because the same team designs the interiors and does the glass work, measurements, fittings and finishes are planned together — so the glass fits the design instead of being added on at the end.",
-    ],
-    included: [
-      "Toughened glass partitions for offices and cabins",
-      "Glass doors and sliding systems",
-      "Glass railings for staircases and balconies",
-      "Mirrors, back-painted and decorative glass",
-      "On-site measurement, fitting and finishing",
-    ],
-  },
 ];
 
 export function getServiceBySlug(slug: string): Service | undefined {
